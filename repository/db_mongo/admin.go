@@ -2,9 +2,9 @@ package dbmongo
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
-type Admin struct {
+type AdminAccount struct {
 	ID      		primitive.ObjectID 	`bson:"_id,omitempty" `
-	AdminName 		string				`bson:"admin_name" gorm:"unique"`
+	AdminName 		string				`bson:"admin_name"`
 	AdminPassword	string				`bson:"admin_password" `
 	Model
 }
