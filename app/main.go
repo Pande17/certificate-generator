@@ -24,8 +24,6 @@ func main() {
 	// connect to database MongoDB
 	config.ConnectMongoDB()
 
-	// adminCollection := config.GetCollection(client, "certificate-generator", "adminAcc")
-
 	// create a new fiber application instance
 	app := fiber.New()
 
