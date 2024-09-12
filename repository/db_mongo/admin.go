@@ -4,10 +4,10 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 // struct for Admin Account
 type AdminAccount struct {
-	ID      		primitive.ObjectID 	`bson:"_id,omitempty" `
-	AccID			int64				`bson:"acc_id"`
-	AdminName 		string				`bson:"admin_name"`
-	AdminPassword	string				`bson:"admin_password" `
+	ID            primitive.ObjectID `bson:"_id,omitempty" `
+	AccID         int64              `bson:"acc_id"`
+	AdminName     string             `bson:"admin_name"`
+	AdminPassword string             `bson:"admin_password" `
 	Model
 }
 
