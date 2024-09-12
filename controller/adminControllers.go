@@ -455,6 +455,33 @@ func DeleteAdminAccount(c *fiber.Ctx) error {
 	// make filter to find document based on acc_id (incremental id)
 	filter := bson.M{"acc_id": accID}
 
+
+	// Check if account is already deleted
+	var adminAccount bson.M
+	err = collection.FindOne(context.TODO(), filter).Decode(&adminAccount)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error":  "Account not found",
+				"status": fiber.StatusNotFound,
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":  "Failed to fetch account details",
+			"status": fiber.StatusInternalServerError,
+		})
+	}
+
+	// Check if DeletedAt field already has a value
+	if deletedAt, ok := adminAccount["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
+		// Return the deletion time if the account is already deleted
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":      "This account has already been deleted",
+			"status":     fiber.StatusBadRequest,
+			"deleted_at": deletedAt,
+		})
+	}
+
 	// make update for input timestamp DeletedAt
 	update := bson.M{"$set": bson.M{"model.deleted_at": time.Now()}}
 
