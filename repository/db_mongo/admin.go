@@ -2,6 +2,7 @@ package dbmongo
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
+// struct for Admin Account
 type AdminAccount struct {
 	ID      		primitive.ObjectID 	`bson:"_id,omitempty" `
 	AccID			int64				`bson:"acc_id"`
