@@ -8,8 +8,14 @@ import (
 )
 
 func RouteSetup(r *fiber.App) {
+	r.Get("/", func (c *fiber.Ctx) error  {
+		return c.JSON(fiber.Map{
+			"message": "test",
+		})
+	})
+
 	// Define a group routes for API
-	api := r.Group("")
+	api := r.Group("/api")
 
 	// Define routes for authentication
 	api.Post("/signup", controller.SignUp)  // Route for signing up admin
@@ -28,4 +34,7 @@ func RouteSetup(r *fiber.App) {
 	protected.Get("/accounts/:id", controller.GetAccountByID) // Route to see admin account detail by acc_id
 	protected.Put("/accounts/:id", controller.EditAdminAccount) // Route to edit password admin account by acc_id
 	protected.Delete("/accounts/:id", controller.DeleteAdminAccount) // Route to delete admin account by acc_id
+
+	// define routes for management certificate
+	protected.Post("/certificate", nil)
 }
