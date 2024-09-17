@@ -35,6 +35,12 @@ func RouteSetup(r *fiber.App) {
 	protected.Put("/accounts/:id", controller.EditAdminAccount) // Route to edit password admin account by acc_id
 	protected.Delete("/accounts/:id", controller.DeleteAdminAccount) // Route to delete admin account by acc_id
 
+	// // define routes for management competence
+	// protected.Post("/competence", controller.CreateCompetence) // route to create competence data
+	// protected.Put("/competence/:id", controller.EditCompetence) // route to create competence data
+	// protected.Delete("/competence/:id", controller.DeleteCompetence) // route to create competence data
+
+
 	// define routes for management certificate
 	protected.Post("/certificate", nil)
 }
