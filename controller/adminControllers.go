@@ -32,10 +32,7 @@ func SignUp(c *fiber.Ctx) error {
 
 	// parse the request body
     if err := c.BodyParser(&adminReq); err != nil {
-        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-            "error": "Failed to read body",
-            "status": fiber.StatusBadRequest,
-        })
+		return BadRequest(c, "Failed to read body")
     }
 
     // Trim whitespace from input
@@ -44,19 +41,13 @@ func SignUp(c *fiber.Ctx) error {
 
     // validation to check if input password empty
     if adminReq.AdminPassword == "" {
-        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-            "error": "Password cannot be empty",
-            "status": fiber.StatusBadRequest,
-        })
+        return BadRequest(c, "Password cannot be empty")
     }
 
 	// hashing the input password with bcrypt
     hash, err := bcrypt.GenerateFromPassword([]byte(adminReq.AdminPassword), bcrypt.DefaultCost)
     if err != nil {
-        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-            "error": "Failed to hash password",
-            "status": fiber.StatusBadRequest,
-        })
+        return BadRequest(c, "Failed to hashed password")
     }
 
 	// connect collection admin account in database
@@ -71,24 +62,15 @@ func SignUp(c *fiber.Ctx) error {
 	// find admin account with same account name as input name
     err = collection.FindOne(context.TODO(), filter).Decode(&existingAdmin)
     if err == nil {
-        return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-            "error": "Admin name already exists",
-            "status": fiber.StatusConflict,
-        })
+		return Conflict(c, "Admin name already exists")
     } else if err != mongo.ErrNoDocuments {
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-            "error": "Error checking for existing admin name",
-            "status": fiber.StatusInternalServerError,
-        })
+		return InternalServerError(c, "Error checking for existing admin name")
     }
 
 	// generate acc_id (incremental id)
     nextAccID, err := GetNextAccID(collection)
     if err != nil {
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-            "error": "Failed to generate account ID",
-            "status": fiber.StatusInternalServerError,
-        })
+		return InternalServerError(c, "Failed to generate account ID")
     }
 
 	// input data from req struct to struct "AdminAccount"
@@ -107,18 +89,11 @@ func SignUp(c *fiber.Ctx) error {
 	// insert data from struct "AdminAccount" to collection in database MongoDB
     _, err = collection.InsertOne(context.TODO(), admin)
     if err != nil {
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-            "error": "Failed to create admin",
-            "status": fiber.StatusInternalServerError,
-        })
+        return InternalServerError(c, "Failed to create admin account")
     }
 
 	// return success
-    return c.Status(fiber.StatusOK).JSON(fiber.Map{
-        "message": "Admin account created successfully",
-        "status":  fiber.StatusOK,
-        "admin":   admin,
-    })
+    return Ok(c, "Admin account created successfully", admin)
 }
 
 // function to login to admin account
@@ -131,10 +106,7 @@ func Login(c *fiber.Ctx) error {
 
 	// parse the request body
     if err := c.BodyParser(&adminReq); err != nil {
-        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-            "error": "Failed to read body",
-            "status": fiber.StatusBadRequest,
-        })
+        return BadRequest(c, "Failed to read body")
     }
 
     // Trim whitespace dari input
@@ -151,24 +123,21 @@ func Login(c *fiber.Ctx) error {
     err := collection.FindOne(context.TODO(), bson.M{"admin_name": adminReq.AdminName}).Decode(&admin)
     if err != nil {
         if err == mongo.ErrNoDocuments {
-            return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-                "error": "Invalid name or password",
-                "status": fiber.StatusUnauthorized,
-            })
+            return Unauthorized(c, "Invalid name or password")
         }
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-            "error": "Database error",
-            "status": fiber.StatusInternalServerError,
-        })
+        return InternalServerError(c, "Database error")
     }
+
+	// Check if DeletedAt field already has a value (account has been deleted)
+	if admin.DeletedAt != nil && !admin.DeletedAt.IsZero() {
+		// Return the deletion time if the account is already deleted
+		return AlreadyDeleted(c, "This account has already been deleted", admin.DeletedAt)
+	}
 
 	// hashing the input password with bcrypt
     err = bcrypt.CompareHashAndPassword([]byte(admin.AdminPassword), []byte(adminReq.AdminPassword))
     if err != nil {
-       	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-            "error": "Invalid name or password",
-            "status": fiber.StatusUnauthorized,
-        })
+       	return Unauthorized(c, "Invalid name or password")
     }
 
 	// generate token JWT
@@ -181,19 +150,13 @@ func Login(c *fiber.Ctx) error {
     secret := os.Getenv("SECRET")
 	// check if the secret key is not set (empty string)
     if secret == "" {
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-            "error": "Secret key not set",
-            "status": fiber.StatusInternalServerError,
-        })
+        return InternalServerError(c, "Secret key not set")
     }
 
 	// use the secret key to sign the token
     tokenString, err := token.SignedString([]byte(secret))
     if err != nil {
-        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-            "error": "Failed to create Token",
-            "status": fiber.StatusBadRequest,
-        })
+        return BadRequest(c, "Failed to create Token")
     }
 
 	// set a cookie for admin
@@ -205,11 +168,7 @@ func Login(c *fiber.Ctx) error {
     })
 
 	// return success
-    return c.Status(fiber.StatusOK).JSON(fiber.Map{
-        "message": "Login successful",
-        "status":  fiber.StatusOK,
-        "admin":   admin,
-    })
+    return Ok(c, "Login successful", admin)
 }
 
 // Function to Validate checks if the user has a valid authentication cookie
@@ -219,19 +178,11 @@ func Validate(c *fiber.Ctx) error {
 
 	// Check if adminID is present (meaning the user is authenticated)
 	if adminID == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"status": fiber.StatusUnauthorized,
-			"error": "Unauthorized, please login",
-		})
+		return Unauthorized(c, "Unauthorized, please login")
 	}
 
 	// Return a success message along with the admin ID
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"adminID": adminID,
-		// "account": ,
-		"message": "User is authenticated",
-		"status": fiber.StatusOK,
-	})
+	return Ok(c, "User is authenticated", adminID)
 }
 
 // Function to logout
@@ -242,11 +193,8 @@ func Logout(c *fiber.Ctx) error {
 		Expires: time.Now().Add(-time.Hour),
 		HTTPOnly: true,
 	})
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Logout Successful",
-		"status": fiber.StatusOK,
-	})
+	// return success
+	return Ok(c, "Logout Successful", nil)
 }
 
 // Function to se all Admin Account
@@ -261,43 +209,25 @@ func ListAdminAccount(c *fiber.Ctx) error {
 	cursor, err := collection.Find(ctx, bson.M{})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": "No Documents Found!",
-				"status": fiber.StatusNotFound,
-			})
+			return NotFound(c, "No Documents Found")
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to fetch data",
-			"status": fiber.StatusInternalServerError,	
-		})
+		return InternalServerError(c, "Failed to fetch data")
 	}	
 	defer cursor.Close(ctx)
-
 
 	for cursor.Next(ctx) {
 		var admin dbmongo.AdminAccount
 		if err := cursor.Decode(&admin); err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to decode data",
-				"status": fiber.StatusNotFound,	
-			})
+			return InternalServerError(c, "Failed to decode data")
 		}
 		results = append(results, admin)
 	}
 	if err := cursor.Err(); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Cursor error",
-			"status": fiber.StatusInternalServerError,
-		})
+		return InternalServerError(c, "Cursor error")
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Success get all data",
-		"status": fiber.StatusOK,
-		"data": results,
-	})
+	return Ok(c, "Success get all data", results)
 }
-
 // function to get detail account by accID
 func GetAccountByID(c *fiber.Ctx) error {
 	// Get acc_id from params
@@ -306,10 +236,7 @@ func GetAccountByID(c *fiber.Ctx) error {
 	// parsing acc_id to integer type data
 	accID, err := strconv.Atoi(idParam)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid ID format",
-			"status": fiber.StatusBadRequest,
-		})
+		return BadRequest(c, "Invalid ID format")
 	}
 
 	// connect to collection in mongoDB
@@ -326,25 +253,20 @@ func GetAccountByID(c *fiber.Ctx) error {
 	if err != nil {
 		// If not found, return a 404 status.
 		if err == mongo.ErrNoDocuments {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"status":  fiber.StatusNotFound,
-				"message": "Data not found",
-				"data":    nil,
-		})
+			return NotFound(c, "Data not found")
+	}
+	// If in server error, return status 500
+	return InternalServerError(c, "Failed to retrieve data")
 	}
 
-	// If in server error, return status 500
-	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-		"status":  fiber.StatusInternalServerError,
-		"error": "Failed to retrieve data",
-	})
-}
+	// Check if DeletedAt field already has a value
+	if deletedAt, ok := accountDetail["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
+		// Return the deletion time if the account is already deleted
+		return AlreadyDeleted(c, "This account has already been deleted", deletedAt)
+	}
+
 	// return success
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"status": fiber.StatusOK,
-			"Message": "Data found",
-			"data": accountDetail,
-		})
+	return Ok(c, "Success get data", accountDetail)
 }
 
 // Function to edit data account
@@ -355,10 +277,7 @@ func EditAdminAccount(c *fiber.Ctx) error {
 	// converts acc_id to integer data type
 	accID, err := strconv.Atoi(idParam)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid ID format",
-			"status": fiber.StatusBadRequest,
-		})
+		return BadRequest(c, "Invalid ID format")
 	}
 
 	// setup collection mongoDB
@@ -372,11 +291,17 @@ func EditAdminAccount(c *fiber.Ctx) error {
 
     // Search for the account based on incremental ID
     if err := collection.FindOne(c.Context(), filter).Decode(&acc); err != nil {
-        return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-            "error":  "Account ID not found",
-            "status": fiber.StatusNotFound,
-        })
+        if err == mongo.ErrNoDocuments {
+			return NotFound(c, "Account not found")
+		}
+		return InternalServerError(c, "Failed to fetch account")
     }
+
+	// Check if DeletedAt field already has a value
+	if deletedAt, ok := acc["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
+		// Return the deletion time if the account is already deleted
+		return AlreadyDeleted(c, "This account has already been deleted", deletedAt)
+	}
 
     // Parsing req body to get new data
     var input struct {
@@ -386,27 +311,17 @@ func EditAdminAccount(c *fiber.Ctx) error {
 
 	// handler if request body is invalid
     if err := c.BodyParser(&input); err != nil {
-        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-            "error":  "Invalid request body",
-            "status": fiber.StatusBadRequest,
-        })
-    }
-
+        return BadRequest(c, "Invalid request body")
+	}
 	// handler if admin password empty
 	if input.AdminPassword == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Password cannot be empty",
-			"status": fiber.StatusBadRequest,
-		})
+		return BadRequest(c, "Password cannot be empty")
 	}
 
 	// hashing the input password with bcrypt
 	hash, err := bcrypt.GenerateFromPassword([]byte(input.AdminPassword), bcrypt.DefaultCost)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Failed to hash password",
-			"status": fiber.StatusBadRequest,
-		})
+		return BadRequest(c, "Failed to hash password")
 	}
 
     // update fields in the database
@@ -421,18 +336,11 @@ func EditAdminAccount(c *fiber.Ctx) error {
 	// update data in collection based on their "acc_id"
     _, err = collection.UpdateOne(c.Context(), filter, update)
     if err != nil {
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-            "error":  "Failed to update account",
-            "status": fiber.StatusInternalServerError,
-        })
+        return InternalServerError(c, "Failed to update account")
     }
 
 	// return success
-    return c.Status(fiber.StatusOK).JSON(fiber.Map{
-        "message": "Successfully updated account",
-        "status":  fiber.StatusOK,
-        "new_data": update,
-    })
+    return Ok(c, "Successfully updated account", update)
 }
 
 // Function for soft delete admin account
@@ -443,10 +351,7 @@ func DeleteAdminAccount(c *fiber.Ctx) error {
 	// Converts acc_id to integer data type
 	accID, err := strconv.Atoi(idParam)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":  "Invalid ID format",
-			"status": fiber.StatusBadRequest,
-		})
+		return BadRequest(c, "Invalid ID format")
 	}
 
 	// connect to collection in mongoDB
@@ -461,25 +366,15 @@ func DeleteAdminAccount(c *fiber.Ctx) error {
 	err = collection.FindOne(context.TODO(), filter).Decode(&adminAccount)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error":  "Account not found",
-				"status": fiber.StatusNotFound,
-			})
+			return NotFound(c, "Account not found")
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":  "Failed to fetch account details",
-			"status": fiber.StatusInternalServerError,
-		})
+		return InternalServerError(c, "Failed to fetch account details")
 	}
 
 	// Check if DeletedAt field already has a value
 	if deletedAt, ok := adminAccount["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
 		// Return the deletion time if the account is already deleted
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":      "This account has already been deleted",
-			"status":     fiber.StatusBadRequest,
-			"deleted_at": deletedAt,
-		})
+		return AlreadyDeleted(c, "This account has already been deleted", deletedAt)
 	}
 
 	// make update for input timestamp DeletedAt
@@ -488,25 +383,16 @@ func DeleteAdminAccount(c *fiber.Ctx) error {
 	// update document in collection MongoDB
 	result, err := collection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":  "Failed to soft delete account",
-			"status": fiber.StatusInternalServerError,
-		})
+		return InternalServerError(c, "Failed to delete account")
 	}
 
 	// Check if the document is found and updated
 	if result.MatchedCount == 0 {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error":  "Account not found",
-			"status": fiber.StatusNotFound,
-		})
+		return NotFound(c, "Account not found")
 	}
 
 	// Respons success
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Successfully deleted account",
-		"status":  fiber.StatusOK,
-	})
+	return Ok(c, "Successfully deleted account", accID)
 }
 
 // Function for generate ID incremental for admin account
