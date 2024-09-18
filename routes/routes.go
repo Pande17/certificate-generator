@@ -8,7 +8,7 @@ import (
 )
 
 func RouteSetup(r *fiber.App) {
-	r.Get("/", func (c *fiber.Ctx) error  {
+	r.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"message": "test",
 		})
@@ -18,8 +18,8 @@ func RouteSetup(r *fiber.App) {
 	api := r.Group("/api")
 
 	// Define routes for authentication
-	api.Post("/signup", controller.SignUp)  // Route for signing up admin
-	api.Post("/login", controller.Login)    // Route for admin login
+	api.Post("/signup", controller.SignUp)                               // Route for signing up admin
+	api.Post("/login", controller.Login)                                 // Route for admin login
 	api.Get("/validate", middleware.ValidateCookie, controller.Validate) // Route to check cookie from admin
 
 	// Define protected routes
@@ -30,11 +30,17 @@ func RouteSetup(r *fiber.App) {
 	protected.Post("/logout", controller.Logout) // Route to logout from account
 
 	// Define routes for management admin accounts
-	protected.Get("/accounts", controller.ListAdminAccount) // Route to see all admin accounts
-	protected.Get("/accounts/:id", controller.GetAccountByID) // Route to see admin account detail by acc_id
-	protected.Put("/accounts/:id", controller.EditAdminAccount) // Route to edit password admin account by acc_id
+	protected.Get("/accounts", controller.ListAdminAccount)          // Route to see all admin accounts
+	protected.Get("/accounts/:id", controller.GetAccountByID)        // Route to see admin account detail by acc_id
+	protected.Put("/accounts/:id", controller.EditAdminAccount)      // Route to edit password admin account by acc_id
 	protected.Delete("/accounts/:id", controller.DeleteAdminAccount) // Route to delete admin account by acc_id
 
+	// define routes for management competence
+	protected.Post("/competence", controller.CreateKompetensi) // route to create competence data
+	// protected.Put("/competence/:id", controller.EditCompetence) // route to create competence data
+	// protected.Delete("/competence/:id", controller.DeleteCompetence) // route to create competence data
+
 	// define routes for management certificate
-	protected.Post("/certificate", nil)
+	// protected.Post("/certificate", nil)
+	// protected.Get("/certificate", nil)
 }
