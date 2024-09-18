@@ -1,26 +1,28 @@
 package dbmongo
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+// import (
+// 	"encoding/base64"
 
-type PDF struct {
-	ID            primitive.ObjectID `bson:"_id,omitempty"`
-	Admin_ID      string             `bson:"admin_id"` // ini udh bener blum?
-	SertifName    string             `bson:"sertif_name"`
-	SertifVersion string             `bson:"sertif_version"`
-	SertifID      uint64             `bson:"sertif_id"`
-	NamaPeserta   string             `bson:"nama_peserta"`
-	SKKNI         string             `bson:"skkni"`
-	Kompetensi    string             `bson:"kompetensi"`
-	Validation    string             `bson:"validation"`
-	DataID        string             `bson:"data_id"`
-	TotalJP       uint64             `bson:"total_jp"`
-	Meet          uint64             `bson:"meet"`
-	MeetTime      float64            `bson:"meet_time"`
-	HardSkills    []HardSkill        // ini nggak tau cara implementasinya
-	SoftSkills    []SoftSkill        // ini juga
-	KodeReferal
-	ValidDate
-	KodeQR
-	FinalSkor
-	Model
-}
+// 	"go.mongodb.org/mongo-driver/bson/primitive"
+// )
+
+// type PDF struct {
+// 	ID         primitive.ObjectID `bson:"_id,omitempty"`
+// 	SertifName string             `bson:"sertif_name"`
+// 	KodeReferal
+// 	NamaPeserta    string `bson:"nama_peserta"`
+// 	SKKNI          string `bson:"skkni"`
+// 	KompetenBidang string `bson:"kompeten_bidang"`
+// 	Kompetensi     string `bson:"kompetensi"`
+// 	ValidDate
+// 	Validation string `bson:"validation"`
+// 	KodeQR     base64.Encoding
+// 	DataID     string `bson:"data_id"`
+// 	TotalJP    uint64 `bson:"total_jp"`
+// 	TotalMeet  uint64 `bson:"total_meet"`
+// 	MeetTime   string `bson:"meet_time"`
+// 	HardSkillPDF
+// 	SoftSkillPDF
+// 	FinalSkor float64
+// 	Model
+// }
