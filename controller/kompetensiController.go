@@ -2,14 +2,18 @@ package controller
 
 import (
 	"context"
+
+	// "mongo/options"
 	"pkl/finalProject/certificate-generator/repository/config"
 	dbmongo "pkl/finalProject/certificate-generator/repository/db_mongo"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // func for create new kompetensi
@@ -87,14 +91,85 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 	return Ok(c, "Sucess deleted Competence data", nil)
 }
 
-func SeeAllKompetensi(c *fiber.Ctx) error {
+// function to get all kompetensi data
+func GetAllKompetensi(c *fiber.Ctx) error {
+	var results []bson.M
+
+	collection := config.MongoClient.Database("certificate-generator").Collection("competence")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// set projection to only return "nama_kompetensi" field
+	projection := bson.M{
+		"_id":             0, // 0 to exlude the field
+		"kompetensi_id":   1,
+		"nama_kompetensi": 1, // 1 to include the field, _id will be included by default
+	}
+
+	// find the projection
+	cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return NotFound(c, "No Competence found")
+		}
+		return InternalServerError(c, "Failed to fetch data")
+	}
+	defer cursor.Close(ctx)
+
+	// decode each document and append it to results
+	for cursor.Next(ctx) {
+		var competence bson.M
+		if err := cursor.Decode(&competence); err != nil {
+			return InternalServerError(c, "Failed to decode data")
+		}
+		results = append(results, competence)
+	}
+	if err := cursor.Err(); err != nil {
+		return InternalServerError(c, "Cursor error")
+	}
 
 	// return success
-	return Ok(c, "Sucess get all Competence data", nil)
+	return Ok(c, "Sucess get all Competence data", results)
 }
 
-func SeeDetailKompetensi(c *fiber.Ctx) error {
+// function to get detail kompetensi data based on their kompetensi_id
+func GetDetailKompetensi(c *fiber.Ctx) error {
+	// get kompetensi_id from params
+	idParam := c.Params("id")
+
+	// parsing kompetensi_id to integer type data
+	kompetensiID, err := strconv.Atoi(idParam)
+	if err != nil {
+		return BadRequest(c, "Invalid ID")
+	}
+
+	// connect to collection in MongoDB
+	collection := config.MongoClient.Database("certificate-generator").Collection("competence")
+
+	// make filter to find document based on kompetensi_id (incremental id)
+	filter := bson.M{"kompetensi_id": kompetensiID}
+
+	// variable to hold search results
+	var kompetensiDetail bson.M
+
+	// find a single document that matches the filter
+	err = collection.FindOne(context.TODO(), filter).Decode(&kompetensiDetail)
+	if err != nil {
+		// if not found, return a 404 status
+		if err == mongo.ErrNoDocuments {
+			return NotFound(c, "Data not found")
+		}
+		// if in server error, return status 500
+		return InternalServerError(c, "Failed to retrieve data")
+	}
+
+	// check if document is already deleted
+	if deletedAt, ok := kompetensiDetail["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
+		// Return the deletion time if the account is already deleted
+		return AlreadyDeleted(c, "This competence has already been deleted", deletedAt)
+	}
 
 	// return success
-	return Ok(c, "Sucess get Competence data", nil)
+	return Ok(c, "Sucess get detail Competence data", kompetensiDetail)
 }
