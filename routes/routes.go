@@ -32,13 +32,15 @@ func RouteSetup(r *fiber.App) {
 	// Define routes for management admin accounts
 	protected.Get("/accounts", controller.ListAdminAccount)          // Route to see all admin accounts
 	protected.Get("/accounts/:id", controller.GetAccountByID)        // Route to see admin account detail by acc_id
-	protected.Put("/accounts/:id", controller.EditAdminAccount)      // Route to edit password admin account by acc_id
+	protected.Put("/accounts/:id", controller.EditAdminAccount)      // Route to update password admin account by acc_id
 	protected.Delete("/accounts/:id", controller.DeleteAdminAccount) // Route to delete admin account by acc_id
 
 	// define routes for management competence
 	protected.Post("/competence", controller.CreateKompetensi) // route to create competence data
-	// protected.Put("/competence/:id", controller.EditCompetence) // route to create competence data
-	// protected.Delete("/competence/:id", controller.DeleteCompetence) // route to create competence data
+	// protected.Put("/competence/:id", controller.EditCompetence) // route to update competence data
+	// protected.Delete("/competence/:id", controller.DeleteCompetence) // route to delete competence data
+	protected.Get("/competence", controller.GetAllKompetensi)        // route to get all competence data
+	protected.Get("/competence/:id", controller.GetDetailKompetensi) // route to get competence data based on their id
 
 	// define routes for management certificate
 	// protected.Post("/certificate", nil)
