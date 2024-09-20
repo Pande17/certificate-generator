@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -286,7 +287,7 @@ func DeleteAdminAccount(c *fiber.Ctx) error {
 	// make filter to find document based on acc_id (incremental id)
 	filter := bson.M{"acc_id": accID}
 
-	// Check if account is already deleted
+	// find admin account
 	var adminAccount bson.M
 	err = collection.FindOne(context.TODO(), filter).Decode(&adminAccount)
 	if err != nil {
@@ -321,15 +322,23 @@ func DeleteAdminAccount(c *fiber.Ctx) error {
 }
 
 // Function to se all Admin Account
-func ListAdminAccount(c *fiber.Ctx) error {
-	var results []dbmongo.AdminAccount
+func GetAllAdminAccount(c *fiber.Ctx) error {
+	var results []bson.M
 
 	collection := config.MongoClient.Database("certificate-generator").Collection("adminAcc")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	cursor, err := collection.Find(ctx, bson.M{})
+	// set the projection to return the required fields
+	projection := bson.M{
+		"_id":            1, // 0 to exclude the field
+		"acc_id":         1,
+		"admin_name":     1, // 1 to include the field, _id will be included by default
+		"admin_password": 1,
+	}
+
+	cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "No Documents Found")
@@ -339,7 +348,7 @@ func ListAdminAccount(c *fiber.Ctx) error {
 	defer cursor.Close(ctx)
 
 	for cursor.Next(ctx) {
-		var admin dbmongo.AdminAccount
+		var admin bson.M
 		if err := cursor.Decode(&admin); err != nil {
 			return InternalServerError(c, "Failed to decode data")
 		}
