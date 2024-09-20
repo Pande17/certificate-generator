@@ -2,8 +2,8 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
-	// "mongo/options"
 	"pkl/finalProject/certificate-generator/repository/config"
 	dbmongo "pkl/finalProject/certificate-generator/repository/db_mongo"
 	"strconv"
@@ -80,15 +80,119 @@ func CreateKompetensi(c *fiber.Ctx) error {
 }
 
 func EditKompetensi(c *fiber.Ctx) error {
+	// get kompetensi_id from params
+	idParam := c.Params("id")
+
+	// convert kompetensi_id to integer data type
+	kompetensiID, err := strconv.Atoi(idParam)
+	if err != nil {
+		return BadRequest(c, "Invalid ID")
+	}
+
+	// connect to collection in MongoDB
+	collection := config.MongoClient.Database("certificate-generator").Collection("competence")
+
+	// make filter to find document based on params
+	filter := bson.M{"kompetensi_id": kompetensiID}
+
+	// variabwle to hold results
+	var competenceData bson.M
+
+	// searching for the competence based on their kompetensi_id
+	if err := collection.FindOne(c.Context(), filter).Decode(&competenceData); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return NotFound(c, "Competence not found")
+		}
+		return InternalServerError(c, "Failed to fetch data")
+	}
+
+	// check if competence has already been deleted
+	if deletedAt, ok := competenceData["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
+		// return the deletion time if the competence is already deleted
+		return AlreadyDeleted(c, "This competence has already been Deleted", deletedAt)
+	}
+
+	// parsing req body to get new data
+	var input struct {
+		NamaKompetensi string              `json:"nama_kompetensi"`
+		HardSkills     []dbmongo.HardSkill `json:"hard_skills"`
+		SoftSkills     []dbmongo.SoftSkill `json:"soft_skills"`
+	}
+
+	// handler if request body is invalid
+	if err := c.BodyParser(&input); err != nil {
+		return BadRequest(c, "Invalid request body")
+	}
+
+	// update fields in the database
+	update := bson.M{
+		"$set": bson.M{
+			"nama_kompetensi":  input.NamaKompetensi,
+			"hard_skills":      input.HardSkills,
+			"soft_skills":      input.SoftSkills,
+			"model.updated_at": time.Now(),
+		},
+	}
+
+	// update data in collection based on their "kompetensi_id" or params
+	_, err = collection.UpdateOne(c.Context(), filter, update)
+	if err != nil {
+		return InternalServerError(c, "Failed to update competence data")
+	}
 
 	// return success
-	return Ok(c, "Sucess edited Competence data", nil)
+	return Ok(c, "Sucess edited Competence data", update)
 }
 
 func DeleteKompetensi(c *fiber.Ctx) error {
+	// get kompetensi_id from params
+	idParam := c.Params("id")
+
+	// convert params to integer data type
+	kompetensiID, err := strconv.Atoi(idParam)
+	if err != nil {
+		return BadRequest(c, "Invalid ID")
+	}
+
+	// connect to collection in MongoDB
+	collection := config.MongoClient.Database("certificate-generator").Collection("competence")
+
+	// make filter to find document based on kompetensi_id
+	filter := bson.M{"kompetensi_id": kompetensiID}
+
+	// find competence
+	var competenceData bson.M
+	err = collection.FindOne(context.TODO(), filter).Decode(&competenceData)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return NotFound(c, "Competence not found")
+		}
+		fmt.Println("MongoDB FindOne Error:", err)
+		return InternalServerError(c, "Failed to fetch data")
+	}
+
+	// check if competence already deleted
+	if deletedAt, ok := competenceData["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
+		// return the deletion time if the competence is already deleted
+		return AlreadyDeleted(c, "This competence has already been deleted", deletedAt)
+	}
+
+	// make update for input timestamp DeletedAt
+	update := bson.M{"$set": bson.M{"model.deleted_at": time.Now()}}
+
+	// update document in collection MongoDB
+	result, err := collection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		return InternalServerError(c, "Failed to delete competence")
+	}
+
+	// check if the document is found and updated
+	if result.MatchedCount == 0 {
+		return NotFound(c, "Competence not found")
+	}
 
 	// return success
-	return Ok(c, "Sucess deleted Competence data", nil)
+	return Ok(c, "Sucess deleted Competence data", kompetensiID)
 }
 
 // function to get all kompetensi data
@@ -100,9 +204,9 @@ func GetAllKompetensi(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// set projection to only return "nama_kompetensi" field
+	// set the projection to return the required fields
 	projection := bson.M{
-		"_id":             0, // 0 to exlude the field
+		"_id":             1, // 0 to exclude the field
 		"kompetensi_id":   1,
 		"nama_kompetensi": 1, // 1 to include the field, _id will be included by default
 	}
