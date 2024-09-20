@@ -27,7 +27,7 @@ func main() {
 	// create a new fiber application instance
 	app := fiber.New()
 
-	// setup API routes
+	// setup routes
 	routes.RouteSetup(app)
 
 	err := app.Listen(":3000")
