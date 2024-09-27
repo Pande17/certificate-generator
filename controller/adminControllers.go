@@ -4,7 +4,8 @@ import (
 	"context"
 	"os"
 	"strconv"
-	"strings"
+
+	// "strings"
 	"time"
 
 	"pkl/finalProject/certificate-generator/repository/config"
@@ -35,8 +36,8 @@ func SignUp(c *fiber.Ctx) error {
 	}
 
 	// Trim whitespace from input
-	adminReq.AdminName = strings.TrimSpace(adminReq.AdminName)
-	adminReq.AdminPassword = strings.TrimSpace(adminReq.AdminPassword)
+	// adminReq.AdminName = strings.TrimSpace(adminReq.AdminName)
+	// adminReq.AdminPassword = strings.TrimSpace(adminReq.AdminPassword)
 
 	// validation to check if input username empty
 	if adminReq.AdminName == "" {
@@ -114,8 +115,8 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	// Trim whitespace dari input
-	adminReq.AdminName = strings.TrimSpace(adminReq.AdminName)
-	adminReq.AdminPassword = strings.TrimSpace(adminReq.AdminPassword)
+	// adminReq.AdminName = strings.TrimSpace(adminReq.AdminName)
+	// adminReq.AdminPassword = strings.TrimSpace(adminReq.AdminPassword)
 
 	// new variable to store admin login data
 	var admin dbmongo.AdminAccount
