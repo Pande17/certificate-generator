@@ -38,6 +38,11 @@ func SignUp(c *fiber.Ctx) error {
 	adminReq.AdminName = strings.TrimSpace(adminReq.AdminName)
 	adminReq.AdminPassword = strings.TrimSpace(adminReq.AdminPassword)
 
+	// validation to check if input username empty
+	if adminReq.AdminName == "" {
+		return BadRequest(c, "Admin Name cannot be empty")
+	}
+
 	// validation to check if input password empty
 	if adminReq.AdminPassword == "" {
 		return BadRequest(c, "Password cannot be empty")
