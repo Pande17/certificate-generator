@@ -35,10 +35,6 @@ func SignUp(c *fiber.Ctx) error {
 		return BadRequest(c, "Failed to read body")
 	}
 
-	// Trim whitespace from input
-	// adminReq.AdminName = strings.TrimSpace(adminReq.AdminName)
-	// adminReq.AdminPassword = strings.TrimSpace(adminReq.AdminPassword)
-
 	// validation to check if input username empty
 	if adminReq.AdminName == "" {
 		return BadRequest(c, "Admin Name cannot be empty")
@@ -113,10 +109,6 @@ func Login(c *fiber.Ctx) error {
 	if err := c.BodyParser(&adminReq); err != nil {
 		return BadRequest(c, "Failed to read body")
 	}
-
-	// Trim whitespace dari input
-	// adminReq.AdminName = strings.TrimSpace(adminReq.AdminName)
-	// adminReq.AdminPassword = strings.TrimSpace(adminReq.AdminPassword)
 
 	// new variable to store admin login data
 	var admin dbmongo.AdminAccount
