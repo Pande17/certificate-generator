@@ -48,6 +48,7 @@ func APIRoute(r *fiber.App) {
 	protected.Delete("/competence/:id", controller.DeleteKompetensi) // route to delete competence data
 	protected.Get("/competence", controller.GetAllKompetensi)        // route to get all competence data
 	protected.Get("/competence/:id", controller.GetDetailKompetensi) // route to get competence data based on their id
+	protected.Post("/qrcode", controller.CreateQRCode)               // route to create competence data
 }
 
 // function for template routes
