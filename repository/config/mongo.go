@@ -31,6 +31,6 @@ func ConnectMongoDB() *mongo.Client {
 }
 
 // // function to get collection from database
-// func GetCollection(client *mongo.Client, dbName string, collectionName string) *mongo.Collection {
-// 	return client.Database(dbName).Collection(collectionName)
-// }
+func GetCollection(client *mongo.Client, collectionName string) *mongo.Collection {
+	return client.Database("certificate-generator").Collection(collectionName)
+}

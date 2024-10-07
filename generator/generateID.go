@@ -1,4 +1,4 @@
-package controller
+package generator
 
 import (
 	"context"
@@ -20,13 +20,12 @@ func GetNextIncrementalID(collection *mongo.Collection, fieldName string) (int64
 
 	// Retrieve the last inserted document based on the specified field
 	err := collection.FindOne(ctx, bson.M{}, opts).Decode(&result)
-	if err != nil && err != mongo.ErrNoDocuments {
-		return 0, fmt.Errorf("failed to find the last document: %v", err)
-	}
+	if err != nil {
+		if err != mongo.ErrNoDocuments {
+			return 1, nil
 
-	// If no documents exist, start from 1
-	if err == mongo.ErrNoDocuments {
-		return 1, nil
+		}
+		return 0, fmt.Errorf("failed to find the last document: %v", err)
 	}
 
 	// Extract the value of the fieldName
