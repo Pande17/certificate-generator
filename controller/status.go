@@ -58,4 +58,4 @@ func NotFound(c *fiber.Ctx, message string, errLocate string) error {
 
 func AlreadyDeleted(c *fiber.Ctx, message string, errLocate string, deletedAt any) error {
 	return jsonResponse(c, fiber.StatusNotFound, message, errLocate, nil, deletedAt)
-}
+
