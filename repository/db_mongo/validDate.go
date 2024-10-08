@@ -1,7 +1,7 @@
 package dbmongo
 
 type ValidDate struct {
-	ValidTotal		string `bson:"valid_total"`
-	ValidStart		string `bson:"valid_start"`
-	ValidEnd		string `bson:"valid_end"`
+	ValidTotal string `json:"valid_total" bson:"valid_total"`
+	ValidStart string `json:"valid_start" bson:"valid_start"`
+	ValidEnd   string `json:"valid_end" bson:"valid_end"`
 }

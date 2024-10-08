@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"pkl/finalProject/certificate-generator/generator"
 	"pkl/finalProject/certificate-generator/repository/config"
 	dbmongo "pkl/finalProject/certificate-generator/repository/db_mongo"
 	"strconv"
@@ -29,7 +30,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 
 	// parse the request body
 	if err := c.BodyParser(&kompetensiReq); err != nil {
-		return BadRequest(c, "Failed to read body")
+		return BadRequest(c, "Failed to read body", "Req body Create Kompetensi")
 	}
 
 	// connect collection competence in database
@@ -44,18 +45,18 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	// find competence with same competence name as input name
 	err := collection.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
 	if err == nil {
-		return Conflict(c, "Competence already exists")
+		return Conflict(c, "Competence already exists", "Filter Competence Name")
 	} else if err != mongo.ErrNoDocuments {
-		return InternalServerError(c, "Error chechking for existing Competence")
+		return InternalServerError(c, "Error chechking for existing Competence", "Filter Competence Name")
 	}
 
 	// generate kompetensi_id (incremental id)
-	nextKompetensiID, err := GetNextIncrementalID(collection, "kompetensi_id")
+	nextKompetensiID, err := generator.GetNextIncrementalID(collection, "kompetensi_id")
 	if err != nil {
-		return InternalServerError(c, "Failed to generate Kompetensi ID")
+		return InternalServerError(c, "Failed to generate Kompetensi ID", "Generate ID Kompetensi")
 	}
 
-	//
+	// append data from body request to struct Kompetensi
 	kompetensi := dbmongo.Kompetensi{
 		ID:             primitive.NewObjectID(),
 		KompetensiID:   uint64(nextKompetensiID),
@@ -72,11 +73,11 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	// insert data from struct "Kompetensi" to collection "competence" in database MongoDB
 	_, err = collection.InsertOne(context.TODO(), kompetensi)
 	if err != nil {
-		return InternalServerError(c, "Failed to create New Competence")
+		return InternalServerError(c, "Failed to create New Competence", "Insert Data Kompetensi")
 	}
 
 	// return success
-	return Ok(c, "Sucess created New Competence", kompetensi)
+	return OK(c, "Sucess created New Competence", kompetensi)
 }
 
 func EditKompetensi(c *fiber.Ctx) error {
@@ -86,7 +87,7 @@ func EditKompetensi(c *fiber.Ctx) error {
 	// convert kompetensi_id to integer data type
 	kompetensiID, err := strconv.Atoi(idParam)
 	if err != nil {
-		return BadRequest(c, "Invalid ID")
+		return BadRequest(c, "Invalid ID", "Convert Params")
 	}
 
 	// connect to collection in MongoDB
@@ -101,15 +102,15 @@ func EditKompetensi(c *fiber.Ctx) error {
 	// searching for the competence based on their kompetensi_id
 	if err := collection.FindOne(c.Context(), filter).Decode(&competenceData); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "Competence not found")
+			return NotFound(c, "Competence not found", "Find kompetensi_id based on params")
 		}
-		return InternalServerError(c, "Failed to fetch data")
+		return InternalServerError(c, "Failed to fetch data", "Find kompetensi_id based on params")
 	}
 
 	// check if competence has already been deleted
 	if deletedAt, ok := competenceData["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
 		// return the deletion time if the competence is already deleted
-		return AlreadyDeleted(c, "This competence has already been Deleted", deletedAt)
+		return AlreadyDeleted(c, "This competence has already been Deleted", "Checking deleted competence", deletedAt)
 	}
 
 	// parsing req body to get new data
@@ -121,7 +122,7 @@ func EditKompetensi(c *fiber.Ctx) error {
 
 	// handler if request body is invalid
 	if err := c.BodyParser(&input); err != nil {
-		return BadRequest(c, "Invalid request body")
+		return BadRequest(c, "Invalid request body", "Req body edit Kompetensi")
 	}
 
 	// update fields in the database
@@ -137,11 +138,11 @@ func EditKompetensi(c *fiber.Ctx) error {
 	// update data in collection based on their "kompetensi_id" or params
 	_, err = collection.UpdateOne(c.Context(), filter, update)
 	if err != nil {
-		return InternalServerError(c, "Failed to update competence data")
+		return InternalServerError(c, "Failed to update competence data", "Update new data kompetensi")
 	}
 
 	// return success
-	return Ok(c, "Sucess edited Competence data", update)
+	return OK(c, "Sucess edited Competence data", update)
 }
 
 func DeleteKompetensi(c *fiber.Ctx) error {
@@ -151,7 +152,7 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 	// convert params to integer data type
 	kompetensiID, err := strconv.Atoi(idParam)
 	if err != nil {
-		return BadRequest(c, "Invalid ID")
+		return BadRequest(c, "Invalid ID", "Convert Params Delete Kompetensi")
 	}
 
 	// connect to collection in MongoDB
@@ -165,16 +166,16 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 	err = collection.FindOne(context.TODO(), filter).Decode(&competenceData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "Competence not found")
+			return NotFound(c, "Competence not found", "Find Kompetensi")
 		}
 		fmt.Println("MongoDB FindOne Error:", err)
-		return InternalServerError(c, "Failed to fetch data")
+		return InternalServerError(c, "Failed to fetch data", "Find Kompetensi")
 	}
 
 	// check if competence already deleted
 	if deletedAt, ok := competenceData["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
 		// return the deletion time if the competence is already deleted
-		return AlreadyDeleted(c, "This competence has already been deleted", deletedAt)
+		return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi", deletedAt)
 	}
 
 	// make update for input timestamp DeletedAt
@@ -183,16 +184,16 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 	// update document in collection MongoDB
 	result, err := collection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		return InternalServerError(c, "Failed to delete competence")
+		return InternalServerError(c, "Failed to delete competence", "Delete Kompetensi")
 	}
 
 	// check if the document is found and updated
 	if result.MatchedCount == 0 {
-		return NotFound(c, "Competence not found")
+		return NotFound(c, "Competence not found", "Check deleted kompetensi on Delete")
 	}
 
 	// return success
-	return Ok(c, "Sucess deleted Competence data", kompetensiID)
+	return OK(c, "Sucess deleted Competence data", kompetensiID)
 }
 
 // function to get all kompetensi data
@@ -215,9 +216,9 @@ func GetAllKompetensi(c *fiber.Ctx) error {
 	cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "No Competence found")
+			return NotFound(c, "No Competence found", "Find all kompetensi")
 		}
-		return InternalServerError(c, "Failed to fetch data")
+		return InternalServerError(c, "Failed to fetch data", "Find all kompetensi")
 	}
 	defer cursor.Close(ctx)
 
@@ -225,16 +226,16 @@ func GetAllKompetensi(c *fiber.Ctx) error {
 	for cursor.Next(ctx) {
 		var competence bson.M
 		if err := cursor.Decode(&competence); err != nil {
-			return InternalServerError(c, "Failed to decode data")
+			return InternalServerError(c, "Failed to decode data", "Decode Kompetensi")
 		}
 		results = append(results, competence)
 	}
 	if err := cursor.Err(); err != nil {
-		return InternalServerError(c, "Cursor error")
+		return InternalServerError(c, "Cursor error", "Append Kompetensi")
 	}
 
 	// return success
-	return Ok(c, "Sucess get all Competence data", results)
+	return OK(c, "Sucess get all Competence data", results)
 }
 
 // function to get detail kompetensi data based on their kompetensi_id
@@ -245,7 +246,7 @@ func GetDetailKompetensi(c *fiber.Ctx) error {
 	// parsing kompetensi_id to integer type data
 	kompetensiID, err := strconv.Atoi(idParam)
 	if err != nil {
-		return BadRequest(c, "Invalid ID")
+		return BadRequest(c, "Invalid ID", "Convert params Detail Kompetensi")
 	}
 
 	// connect to collection in MongoDB
@@ -262,18 +263,34 @@ func GetDetailKompetensi(c *fiber.Ctx) error {
 	if err != nil {
 		// if not found, return a 404 status
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "Data not found")
+			return NotFound(c, "Data not found", "Find Detail Kompetensi")
 		}
 		// if in server error, return status 500
-		return InternalServerError(c, "Failed to retrieve data")
+		return InternalServerError(c, "Failed to retrieve data", "Server Find Detail Kompetensi")
 	}
 
 	// check if document is already deleted
 	if deletedAt, ok := kompetensiDetail["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
 		// Return the deletion time if the account is already deleted
-		return AlreadyDeleted(c, "This competence has already been deleted", deletedAt)
+		return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi on get Detail", deletedAt)
 	}
 
 	// return success
-	return Ok(c, "Sucess get detail Competence data", kompetensiDetail)
+	return OK(c, "Sucess get detail Competence data", kompetensiDetail)
+}
+
+// function to get Kompetensi by Nama Kompetensi
+func GetKompetensiByNamaKompetensi(c *fiber.Ctx, namaKompetensi any) error {
+	var kompetensi dbmongo.Kompetensi
+
+	filter := bson.M{"nama_kompetensi": namaKompetensi}
+
+	collectionKompetensi := config.GetCollection(config.MongoClient, "competence")
+
+	err := collectionKompetensi.FindOne(context.TODO(), filter).Decode(&kompetensi)
+	if err != nil {
+		return NotFound(c, "Competence Not Found", "Find Competence")
+	}
+
+	return OK(c, "Success get Kompetensi", kompetensi)
 }
