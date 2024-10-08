@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"pkl/finalProject/certificate-generator/generator"
 	"pkl/finalProject/certificate-generator/repository/config"
 	dbmongo "pkl/finalProject/certificate-generator/repository/db_mongo"
 	"time"
@@ -29,13 +30,13 @@ func CreateQRCode(c *fiber.Ctx) error {
 
 	// parse request body
 	if err := c.BodyParser(&qrCodeReq); err != nil {
-		return BadRequest(c, "Failed to read body")
+		return BadRequest(c, "Failed to read body", "Body req signup")
 	}
 
 	link := "https://example.com/"
 
 	if err := GenerateQRCode(link, qrCodeReq.QRCodePDFID); err != nil {
-		return InternalServerError(c, "can't create qr code")
+		return InternalServerError(c, "Can't create qr code", "check generating qr code")
 	}
 
 	// get collection in db
@@ -46,15 +47,15 @@ func CreateQRCode(c *fiber.Ctx) error {
 	filter := bson.M{"string_qrcode": qrCodeReq.QRCodePDFID}
 	err := collection.FindOne(context.TODO(), filter).Decode(&existingQRCode)
 	if err == nil {
-		return Conflict(c, "QR Code already exists")
+		return Conflict(c, "QR Code already exists", "check existing qr codes")
 	} else if err != mongo.ErrNoDocuments {
-		return InternalServerError(c, "Error checking for existing QR Code")
+		return InternalServerError(c, "Error checking for existing QR Code", "mongodb error?")
 	}
 
 	// generate incremental qrcode_id
-	nextQRCodeID, err := GetNextIncrementalID(collection, "qrcode_id")
+	nextQRCodeID, err := generator.GetNextIncrementalID(collection, "qrcode_id")
 	if err != nil {
-		return InternalServerError(c, "Failed to generate QR Code ID")
+		return InternalServerError(c, "Failed to generate QR Code ID", "generate incremental_id")
 	}
 
 	// struct to input data to db
@@ -73,9 +74,9 @@ func CreateQRCode(c *fiber.Ctx) error {
 	// insert data to db
 	_, err = collection.InsertOne(context.TODO(), qrCodein)
 	if err != nil {
-		return InternalServerError(c, "Failed to create new QR Code")
+		return InternalServerError(c, "Failed to create new QR Code", "mongodb insert")
 	}
 
 	// return success
-	return Ok(c, "Success creating new QR Code", qrCodein)
+	return OK(c, "Success creating new QR Code", qrCodein)
 }
