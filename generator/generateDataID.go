@@ -13,7 +13,7 @@ import (
 func GetRandomID(length int) string {
 	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	id := make([]byte, length)
 	for i := range id {
 		id[i] = letterBytes[rand.Intn(len(letterBytes))]
