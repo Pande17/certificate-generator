@@ -53,31 +53,33 @@ func CreateCertificate(c *fiber.Ctx) error {
 		return NotFound(c, "Competence Not Found", "Fetch Kompetepetensi by the given nama_kompetensi from the request")
 	}
 
-	khardSkills := kompetensi.HardSkills
-	ksoftSkills := kompetensi.SoftSkills
+	//khardSkills := kompetensi.HardSkills
+	//ksoftSkills := kompetensi.SoftSkills
+
+	// can calculate jp & score automatically, but needs to have the correct json body
 
 	totalHSJP, totalHSSkor := uint64(0), float64(0)
-	for _, hs := range khardSkills {
+	for _, hs := range pdfReq.Data.HardSkills {
 		totalHSJP += hs.HardSkillJP
 		totalHSSkor += hs.HardSkillScore
 	}
 
 	totalSSJP, totalSSSkor := uint64(0), float64(0)
-	for _, ss := range ksoftSkills {
+	for _, ss := range pdfReq.Data.SoftSkills {
 		totalSSJP += ss.SoftSkillJP
 		totalSSSkor += ss.SoftSkillScore
 	}
 
 	mappedHardSkills := dbmongo.HardSkillPDF{
-		HardSkills:          khardSkills,
+		HardSkills:          pdfReq.Data.HardSkills,
 		TotalHardSkillJP:    totalHSJP,
-		TotalHardSkillScore: totalHSSkor / float64(len(khardSkills)),
+		TotalHardSkillScore: totalHSSkor / float64(len(pdfReq.Data.HardSkills)),
 	}
 
 	mappedSoftSkills := dbmongo.SoftSkillPDF{
-		SoftSkills:          ksoftSkills,
+		SoftSkills:          pdfReq.Data.SoftSkills,
 		TotalSoftSkillJP:    totalSSJP,
-		TotalSoftSkillScore: totalSSSkor / float64(len(ksoftSkills)),
+		TotalSoftSkillScore: totalSSSkor / float64(len(pdfReq.Data.SoftSkills)),
 	}
 
 	// // map Kompetensi's hard & soft skills to CertificateData
@@ -142,7 +144,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 			ValidDate:    pdfReq.Data.ValidDate,
 			HardSkillPDF: mappedHardSkills,
 			SoftSkillPDF: mappedSoftSkills,
-			FinalSkor:    (totalHSSkor + totalSSSkor) / float64(len(khardSkills)+len(ksoftSkills)),
+			FinalSkor:    (totalHSSkor + totalSSSkor) / float64(len(pdfReq.Data.HardSkills)+len(pdfReq.Data.SoftSkills)),
 		},
 		Model: dbmongo.Model{
 			CreatedAt: time.Now(),
