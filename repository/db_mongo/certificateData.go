@@ -18,7 +18,7 @@ type CertificateData struct {
 	TotalJP        uint64          `json:"total_jp" bson:"total_jp"`
 	TotalMeet      uint64          `json:"total_meet" bson:"total_meet"`
 	MeetTime       string          `json:"meet_time" bson:"meet_time"`
-	HardSkillPDF   []HardSkill     `json:"hard_skills" bson:"hard_skills"`
-	SoftSkillPDF   []SoftSkill     `json:"soft_skills" bson:"soft_skills"`
-	FinalSkor      float64         `json:"final_skor" bson:"final_skor"`
+	HardSkillPDF   `json:"hard_skills" bson:"hard_skills"`
+	SoftSkillPDF   `json:"soft_skills" bson:"soft_skills"`
+	FinalSkor      float64 `json:"final_skor" bson:"final_skor"`
 }

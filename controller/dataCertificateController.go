@@ -10,6 +10,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func CreateCertificate(c *fiber.Ctx) error {
@@ -37,10 +39,8 @@ func CreateCertificate(c *fiber.Ctx) error {
 	// generate qrcode
 	// newQrCode, err := GenerateQRCode("")
 
-	now := time.Now()
-
-	// generate referral ID (incremental ID)
-	nextReferralID, err := generator.GenerateReferralID(counterCollection, now)
+	// generate referral ID
+	nextReferralID, err := generator.GenerateReferralID(counterCollection, time.Now())
 	if err != nil {
 		return InternalServerError(c, "Failed to generate Referral ID", "Server failed generate Referral ID")
 	}
@@ -53,16 +53,34 @@ func CreateCertificate(c *fiber.Ctx) error {
 		return NotFound(c, "Competence Not Found", "Fetch Kompetepetensi by the given nama_kompetensi from the request")
 	}
 
-	hardSkills := kompetensi.HardSkills
-	softSkills := kompetensi.SoftSkills
+	//khardSkills := kompetensi.HardSkills
+	//ksoftSkills := kompetensi.SoftSkills
 
-	mappedKompetensi := dbmongo.Kompetensi{
-		ID: primitive.NewObjectID(),
-		KompetensiID: kompetensi.KompetensiID,
-		HardSkills: hardSkills,
-		SoftSkills: softSkills,
+	// can calculate jp & score automatically, but needs to have the correct json body
+
+	totalHSJP, totalHSSkor := uint64(0), float64(0)
+	for _, hs := range pdfReq.Data.HardSkills {
+		totalHSJP += hs.HardSkillJP
+		totalHSSkor += hs.HardSkillScore
 	}
 
+	totalSSJP, totalSSSkor := uint64(0), float64(0)
+	for _, ss := range pdfReq.Data.SoftSkills {
+		totalSSJP += ss.SoftSkillJP
+		totalSSSkor += ss.SoftSkillScore
+	}
+
+	mappedHardSkills := dbmongo.HardSkillPDF{
+		HardSkills:          pdfReq.Data.HardSkills,
+		TotalHardSkillJP:    totalHSJP,
+		TotalHardSkillScore: totalHSSkor / float64(len(pdfReq.Data.HardSkills)),
+	}
+
+	mappedSoftSkills := dbmongo.SoftSkillPDF{
+		SoftSkills:          pdfReq.Data.SoftSkills,
+		TotalSoftSkillJP:    totalSSJP,
+		TotalSoftSkillScore: totalSSSkor / float64(len(pdfReq.Data.SoftSkills)),
+	}
 
 	// // map Kompetensi's hard & soft skills to CertificateData
 	// var hardSkills []dbmongo.HardSkill
@@ -116,17 +134,17 @@ func CreateCertificate(c *fiber.Ctx) error {
 			NamaPeserta:    pdfReq.Data.NamaPeserta,
 			SKKNI:          pdfReq.Data.SKKNI,
 			KompetenBidang: pdfReq.Data.KompetenBidang,
-			Kompetensi:     mappedKompetensi.NamaKompetensi,
+			Kompetensi:     pdfReq.Data.Kompetensi,
 			Validation:     pdfReq.Data.Validation,
 			// KodeQR:         newQrCode,
-			DataID: newDataID,
-			// TotalJP:   pdfReq.Data.TotalJP,
+			DataID:       newDataID,
+			TotalJP:      totalHSJP + totalSSJP,
 			TotalMeet:    pdfReq.Data.TotalMeet,
 			MeetTime:     pdfReq.Data.MeetTime,
 			ValidDate:    pdfReq.Data.ValidDate,
-			HardSkillPDF: mappedKompetensi.HardSkills,
-			SoftSkillPDF: mappedKompetensi.SoftSkills,
-			// FinalSkor:      float64(pdfReq.Data.FinalSkor),
+			HardSkillPDF: mappedHardSkills,
+			SoftSkillPDF: mappedSoftSkills,
+			FinalSkor:    (totalHSSkor + totalSSSkor) / float64(len(pdfReq.Data.HardSkills)+len(pdfReq.Data.SoftSkills)),
 		},
 		Model: dbmongo.Model{
 			CreatedAt: time.Now(),
@@ -169,3 +187,120 @@ func CreateCertificate(c *fiber.Ctx) error {
 //     "total_meet": "14 Pertemuan",
 //     "meet_time": "3.5 Bulan"
 // }
+
+// Function to se all Admin Account
+func GetAllCertificates(c *fiber.Ctx) error {
+	var results []bson.M
+
+	collection := config.MongoClient.Database("certificate-generator").Collection("certificate")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// set the projection to return the required fields
+	projection := bson.M{
+		"_id":    1,
+		"dataid": 1,
+	}
+
+	cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return NotFound(c, "No Documents Found", "No certificates found")
+		}
+		return InternalServerError(c, "Failed to fetch data", "mongodb error can't find data")
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var admin bson.M
+		if err := cursor.Decode(&admin); err != nil {
+			return InternalServerError(c, "Failed to decode data", "Cannot decode data")
+		}
+		results = append(results, admin)
+	}
+	if err := cursor.Err(); err != nil {
+		return InternalServerError(c, "Cursor error", "Cursor error")
+	}
+
+	return OK(c, "Success get all data", results)
+}
+
+func GetCertificateByID(c *fiber.Ctx) error {
+	// Get acc_id from params
+	idParam := c.Params("id")
+
+	// connect to collection in mongoDB
+	collection := config.MongoClient.Database("certificate-generator").Collection("certificate")
+
+	// make filter to find document based on data_id (incremental id)
+	filter := bson.M{"dataid": idParam}
+
+	// Variable to hold search results
+	var accountDetail bson.M
+
+	// Find a single document that matches the filter
+	err := collection.FindOne(context.TODO(), filter).Decode(&accountDetail)
+	if err != nil {
+		// If not found, return a 404 status.
+		if err == mongo.ErrNoDocuments {
+			return NotFound(c, "Data not found", "Cannot find certificate")
+		}
+		// If in server error, return status 500
+		return InternalServerError(c, "Failed to retrieve data", "Server can't find certificate")
+	}
+
+	// check if document is already deleted
+	if deletedAt, ok := accountDetail["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
+		// Return the deletion time if the account is already deleted
+		return AlreadyDeleted(c, "This certificate has already been deleted", "Check deleted certificate", deletedAt)
+	}
+
+	// return success
+	return OK(c, "Success get certificate data", accountDetail)
+}
+
+// Function for soft delete admin account
+func DeleteCertificate(c *fiber.Ctx) error {
+	// Get dataid from params
+	idParam := c.Params("id")
+
+	// connect to collection in mongoDB
+	collection := config.MongoClient.Database("certificate-generator").Collection("certificate")
+
+	// make filter to find document based on acc_id (incremental id)
+	filter := bson.M{"dataid": idParam}
+
+	// find admin account
+	var certificate bson.M
+	err := collection.FindOne(context.TODO(), filter).Decode(&certificate)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return NotFound(c, "Certificate not found", "Cannot find certificate")
+		}
+		return InternalServerError(c, "Failed to fetch certificate", "server error cannot find certificate")
+	}
+
+	// Check if DeletedAt field already has a value
+	if deletedAt, ok := certificate["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
+		// Return the deletion time if the certificate is already deleted
+		return AlreadyDeleted(c, "This certificate has already been deleted", "Check deleted certificate", deletedAt)
+	}
+
+	// make update for input timestamp DeletedAt
+	update := bson.M{"$set": bson.M{"model.deleted_at": time.Now()}}
+
+	// update document in collection MongoDB
+	result, err := collection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		return InternalServerError(c, "Failed to delete certificate", "Delete certificate")
+	}
+
+	// Check if the document is found and updated
+	if result.MatchedCount == 0 {
+		return NotFound(c, "Certificate not found", "Found certificate")
+	}
+
+	// Respons success
+	return OK(c, "Successfully deleted certificate", idParam)
+}
