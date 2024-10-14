@@ -36,14 +36,12 @@ func APIRoute(r *fiber.App) {
 	protected.Delete("/competence/:id", controller.DeleteKompetensi) // route to delete competence data
 	protected.Get("/competence", controller.GetAllKompetensi)        // route to get all competence data
 	protected.Get("/competence/:id", controller.GetDetailKompetensi) // route to get competence data based on their id
-	protected.Get("/competence", nil)
 
 	// define routes for management certificate data
 	protected.Post("/certificate", controller.CreateCertificate)
-	protected.Get("/certificate", nil)
-	protected.Get("/certificate/:id", nil)
-	protected.Put("/certiticate/:id", nil)
-	protected.Delete("/certificate/:id", nil)
-
+	protected.Get("/certificate", controller.GetAllCertificates)
+	protected.Get("/certificate/:id", controller.GetCertificateByID)
+	protected.Put("/certiticate/:id", controller.TEMPlate)
+	protected.Delete("/certificate/:id", controller.DeleteCertificate)
 
 }
