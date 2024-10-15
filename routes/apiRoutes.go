@@ -5,6 +5,7 @@ import (
 	"pkl/finalProject/certificate-generator/middleware"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 // function for api routes
@@ -12,6 +13,11 @@ func APIRoute(r *fiber.App) {
 	// Define a group routes for API
 	api := r.Group("/api")
 
+	api.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:5173/" ,
+		AllowMethods: "GET,POST,PUT,DELETE",
+		AllowHeaders: "Origins,Content-Type, Accept",
+	}))
 	// Define routes for authentication
 	api.Post("/signup", controller.SignUp)                               // Route for signing up admin
 	api.Post("/login", controller.Login)                                 // Route for admin login
