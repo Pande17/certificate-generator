@@ -1,13 +1,8 @@
 package model
 
-import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
-)
-
 type QRCode struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty"`
-	QRCodeID    uint64             `bson:"qrcode_id"`
-	QRCodePDFID string             `bson:"qrcode_str"`
-	QRCodeLink  string             `bson:"qrcode_link"`
-	Model
+	//QRCodeID    uint64 `json:"qrcode_id" bson:"qrcode_id"`
+	QRCodePDFID string `json:"qrcode_str" bson:"qrcode_str"`
+	QRCodeLink  string `json:"qrcode_link" bson:"qrcode_link"`
+	QRCodeEnc   string `json:"qrcode_enc" bson:"qrcode_enc"`
 }
