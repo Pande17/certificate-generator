@@ -37,7 +37,11 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	// generate qrcode
-	// newQrCode, err := GenerateQRCode("")
+	link := "http://localhost:3000/api/qrcode/"
+	encstr, err := generator.GenerateQRCode(link, newDataID)
+	if err != nil {
+		return InternalServerError(c, "Failed to generate QRCode Img", "Server failed generate qrcode img")
+	}
 
 	// generate referral ID
 	nextReferralID, err := generator.GenerateReferralID(counterCollection, time.Now())
@@ -52,9 +56,6 @@ func CreateCertificate(c *fiber.Ctx) error {
 	if err != nil {
 		return NotFound(c, "Competence Not Found", "Fetch Kompetepetensi by the given nama_kompetensi from the request")
 	}
-
-	//khardSkills := kompetensi.HardSkills
-	//ksoftSkills := kompetensi.SoftSkills
 
 	// can calculate jp & score automatically, but needs to have the correct json body
 
@@ -82,44 +83,6 @@ func CreateCertificate(c *fiber.Ctx) error {
 		TotalSoftSkillScore: totalSSSkor / float64(len(pdfReq.Data.SoftSkills)),
 	}
 
-	// // map Kompetensi's hard & soft skills to CertificateData
-	// var hardSkills []model.HardSkill
-	// for _, hardSkill := range pdfReq.Data.HardSkillPDF {
-	// 	descriptions := []model.Description{
-	// 		{
-	// 			UnitCode:  hardSkill.HardSkillCode,
-	// 			UnitTitle: hardSkill.HardSkillDesc,
-	// 		},
-	// 	}
-	// 	hardSkills = append(hardSkills, model.HardSkill{
-	// 		HardSkillName: hardSkill.HardSkillName,
-	// 		Descriptions:  descriptions,
-	// 	})
-	// }
-
-	// var softSkills []model.SoftSkill
-	// for _, softSkill := range pdfReq.Data.SoftSkillPDF {
-	// 	descriptions := []model.Description{
-	// 		{
-	// 			UnitCode:  softSkill.SoftSkillCode,
-	// 			UnitTitle: softSkill.SoftSkillDesc,
-	// 		},
-	// 	}
-	// 	softSkills = append(softSkills, model.SoftSkill{
-	// 		SoftSkillName: softSkill.SoftSkillName,
-	// 		Descriptions:  descriptions,
-	// 	})
-	// }
-
-	// // create the Kompetensi Object
-	// kompetensi := model.Kompetensi{
-	// 	ID:             primitive.NewObjectID(),
-	// 	KompetensiID:   uint64(nextReferralID),
-	// 	NamaKompetensi: pdfReq.Data.Kompetensi,
-	// 	HardSkills:     hardSkills,
-	// 	SoftSkills:     softSkills,
-	// }
-
 	certificate := model.PDF{
 		ID:     primitive.NewObjectID(),
 		DataID: newDataID,
@@ -136,7 +99,11 @@ func CreateCertificate(c *fiber.Ctx) error {
 			KompetenBidang: pdfReq.Data.KompetenBidang,
 			Kompetensi:     pdfReq.Data.Kompetensi,
 			Validation:     pdfReq.Data.Validation,
-			// KodeQR:         newQrCode,
+			QRCode: model.QRCode{
+				QRCodePDFID: newDataID,
+				QRCodeLink:  link + newDataID,
+				QRCodeEnc:   encstr,
+			},
 			DataID:       newDataID,
 			TotalJP:      totalHSJP + totalSSJP,
 			TotalMeet:    pdfReq.Data.TotalMeet,
