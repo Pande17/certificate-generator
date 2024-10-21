@@ -22,6 +22,7 @@ func RouteSetup(r *fiber.App) {
 	api.Post("/signup", rest.SignUp)                               // Route for signing up admin
 	api.Post("/login", rest.Login)                                 // Route for admin login
 	api.Get("/validate", middleware.ValidateCookie, rest.Validate) // Route to check cookie from admin
+	api.Post("/testwk", rest.CreatePDF)
 
 	// Define api routes
 	// Every request to a path with the group "api" always checks the cookie
@@ -42,7 +43,6 @@ func RouteSetup(r *fiber.App) {
 	api.Get("/competence/:id", rest.GetDetailKompetensi) // route to get competence data based on their id
 	api.Put("/competence/:id", rest.EditKompetensi)      // route to update competence data
 	api.Delete("/competence/:id", rest.DeleteKompetensi) // route to delete competence data
-	
 
 	// define routes for management certificate data
 	api.Post("/certificate", rest.CreateCertificate)
