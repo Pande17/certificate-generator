@@ -13,6 +13,7 @@ require (
 )
 
 require (
+	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.3 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.5.0 // indirect
