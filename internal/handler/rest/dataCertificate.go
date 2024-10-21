@@ -60,27 +60,27 @@ func CreateCertificate(c *fiber.Ctx) error {
 	// can calculate jp & score automatically, but needs to have the correct json body
 
 	totalHSJP, totalHSSkor := uint64(0), float64(0)
-	for _, hs := range pdfReq.Data.HardSkills {
-		totalHSJP += hs.HardSkillJP
-		totalHSSkor += hs.HardSkillScore
+	for _, hs := range pdfReq.Data.HardSkills.Skills {
+		totalHSJP += hs.SkillJP
+		totalHSSkor += hs.SkillScore
 	}
 
 	totalSSJP, totalSSSkor := uint64(0), float64(0)
-	for _, ss := range pdfReq.Data.SoftSkills {
-		totalSSJP += ss.SoftSkillJP
-		totalSSSkor += ss.SoftSkillScore
+	for _, ss := range pdfReq.Data.SoftSkills.Skills {
+		totalSSJP += ss.SkillJP
+		totalSSSkor += ss.SkillScore
 	}
 
-	mappedHardSkills := model.HardSkillPDF{
-		HardSkills:          pdfReq.Data.HardSkills,
-		TotalHardSkillJP:    totalHSJP,
-		TotalHardSkillScore: totalHSSkor / float64(len(pdfReq.Data.HardSkills)),
+	mappedHardSkills := model.SkillPDF{
+		Skills:          pdfReq.Data.HardSkills.Skills,
+		TotalSkillJP:    totalHSJP,
+		TotalSkillScore: totalHSSkor / float64(len(pdfReq.Data.HardSkills.Skills)),
 	}
 
-	mappedSoftSkills := model.SoftSkillPDF{
-		SoftSkills:          pdfReq.Data.SoftSkills,
-		TotalSoftSkillJP:    totalSSJP,
-		TotalSoftSkillScore: totalSSSkor / float64(len(pdfReq.Data.SoftSkills)),
+	mappedSoftSkills := model.SkillPDF{
+		Skills:          pdfReq.Data.SoftSkills.Skills,
+		TotalSkillJP:    totalSSJP,
+		TotalSkillScore: totalSSSkor / float64(len(pdfReq.Data.SoftSkills.Skills)),
 	}
 
 	certificate := model.PDF{
@@ -104,14 +104,14 @@ func CreateCertificate(c *fiber.Ctx) error {
 				QRCodeLink:  link + newDataID,
 				QRCodeEnc:   encstr,
 			},
-			DataID:       newDataID,
-			TotalJP:      totalHSJP + totalSSJP,
-			TotalMeet:    pdfReq.Data.TotalMeet,
-			MeetTime:     pdfReq.Data.MeetTime,
-			ValidDate:    pdfReq.Data.ValidDate,
-			HardSkillPDF: mappedHardSkills,
-			SoftSkillPDF: mappedSoftSkills,
-			FinalSkor:    (totalHSSkor + totalSSSkor) / float64(len(pdfReq.Data.HardSkills)+len(pdfReq.Data.SoftSkills)),
+			DataID:     newDataID,
+			TotalJP:    totalHSJP + totalSSJP,
+			TotalMeet:  pdfReq.Data.TotalMeet,
+			MeetTime:   pdfReq.Data.MeetTime,
+			ValidDate:  pdfReq.Data.ValidDate,
+			HardSkills: mappedHardSkills,
+			SoftSkills: mappedSoftSkills,
+			FinalSkor:  (totalHSSkor + totalSSSkor) / float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills)),
 		},
 		Model: model.Model{
 			CreatedAt: time.Now(),

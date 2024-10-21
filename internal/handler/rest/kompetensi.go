@@ -24,8 +24,8 @@ func CreateKompetensi(c *fiber.Ctx) error {
 		ID             primitive.ObjectID `bson:"_id,omitempty"`
 		KompetensiID   uint64             `bson:"kompetensi_id"`
 		KompetensiName string             `json:"nama_kompetensi"`
-		HardSkills     []model.HardSkill  `json:"hard_skills"`
-		SoftSkills     []model.SoftSkill  `json:"soft_skills"`
+		HardSkills     []model.Skill      `json:"hard_skills"`
+		SoftSkills     []model.Skill      `json:"soft_skills"`
 	}
 
 	// parse the request body
@@ -115,9 +115,9 @@ func EditKompetensi(c *fiber.Ctx) error {
 
 	// parsing req body to get new data
 	var input struct {
-		NamaKompetensi string            `json:"nama_kompetensi"`
-		HardSkills     []model.HardSkill `json:"hard_skills"`
-		SoftSkills     []model.SoftSkill `json:"soft_skills"`
+		NamaKompetensi string        `json:"nama_kompetensi"`
+		HardSkills     []model.Skill `json:"hard_skills"`
+		SoftSkills     []model.Skill `json:"soft_skills"`
 	}
 
 	// handler if request body is invalid
