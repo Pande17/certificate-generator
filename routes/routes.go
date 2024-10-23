@@ -48,7 +48,11 @@ func RouteSetup(r *fiber.App) {
 	api.Post("/certificate", rest.CreateCertificate)
 	api.Get("/certificate", rest.GetAllCertificates)
 	api.Get("/certificate/:id", rest.GetCertificateByID)
-	api.Put("/certiticate/:id", rest.TEMPlate)
+	api.Put("/certiticate/:id", TEMPlate)
 	api.Delete("/certificate/:id", rest.DeleteCertificate)
 
+}
+
+func TEMPlate(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusNotImplemented).JSON("nothing here yet")
 }
