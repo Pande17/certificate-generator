@@ -14,6 +14,7 @@ func RouteSetup(r *fiber.App) {
 			"message": "test",
 		})
 	})
+	r.Static("/assets/", "./temp")
 
 	// Define a group routes for API
 	api := r.Group("/api")
@@ -22,7 +23,6 @@ func RouteSetup(r *fiber.App) {
 	api.Post("/signup", rest.SignUp)                               // Route for signing up admin
 	api.Post("/login", rest.Login)                                 // Route for admin login
 	api.Get("/validate", middleware.ValidateCookie, rest.Validate) // Route to check cookie from admin
-	api.Post("/testwk", rest.CreatePDF)
 
 	// Define api routes
 	// Every request to a path with the group "api" always checks the cookie
@@ -48,7 +48,11 @@ func RouteSetup(r *fiber.App) {
 	api.Post("/certificate", rest.CreateCertificate)
 	api.Get("/certificate", rest.GetAllCertificates)
 	api.Get("/certificate/:id", rest.GetCertificateByID)
-	api.Put("/certiticate/:id", rest.TEMPlate)
+	api.Put("/certiticate/:id", TEMPlate)
 	api.Delete("/certificate/:id", rest.DeleteCertificate)
 
+}
+
+func TEMPlate(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusNotImplemented).JSON("nothing here yet")
 }

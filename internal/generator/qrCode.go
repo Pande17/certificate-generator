@@ -7,6 +7,14 @@ import (
 )
 
 func GenerateQRCode(link, str string) (string, error) {
-	encstr := base64.URLEncoding.EncodeToString([]byte(link + str))
-	return encstr, qrcode.WriteFile(link+str, qrcode.Medium, 256, "temp/"+str+".png")
+	qr, err := qrcode.New(link+str+".pdf", qrcode.Medium)
+	if err != nil {
+		return "", err
+	}
+	png, err := qr.PNG(-4)
+	if err != nil {
+		return "", err
+	}
+	encstr := base64.StdEncoding.EncodeToString(png)
+	return encstr, nil
 }

@@ -18,6 +18,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 	// add body request
 	var pdfReq struct {
 		Data model.CertificateData `json:"data" bson:"data"`
+		Zoom float64               `json:"zoom"`
 	}
 
 	// parse the body request
@@ -37,7 +38,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	// generate qrcode
-	link := "http://localhost:3000/api/qrcode/"
+	link := "http://localhost:3000/assets/certificate/"
 	encstr, err := generator.GenerateQRCode(link, newDataID)
 	if err != nil {
 		return InternalServerError(c, "Failed to generate QRCode Img", "Server failed generate qrcode img")
@@ -71,48 +72,46 @@ func CreateCertificate(c *fiber.Ctx) error {
 		totalSSSkor += ss.SkillScore
 	}
 
-	mappedHardSkills := model.SkillPDF{
-		Skills:          pdfReq.Data.HardSkills.Skills,
-		TotalSkillJP:    totalHSJP,
-		TotalSkillScore: totalHSSkor / float64(len(pdfReq.Data.HardSkills.Skills)),
-	}
-
-	mappedSoftSkills := model.SkillPDF{
-		Skills:          pdfReq.Data.SoftSkills.Skills,
-		TotalSkillJP:    totalSSJP,
-		TotalSkillScore: totalSSSkor / float64(len(pdfReq.Data.SoftSkills.Skills)),
+	mappedData := model.CertificateData{
+		SertifName: pdfReq.Data.SertifName,
+		KodeReferral: model.KodeReferral{
+			ReferralID: nextReferralID,
+			Divisi:     pdfReq.Data.KodeReferral.Divisi,
+			BulanRilis: pdfReq.Data.KodeReferral.BulanRilis,
+			TahunRilis: pdfReq.Data.KodeReferral.TahunRilis,
+		},
+		NamaPeserta:    pdfReq.Data.NamaPeserta,
+		SKKNI:          pdfReq.Data.SKKNI,
+		KompetenBidang: pdfReq.Data.KompetenBidang,
+		Kompetensi:     pdfReq.Data.Kompetensi,
+		Validation:     pdfReq.Data.Validation,
+		QRCode: model.QRCode{
+			QRCodePDFID: newDataID,
+			QRCodeLink:  link + newDataID + ".pdf",
+			QRCodeEnc:   encstr,
+		},
+		DataID:    newDataID,
+		TotalJP:   totalHSJP + totalSSJP,
+		TotalMeet: pdfReq.Data.TotalMeet,
+		MeetTime:  pdfReq.Data.MeetTime,
+		ValidDate: pdfReq.Data.ValidDate,
+		HardSkills: model.SkillPDF{
+			Skills:          pdfReq.Data.HardSkills.Skills,
+			TotalSkillJP:    totalHSJP,
+			TotalSkillScore: totalHSSkor / float64(len(pdfReq.Data.HardSkills.Skills)),
+		},
+		SoftSkills: model.SkillPDF{
+			Skills:          pdfReq.Data.SoftSkills.Skills,
+			TotalSkillJP:    totalSSJP,
+			TotalSkillScore: totalSSSkor / float64(len(pdfReq.Data.SoftSkills.Skills)),
+		},
+		FinalSkor: (totalHSSkor + totalSSSkor) / float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills)),
 	}
 
 	certificate := model.PDF{
 		ID:     primitive.NewObjectID(),
 		DataID: newDataID,
-		Data: model.CertificateData{
-			SertifName: pdfReq.Data.SertifName,
-			KodeReferral: model.KodeReferral{
-				ReferralID: nextReferralID,
-				Divisi:     pdfReq.Data.KodeReferral.Divisi,
-				BulanRilis: pdfReq.Data.KodeReferral.BulanRilis,
-				TahunRilis: pdfReq.Data.KodeReferral.TahunRilis,
-			},
-			NamaPeserta:    pdfReq.Data.NamaPeserta,
-			SKKNI:          pdfReq.Data.SKKNI,
-			KompetenBidang: pdfReq.Data.KompetenBidang,
-			Kompetensi:     pdfReq.Data.Kompetensi,
-			Validation:     pdfReq.Data.Validation,
-			QRCode: model.QRCode{
-				QRCodePDFID: newDataID,
-				QRCodeLink:  link + newDataID,
-				QRCodeEnc:   encstr,
-			},
-			DataID:     newDataID,
-			TotalJP:    totalHSJP + totalSSJP,
-			TotalMeet:  pdfReq.Data.TotalMeet,
-			MeetTime:   pdfReq.Data.MeetTime,
-			ValidDate:  pdfReq.Data.ValidDate,
-			HardSkills: mappedHardSkills,
-			SoftSkills: mappedSoftSkills,
-			FinalSkor:  (totalHSSkor + totalSSSkor) / float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills)),
-		},
+		Data:   mappedData,
 		Model: model.Model{
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
@@ -120,6 +119,9 @@ func CreateCertificate(c *fiber.Ctx) error {
 		},
 	}
 
+	if err = generator.CreatePDF(c, &mappedData, pdfReq.Zoom); err != nil {
+		return InternalServerError(c, "can't create pdf file", err.Error())
+	}
 	// insert data from struct "PDF" to collection "certificate" in database MongoDB
 	_, err = certificateCollection.InsertOne(context.TODO(), certificate)
 	if err != nil {
