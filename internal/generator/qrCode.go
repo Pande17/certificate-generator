@@ -2,7 +2,6 @@ package generator
 
 import (
 	"encoding/base64"
-	"log"
 
 	"github.com/skip2/go-qrcode"
 )
@@ -16,7 +15,6 @@ func GenerateQRCode(link, str string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	encstr := base64.RawURLEncoding.EncodeToString(png)
-	log.Println(encstr)
+	encstr := base64.StdEncoding.EncodeToString(png)
 	return encstr, nil
 }
