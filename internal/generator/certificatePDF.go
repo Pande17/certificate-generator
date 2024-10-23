@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"html/template"
 	"log"
 	"os"
 	model "pkl/finalProject/certificate-generator/model"
@@ -15,7 +16,10 @@ func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64) error
 		return err
 	}
 
-	if err := c.Render("temp/index.html", *dataReq); err != nil { // remember to change index.html path
+	if err := c.Render("temp/index.html", struct {
+		Data model.CertificateData
+		Enc  template.Srcset
+	}{Data: *dataReq, Enc: template.Srcset(dataReq.QRCode.QRCodeEnc)}); err != nil { // remember to change index.html path
 		return err
 	}
 
