@@ -72,13 +72,13 @@ setShowPassword(!showPassword)
                 className="border-2 p-1 rounded-md border-black w-full"
                 id="passwod"
               />
-              <div className="flex gap-3">
+              <div className="flex gap-3 mt-3">
                 <input
                   type="checkbox"
                   checked={showPassword}
-                  onClick={passwodVisibility}
+                  onChange={passwodVisibility}
                 />
-                <p>show password</p>
+                <p className=" m-0">show password</p>
               </div>
             </div>
             <button

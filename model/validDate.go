@@ -1,4 +1,4 @@
-package dbmongo
+package model
 
 type ValidDate struct {
 	ValidTotal string `json:"valid_total" bson:"valid_total"`

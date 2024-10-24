@@ -4,6 +4,7 @@ import LoginPage from "./pages/login.jsx";
 import Dashboard from "./pages/dashboard.jsx";
 import CreatePage from "./pages/Create.jsx";
 import AddPage from "./pages/add.jsx";
+import Tes from "./pages/Tes.jsx"
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
       <Route path="/dashboard" element={<Dashboard />}/>
       <Route path="/create" element={<CreatePage />}/>
       <Route path="/add" element={<AddPage />} />
+      <Route path="/tes" element={<Tes />} />
     </Routes>
   );
 };

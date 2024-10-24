@@ -1,4 +1,4 @@
-package dbmongo
+package model
 
 type KodeReferral struct {
 	ReferralID int64  `json:"referral_id" bson:"referral_id"`

@@ -1,60 +1,134 @@
+import { Table, Button, Modal, message } from "antd";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import boxicons from 'boxicons';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  DownloadOutlined,
+  FolderOpenOutlined,
+} from "@ant-design/icons";
+
+const { confirm } = Modal;
 
 const Dashboard = () => {
-  const[dta, setDta] = useState([]);
+  const [dta, setDta] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(()=>{
-    const fetchdata = async() =>{
-      try{
+  // Fetch data dari API
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          `http://127.0.0.1:3000/api/competence`
+        );
+        setDta(response.data.data);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        message.error("Gagal memuat data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-        const respons = await axios.get(`http://127.0.0.1:3000/api/competence`);
-        const isidata = respons.data.data
-        setDta(isidata)
-      } catch (err){
-        console.log("error bg : ",err)
-      } 
+  // Fungsi untuk menghapus data dari API dan update tabel
+  const deleteCompetence = async (kompetensi_id) => {
+    try {
+      await axios.delete(
+        `http://127.0.0.1:3000/api/competence/${kompetensi_id}`
+      );
+      // Filter data di state dta agar menghapus item yang telah dihapus di API
+      setDta((prevDta) =>
+        prevDta.filter((item) => item.kompetensi_id !== kompetensi_id)
+      );
+      message.success("Kompetensi berhasil dihapus!");
+    } catch (error) {
+      message.error("Gagal menghapus kompetensi.");
     }
-    fetchdata();
-  }, [])
+  };
+
+  // Fungsi untuk menampilkan konfirmasi sebelum menghapus
+  const showDeleteConfirm = (kompetensi_id) => {
+    confirm({
+      title: "Apakah Anda yakin ingin menghapus kompetensi ini?",
+      content: "Data yang dihapus tidak dapat dikembalikan.",
+      okText: "Ya, Hapus",
+      okType: "danger",
+      cancelText: "Batal",
+      onOk() {
+        deleteCompetence(kompetensi_id); // Panggil fungsi hapus data
+      },
+      onCancel() {
+        console.log("Penghapusan dibatalkan");
+      },
+    });
+  };
+
+  // Kolom untuk tabel
+  const columns = [
+    {
+      title: "ID",
+      key: "index",
+      align: "center",
+      render: (text, record, index) => index + 1, // index dimulai dari 0, jadi tambahkan 1
+    },
+    {
+      title: "Nama Kompetensi",
+      dataIndex: "nama_kompetensi",
+      key: "nama_kompetensi",
+    },
+    {
+      title: "Aksi",
+      key: "actions",
+      align: "center",
+      render: (text, record) => (
+        <div>
+          <Button
+            icon={<DeleteOutlined />}
+            style={{ marginRight: 8 }}
+            type="primary"
+            danger
+            onClick={() => showDeleteConfirm(record.kompetensi_id)}
+          />
+          <Button
+            icon={<FolderOpenOutlined />}
+            style={{ marginRight: 8 }}
+            onClick={() =>
+              message.info(`Buka folder untuk ID ${record.kompetensi_id}`)
+            }
+          />
+          <Button
+            icon={<EditOutlined />}
+            style={{ marginRight: 8 }}
+            type="primary"
+            onClick={() =>
+              message.info(`Edit kompetensi dengan ID ${record.kompetensi_id}`)
+            }
+          />
+          <Button
+            icon={<DownloadOutlined />}
+            type="primary"
+            onClick={() =>
+              message.info(`Unduh kompetensi dengan ID ${record.kompetensi_id}`)
+            }
+          />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <table className="min-w-full table-auto border-collapse">
-        <thead>
-          <tr>
-            <th className="border px-4 py-2">ID</th>
-            <th className="border px-4 py-2">Name</th>
-            <th className="border px-4 py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {dta.map((data) => (
-            <tr key={data.kompetensi_id}>
-              <td className="text-center border">
-                <p>{data.kompetensi_id}</p>
-              </td>
-              <td className="border">
-                <p>{data.nama_kompetensi}</p>
-              </td>
-              <td className="text-center">
-                <button className="border border-black rounded-md mx-3">
-                  <box-icon type="solid" name="trash"></box-icon>
-                </button>
-                <button className="border border-black rounded-md mx-3">
-                  <box-icon name="folder-open" type="solid"></box-icon>
-                </button>
-                <button className="border border-black rounded-md mx-3">
-                  <box-icon name="edit"></box-icon>
-                </button>
-                <button className="border border-black rounded-md mx-3">
-                  <box-icon type="solid" name="download"></box-icon>
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Table
+        dataSource={dta}
+        columns={columns}
+        rowKey="kompetensi_id"
+        pagination={false}
+        bordered
+        loading={loading}
+      />
     </div>
   );
 };

@@ -1,16 +1,14 @@
-package controller
+package rest
 
 import (
 	"context"
 	"os"
 	"strconv"
-
-	// "strings"
 	"time"
 
-	"pkl/finalProject/certificate-generator/generator"
-	"pkl/finalProject/certificate-generator/repository/config"
-	dbmongo "pkl/finalProject/certificate-generator/repository/db_mongo"
+	"pkl/finalProject/certificate-generator/internal/database"
+	"pkl/finalProject/certificate-generator/internal/generator"
+	model "pkl/finalProject/certificate-generator/model"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
@@ -25,8 +23,8 @@ import (
 func SignUp(c *fiber.Ctx) error {
 	// Struct for the incoming request body
 	var adminReq struct {
-		ID            primitive.ObjectID `bson:"_id,omitempty"`
-		AccID         uint64             `bson:"acc_id"`
+		ID            primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+		AccID         uint64             `json:"acc_id" bson:"acc_id"`
 		AdminName     string             `json:"admin_name" bson:"admin_name"`
 		AdminPassword string             `json:"admin_password" bson:"admin_password"`
 	}
@@ -53,16 +51,16 @@ func SignUp(c *fiber.Ctx) error {
 	}
 
 	// connect collection admin account in database
-	collection := config.MongoClient.Database("certificate-generator").Collection("adminAcc")
+	adminCollection := database.GetCollection("adminAcc")
 
 	// new variable to check the availability of the admin account name
-	var existingAdmin dbmongo.AdminAccount
+	var existingAdmin model.AdminAccount
 
 	// new variable to find admin account based on their "admin_name"
 	filter := bson.M{"admin_name": adminReq.AdminName}
 
 	// find admin account with same account name as input name
-	err = collection.FindOne(context.TODO(), filter).Decode(&existingAdmin)
+	err = adminCollection.FindOne(context.TODO(), filter).Decode(&existingAdmin)
 	if err == nil {
 		return Conflict(c, "Admin name already exists", "Check admin name")
 	} else if err != mongo.ErrNoDocuments {
@@ -70,18 +68,18 @@ func SignUp(c *fiber.Ctx) error {
 	}
 
 	// generate acc_id (incremental id)
-	nextAccID, err := generator.GetNextIncrementalID(collection, "acc_id")
+	nextAccID, err := generator.GetNextIncrementalID(adminCollection, "acc_id")
 	if err != nil {
 		return InternalServerError(c, "Failed to generate account ID", "Generate acc_id")
 	}
 
 	// input data from req struct to struct "AdminAccount"
-	admin := dbmongo.AdminAccount{
+	admin := model.AdminAccount{
 		ID:            primitive.NewObjectID(),
 		AccID:         nextAccID,
 		AdminName:     adminReq.AdminName,
 		AdminPassword: string(hash),
-		Model: dbmongo.Model{
+		Model: model.Model{
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 			DeletedAt: nil,
@@ -89,7 +87,7 @@ func SignUp(c *fiber.Ctx) error {
 	}
 
 	// insert data from struct "AdminAccount" to collection in database MongoDB
-	_, err = collection.InsertOne(context.TODO(), admin)
+	_, err = adminCollection.InsertOne(context.TODO(), admin)
 	if err != nil {
 		return InternalServerError(c, "Failed to create admin account", "Insert admin acc")
 	}
@@ -112,13 +110,13 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	// new variable to store admin login data
-	var admin dbmongo.AdminAccount
+	var admin model.AdminAccount
 
 	// connect collection admin account in database
-	collection := config.MongoClient.Database("certificate-generator").Collection("adminAcc")
+	adminCollection := database.GetCollection("adminAcc")
 
 	// find admin account with same account name as input name
-	err := collection.FindOne(context.TODO(), bson.M{"admin_name": adminReq.AdminName}).Decode(&admin)
+	err := adminCollection.FindOne(context.TODO(), bson.M{"admin_name": adminReq.AdminName}).Decode(&admin)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return Unauthorized(c, "Invalid name or password", "Find admin name on login")
@@ -207,7 +205,7 @@ func EditAdminAccount(c *fiber.Ctx) error {
 	}
 
 	// setup collection mongoDB
-	collection := config.MongoClient.Database("certificate-generator").Collection("adminAcc")
+	adminCollection := database.GetCollection("adminAcc")
 
 	// make filter to find document based on acc_id (incremental id)
 	filter := bson.M{"acc_id": accID}
@@ -216,7 +214,7 @@ func EditAdminAccount(c *fiber.Ctx) error {
 	var acc bson.M
 
 	// Search for the account based on incremental ID
-	if err := collection.FindOne(c.Context(), filter).Decode(&acc); err != nil {
+	if err := adminCollection.FindOne(c.Context(), filter).Decode(&acc); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Account not found", "Failed find account")
 		}
@@ -260,7 +258,7 @@ func EditAdminAccount(c *fiber.Ctx) error {
 	}
 
 	// update data in collection based on their "acc_id"
-	_, err = collection.UpdateOne(c.Context(), filter, update)
+	_, err = adminCollection.UpdateOne(c.Context(), filter, update)
 	if err != nil {
 		return InternalServerError(c, "Failed to update account", "Can not Update admin acc")
 	}
@@ -281,14 +279,14 @@ func DeleteAdminAccount(c *fiber.Ctx) error {
 	}
 
 	// connect to collection in mongoDB
-	collection := config.MongoClient.Database("certificate-generator").Collection("adminAcc")
+	adminCollection := database.GetCollection("adminAcc")
 
 	// make filter to find document based on acc_id (incremental id)
 	filter := bson.M{"acc_id": accID}
 
 	// find admin account
 	var adminAccount bson.M
-	err = collection.FindOne(context.TODO(), filter).Decode(&adminAccount)
+	err = adminCollection.FindOne(context.TODO(), filter).Decode(&adminAccount)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Account not found", "Can not find admin acc")
@@ -306,7 +304,7 @@ func DeleteAdminAccount(c *fiber.Ctx) error {
 	update := bson.M{"$set": bson.M{"model.deleted_at": time.Now()}}
 
 	// update document in collection MongoDB
-	result, err := collection.UpdateOne(context.TODO(), filter, update)
+	result, err := adminCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		return InternalServerError(c, "Failed to delete account", "Deleted admin acc")
 	}
@@ -324,7 +322,7 @@ func DeleteAdminAccount(c *fiber.Ctx) error {
 func GetAllAdminAccount(c *fiber.Ctx) error {
 	var results []bson.M
 
-	collection := config.MongoClient.Database("certificate-generator").Collection("adminAcc")
+	adminCollection := database.GetCollection("adminAcc")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -337,7 +335,7 @@ func GetAllAdminAccount(c *fiber.Ctx) error {
 		"admin_password": 1,
 	}
 
-	cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	cursor, err := adminCollection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "No Documents Found", "No admin acc found")
@@ -372,7 +370,7 @@ func GetAccountByID(c *fiber.Ctx) error {
 	}
 
 	// connect to collection in mongoDB
-	collection := config.MongoClient.Database("certificate-generator").Collection("adminAcc")
+	adminCollection := database.GetCollection("adminAcc")
 
 	// make filter to find document based on acc_id (incremental id)
 	filter := bson.M{"acc_id": accID}
@@ -381,7 +379,7 @@ func GetAccountByID(c *fiber.Ctx) error {
 	var accountDetail bson.M
 
 	// Find a single document that matches the filter
-	err = collection.FindOne(context.TODO(), filter).Decode(&accountDetail)
+	err = adminCollection.FindOne(context.TODO(), filter).Decode(&accountDetail)
 	if err != nil {
 		// If not found, return a 404 status.
 		if err == mongo.ErrNoDocuments {

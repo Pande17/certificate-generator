@@ -3,7 +3,7 @@ package generator
 import (
 	"context"
 	"fmt"
-	dbmongo "pkl/finalProject/certificate-generator/repository/db_mongo"
+	model "pkl/finalProject/certificate-generator/model"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -19,7 +19,7 @@ func GenerateReferralID(collection *mongo.Collection, createdAt time.Time) (int6
 	update := bson.M{"$inc": bson.M{"counter": 1}}
 	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
-	var updatedCounter dbmongo.Counter
+	var updatedCounter model.Counter
 	err := collection.FindOneAndUpdate(context.TODO(), filter, update, opts).Decode(&updatedCounter)
 	if err != nil {
 		return 0, nil

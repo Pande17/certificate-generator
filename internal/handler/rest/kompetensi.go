@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"pkl/finalProject/certificate-generator/internal/database"
 	"pkl/finalProject/certificate-generator/internal/generator"
-	"pkl/finalProject/certificate-generator/config"
-	dbmongo "pkl/finalProject/certificate-generator/model"
+	model "pkl/finalProject/certificate-generator/model"
 	"strconv"
 	"time"
 
@@ -21,11 +21,11 @@ import (
 func CreateKompetensi(c *fiber.Ctx) error {
 	// struct for the incoming request body
 	var kompetensiReq struct {
-		ID             primitive.ObjectID  `bson:"_id,omitempty"`
-		KompetensiID   uint64              `bson:"kompetensi_id"`
-		KompetensiName string              `json:"nama_kompetensi"`
-		HardSkills     []dbmongo.HardSkill `json:"hard_skills"`
-		SoftSkills     []dbmongo.SoftSkill `json:"soft_skills"`
+		ID             primitive.ObjectID `bson:"_id,omitempty"`
+		KompetensiID   uint64             `bson:"kompetensi_id"`
+		KompetensiName string             `json:"nama_kompetensi"`
+		HardSkills     []model.Skill      `json:"hard_skills"`
+		SoftSkills     []model.Skill      `json:"soft_skills"`
 	}
 
 	// parse the request body
@@ -34,10 +34,10 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	}
 
 	// connect collection competence in database
-	collection := config.MongoClient.Database("certificate-generator").Collection("competence")
+	collection := database.MongoClient.Database("certificate-generator").Collection("competence")
 
 	// new variable to check the availability of the competence name
-	var existingKompetensi dbmongo.Kompetensi
+	var existingKompetensi model.Kompetensi
 
 	// new variable to find competence based on their name "competence_name"
 	filter := bson.M{"nama_kompetensi": kompetensiReq.KompetensiName}
@@ -57,13 +57,13 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	}
 
 	// append data from body request to struct Kompetensi
-	kompetensi := dbmongo.Kompetensi{
+	kompetensi := model.Kompetensi{
 		ID:             primitive.NewObjectID(),
 		KompetensiID:   uint64(nextKompetensiID),
 		NamaKompetensi: kompetensiReq.KompetensiName,
 		HardSkills:     kompetensiReq.HardSkills,
 		SoftSkills:     kompetensiReq.SoftSkills,
-		Model: dbmongo.Model{
+		Model: model.Model{
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 			DeletedAt: nil,
@@ -91,7 +91,7 @@ func EditKompetensi(c *fiber.Ctx) error {
 	}
 
 	// connect to collection in MongoDB
-	collection := config.MongoClient.Database("certificate-generator").Collection("competence")
+	collection := database.MongoClient.Database("certificate-generator").Collection("competence")
 
 	// make filter to find document based on params
 	filter := bson.M{"kompetensi_id": kompetensiID}
@@ -115,9 +115,9 @@ func EditKompetensi(c *fiber.Ctx) error {
 
 	// parsing req body to get new data
 	var input struct {
-		NamaKompetensi string              `json:"nama_kompetensi"`
-		HardSkills     []dbmongo.HardSkill `json:"hard_skills"`
-		SoftSkills     []dbmongo.SoftSkill `json:"soft_skills"`
+		NamaKompetensi string        `json:"nama_kompetensi"`
+		HardSkills     []model.Skill `json:"hard_skills"`
+		SoftSkills     []model.Skill `json:"soft_skills"`
 	}
 
 	// handler if request body is invalid
@@ -156,7 +156,7 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 	}
 
 	// connect to collection in MongoDB
-	collection := config.MongoClient.Database("certificate-generator").Collection("competence")
+	collection := database.MongoClient.Database("certificate-generator").Collection("competence")
 
 	// make filter to find document based on kompetensi_id
 	filter := bson.M{"kompetensi_id": kompetensiID}
@@ -200,7 +200,7 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 func GetAllKompetensi(c *fiber.Ctx) error {
 	var results []bson.M
 
-	collection := config.MongoClient.Database("certificate-generator").Collection("competence")
+	collection := database.MongoClient.Database("certificate-generator").Collection("competence")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -208,12 +208,12 @@ func GetAllKompetensi(c *fiber.Ctx) error {
 	// set the projection to return the required fields
 	projection := bson.M{
 		"_id":             1, // 0 to exclude the field
-		"kompetensi_id":   1,
 		"nama_kompetensi": 1, // 1 to include the field, _id will be included by default
+		"model":           1,
 	}
 
 	// find the projection
-	cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	cursor, err := collection.Find(ctx, bson.M{"model.deleted_at": bson.M{"$exists": false}}, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "No Competence found", "Find all kompetensi")
@@ -250,7 +250,7 @@ func GetDetailKompetensi(c *fiber.Ctx) error {
 	}
 
 	// connect to collection in MongoDB
-	collection := config.MongoClient.Database("certificate-generator").Collection("competence")
+	collection := database.MongoClient.Database("certificate-generator").Collection("competence")
 
 	// make filter to find document based on kompetensi_id (incremental id)
 	filter := bson.M{"kompetensi_id": kompetensiID}
@@ -281,11 +281,11 @@ func GetDetailKompetensi(c *fiber.Ctx) error {
 
 // function to get Kompetensi by Nama Kompetensi
 func GetKompetensiByNamaKompetensi(c *fiber.Ctx, namaKompetensi any) error {
-	var kompetensi dbmongo.Kompetensi
+	var kompetensi model.Kompetensi
 
 	filter := bson.M{"nama_kompetensi": namaKompetensi}
 
-	collectionKompetensi := config.GetCollection(config.MongoClient, "competence")
+	collectionKompetensi := database.GetCollection("competence")
 
 	err := collectionKompetensi.FindOne(context.TODO(), filter).Decode(&kompetensi)
 	if err != nil {
