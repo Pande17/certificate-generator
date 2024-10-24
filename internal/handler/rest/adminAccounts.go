@@ -100,8 +100,8 @@ func SignUp(c *fiber.Ctx) error {
 func Login(c *fiber.Ctx) error {
 	// struct for the incoming request body
 	var adminReq struct {
-		AdminName     string `json:"admin_name"`
-		AdminPassword string `json:"admin_password"`
+		AdminName     string `json:"admin_name" bson:"admin_name"`
+		AdminPassword string `json:"admin_password" bson:"admin_password"`
 	}
 
 	// parse the request body
@@ -329,11 +329,13 @@ func GetAllAdminAccount(c *fiber.Ctx) error {
 
 	// set the projection to return the required fields
 	projection := bson.M{
-		"_id":            1, // 0 to exclude the field
+		"_id":            1,
 		"acc_id":         1,
-		"admin_name":     1, // 1 to include the field, _id will be included by default
+		"admin_name":     1,
 		"admin_password": 1,
 	}
+	// 1 to include the field, _id will be included by default
+	// 0 to exclude the field
 
 	cursor, err := adminCollection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
 	if err != nil {

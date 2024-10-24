@@ -167,7 +167,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 func GetAllCertificates(c *fiber.Ctx) error {
 	var results []bson.M
 
-	collection := database.MongoClient.Database("certificate-generator").Collection("certificate")
+	certificateCollection := database.GetCollection("certificate")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -178,7 +178,7 @@ func GetAllCertificates(c *fiber.Ctx) error {
 		"dataid": 1,
 	}
 
-	cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	cursor, err := certificateCollection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "No Documents Found", "No certificates found")
@@ -206,7 +206,7 @@ func GetCertificateByID(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
 	// connect to collection in mongoDB
-	collection := database.MongoClient.Database("certificate-generator").Collection("certificate")
+	certificateCollection := database.GetCollection("certificate")
 
 	// make filter to find document based on data_id (incremental id)
 	filter := bson.M{"dataid": idParam}
@@ -215,7 +215,7 @@ func GetCertificateByID(c *fiber.Ctx) error {
 	var accountDetail bson.M
 
 	// Find a single document that matches the filter
-	err := collection.FindOne(context.TODO(), filter).Decode(&accountDetail)
+	err := certificateCollection.FindOne(context.TODO(), filter).Decode(&accountDetail)
 	if err != nil {
 		// If not found, return a 404 status.
 		if err == mongo.ErrNoDocuments {
@@ -241,14 +241,14 @@ func DeleteCertificate(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
 	// connect to collection in mongoDB
-	collection := database.MongoClient.Database("certificate-generator").Collection("certificate")
+	certificateCollection := database.GetCollection("certificate")
 
 	// make filter to find document based on acc_id (incremental id)
 	filter := bson.M{"dataid": idParam}
 
 	// find admin account
 	var certificate bson.M
-	err := collection.FindOne(context.TODO(), filter).Decode(&certificate)
+	err := certificateCollection.FindOne(context.TODO(), filter).Decode(&certificate)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Certificate not found", "Cannot find certificate")
@@ -266,7 +266,7 @@ func DeleteCertificate(c *fiber.Ctx) error {
 	update := bson.M{"$set": bson.M{"model.deleted_at": time.Now()}}
 
 	// update document in collection MongoDB
-	result, err := collection.UpdateOne(context.TODO(), filter, update)
+	result, err := certificateCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		return InternalServerError(c, "Failed to delete certificate", "Delete certificate")
 	}
