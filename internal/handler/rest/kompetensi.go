@@ -208,12 +208,12 @@ func GetAllKompetensi(c *fiber.Ctx) error {
 	// set the projection to return the required fields
 	projection := bson.M{
 		"_id":             1, // 0 to exclude the field
-		"kompetensi_id":   1,
 		"nama_kompetensi": 1, // 1 to include the field, _id will be included by default
+		"model":           1,
 	}
 
 	// find the projection
-	cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	cursor, err := collection.Find(ctx, bson.M{"model.deleted_at": bson.M{"$exists": false}}, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "No Competence found", "Find all kompetensi")
