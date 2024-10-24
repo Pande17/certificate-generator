@@ -14,6 +14,7 @@ func RouteSetup(r *fiber.App) {
 			"message": "test",
 		})
 	})
+	r.Static("/assets/", "./temp")
 
 	// Define a group routes for API
 	api := r.Group("/api")
@@ -42,13 +43,16 @@ func RouteSetup(r *fiber.App) {
 	api.Get("/competence/:id", rest.GetDetailKompetensi) // route to get competence data based on their id
 	api.Put("/competence/:id", rest.EditKompetensi)      // route to update competence data
 	api.Delete("/competence/:id", rest.DeleteKompetensi) // route to delete competence data
-	
 
 	// define routes for management certificate data
 	api.Post("/certificate", rest.CreateCertificate)
 	api.Get("/certificate", rest.GetAllCertificates)
 	api.Get("/certificate/:id", rest.GetCertificateByID)
-	api.Put("/certiticate/:id", rest.TEMPlate)
+	api.Put("/certiticate/:id", TEMPlate)
 	api.Delete("/certificate/:id", rest.DeleteCertificate)
 
+}
+
+func TEMPlate(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusNotImplemented).JSON("nothing here yet")
 }
