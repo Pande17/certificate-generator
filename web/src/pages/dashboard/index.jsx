@@ -1,4 +1,4 @@
-import { Table, Button, Modal, message } from "antd";
+import { Table, Button, Modal, message, Row, Col } from "antd";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import {
@@ -20,7 +20,7 @@ const Dashboard = () => {
       setLoading(true);
       try {
         const response = await axios.get(
-          `http://127.0.0.1:3000/api/competence`
+          `http://127.0.0.1:3000/api/certificate`
         );
         setDta(response.data.data);
       } catch (err) {
@@ -34,15 +34,10 @@ const Dashboard = () => {
   }, []);
 
   // Fungsi untuk menghapus data dari API dan update tabel
-  const deleteCompetence = async (kompetensi_id) => {
+  const deleteCompetence = async (dataid) => {
     try {
-      await axios.delete(
-        `http://127.0.0.1:3000/api/competence/${kompetensi_id}`
-      );
-      // Filter data di state dta agar menghapus item yang telah dihapus di API
-      setDta((prevDta) =>
-        prevDta.filter((item) => item.kompetensi_id !== kompetensi_id)
-      );
+      await axios.delete(`http://127.0.0.1:3000/api/certificate/${dataid}`);
+      setDta((prevDta) => prevDta.filter((item) => item.dataid !== dataid));
       message.success("Kompetensi berhasil dihapus!");
     } catch (error) {
       message.error("Gagal menghapus kompetensi.");
@@ -70,14 +65,13 @@ const Dashboard = () => {
   const columns = [
     {
       title: "ID",
-      key: "index",
       align: "center",
       render: (text, record, index) => index + 1, // index dimulai dari 0, jadi tambahkan 1
     },
     {
       title: "Nama Kompetensi",
-      dataIndex: "nama_kompetensi",
-      key: "nama_kompetensi",
+      dataIndex: "_id",
+      key: "_id",
     },
     {
       title: "Aksi",
@@ -90,13 +84,13 @@ const Dashboard = () => {
             style={{ marginRight: 8 }}
             type="primary"
             danger
-            onClick={() => showDeleteConfirm(record.kompetensi_id)}
+            onClick={() => showDeleteConfirm(record.dataid)}
           />
           <Button
             icon={<FolderOpenOutlined />}
             style={{ marginRight: 8 }}
             onClick={() =>
-              message.info(`Buka folder untuk ID ${record.kompetensi_id}`)
+              message.info(`Buka folder untuk ID ${record.dataid}`)
             }
           />
           <Button
@@ -104,14 +98,14 @@ const Dashboard = () => {
             style={{ marginRight: 8 }}
             type="primary"
             onClick={() =>
-              message.info(`Edit kompetensi dengan ID ${record.kompetensi_id}`)
+              message.info(`Edit kompetensi dengan ID ${record.dataid}`)
             }
           />
           <Button
             icon={<DownloadOutlined />}
             type="primary"
             onClick={() =>
-              message.info(`Unduh kompetensi dengan ID ${record.kompetensi_id}`)
+              message.info(`Unduh kompetensi dengan ID ${record.dataid}`)
             }
           />
         </div>
@@ -120,15 +114,19 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <Table
-        dataSource={dta}
-        columns={columns}
-        rowKey="kompetensi_id"
-        pagination={false}
-        bordered
-        loading={loading}
-      />
+    <div className="container">
+      <Row justify="center">
+        <Col xs={24} sm={20} md={18} lg={16} xl={14}>
+          <Table
+            dataSource={dta}
+            columns={columns}
+            rowKey="kompetensi_id"
+            pagination={false}
+            bordered
+            loading={loading}
+          />
+        </Col>
+      </Row>
     </div>
   );
 };

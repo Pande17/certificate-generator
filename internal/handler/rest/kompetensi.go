@@ -208,6 +208,7 @@ func GetAllKompetensi(c *fiber.Ctx) error {
 	// set the projection to return the required fields
 	projection := bson.M{
 		"_id":             1, // 0 to exclude the field
+		"kompetensi_id": 1,
 		"nama_kompetensi": 1, // 1 to include the field, _id will be included by default
 		"model":           1,
 	}

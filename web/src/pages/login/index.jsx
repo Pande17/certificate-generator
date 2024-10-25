@@ -32,7 +32,7 @@ setShowPassword(!showPassword)
       } else if (response.status === 401){ 
         setMsg("Username atau password salah");
       } else {
-        setMsg('terjadi kesalahan coba lagi bawakdeewek 2')
+        setMsg('terjadi kesalahan coba lagi')
       }
     } catch (err) {
          console.error("Error: ", err);

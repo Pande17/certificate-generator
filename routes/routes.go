@@ -5,6 +5,7 @@ import (
 	"pkl/finalProject/certificate-generator/internal/handler/rest"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 // function for setup routes
@@ -16,6 +17,15 @@ func RouteSetup(r *fiber.App) {
 	})
 	r.Static("/assets/", "./temp")
 
+	// CORS Middleware setup
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:5173", // Replace with your frontend URL
+		AllowMethods: "GET,POST,PUT,DELETE",   // Allowed HTTP methods
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization, Cookie", // Allowed headers
+		ExposeHeaders: "Cookie",
+		AllowCredentials:true,
+	}))
+	
 	// Define a group routes for API
 	api := r.Group("/api")
 
