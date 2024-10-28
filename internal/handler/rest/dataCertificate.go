@@ -143,8 +143,9 @@ func GetAllCertificates(c *fiber.Ctx) error {
 
 	// set the projection to return the required fields
 	projection := bson.M{
-		"_id":    1,
-		"dataid": 1,
+		"_id":        1,
+		"dataid":     1,
+		"sertifname": 1,
 	}
 
 	cursor, err := certificateCollection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
