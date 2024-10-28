@@ -8,7 +8,7 @@ type AdminAccount struct {
 	AccID         int64              `json:"acc_id" bson:"acc_id"`
 	AdminName     string             `json:"admin_name" bson:"admin_name"`
 	AdminPassword string             `json:"admin_password" bson:"admin_password" `
-	Model
+	Model         `bson:",inline"`   // flatten the model fields
 }
 
 // ADMIN ACCOUNT LIST:
