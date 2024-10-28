@@ -34,7 +34,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	}
 
 	// connect collection competence in database
-	collection := database.MongoClient.Database("certificate-generator").Collection("competence")
+	collectionKompetensi := database.GetCollection("competence")
 
 	// new variable to check the availability of the competence name
 	var existingKompetensi model.Kompetensi
@@ -43,7 +43,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	filter := bson.M{"nama_kompetensi": kompetensiReq.KompetensiName}
 
 	// find competence with same competence name as input name
-	err := collection.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
+	err := collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
 	if err == nil {
 		return Conflict(c, "Competence already exists", "Filter Competence Name")
 	} else if err != mongo.ErrNoDocuments {
@@ -51,7 +51,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	}
 
 	// generate kompetensi_id (incremental id)
-	nextKompetensiID, err := generator.GetNextIncrementalID(collection, "kompetensi_id")
+	nextKompetensiID, err := generator.GetNextIncrementalID(collectionKompetensi, "kompetensi_id")
 	if err != nil {
 		return InternalServerError(c, "Failed to generate Kompetensi ID", "Generate ID Kompetensi")
 	}
@@ -63,7 +63,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 		NamaKompetensi: kompetensiReq.KompetensiName,
 		HardSkills:     kompetensiReq.HardSkills,
 		SoftSkills:     kompetensiReq.SoftSkills,
-		Model: model.Model{
+		Model : {
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 			DeletedAt: nil,
@@ -71,7 +71,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	}
 
 	// insert data from struct "Kompetensi" to collection "competence" in database MongoDB
-	_, err = collection.InsertOne(context.TODO(), kompetensi)
+	_, err = collectionKompetensi.InsertOne(context.TODO(), kompetensi)
 	if err != nil {
 		return InternalServerError(c, "Failed to create New Competence", "Insert Data Kompetensi")
 	}
@@ -91,7 +91,7 @@ func EditKompetensi(c *fiber.Ctx) error {
 	}
 
 	// connect to collection in MongoDB
-	collection := database.MongoClient.Database("certificate-generator").Collection("competence")
+	collectionKompetensi := database.GetCollection("competence")
 
 	// make filter to find document based on params
 	filter := bson.M{"kompetensi_id": kompetensiID}
@@ -100,7 +100,7 @@ func EditKompetensi(c *fiber.Ctx) error {
 	var competenceData bson.M
 
 	// searching for the competence based on their kompetensi_id
-	if err := collection.FindOne(c.Context(), filter).Decode(&competenceData); err != nil {
+	if err := collectionKompetensi.FindOne(c.Context(), filter).Decode(&competenceData); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Competence not found", "Find kompetensi_id based on params")
 		}
@@ -136,7 +136,7 @@ func EditKompetensi(c *fiber.Ctx) error {
 	}
 
 	// update data in collection based on their "kompetensi_id" or params
-	_, err = collection.UpdateOne(c.Context(), filter, update)
+	_, err = collectionKompetensi.UpdateOne(c.Context(), filter, update)
 	if err != nil {
 		return InternalServerError(c, "Failed to update competence data", "Update new data kompetensi")
 	}
@@ -156,14 +156,14 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 	}
 
 	// connect to collection in MongoDB
-	collection := database.MongoClient.Database("certificate-generator").Collection("competence")
+	collectionKompetensi := database.GetCollection("competence")
 
 	// make filter to find document based on kompetensi_id
 	filter := bson.M{"kompetensi_id": kompetensiID}
 
 	// find competence
 	var competenceData bson.M
-	err = collection.FindOne(context.TODO(), filter).Decode(&competenceData)
+	err = collectionKompetensi.FindOne(context.TODO(), filter).Decode(&competenceData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Competence not found", "Find Kompetensi")
@@ -182,7 +182,7 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 	update := bson.M{"$set": bson.M{"model.deleted_at": time.Now()}}
 
 	// update document in collection MongoDB
-	result, err := collection.UpdateOne(context.TODO(), filter, update)
+	result, err := collectionKompetensi.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		return InternalServerError(c, "Failed to delete competence", "Delete Kompetensi")
 	}
@@ -200,7 +200,7 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 func GetAllKompetensi(c *fiber.Ctx) error {
 	var results []bson.M
 
-	collection := database.MongoClient.Database("certificate-generator").Collection("competence")
+	collectionKompetensi := database.GetCollection("competence")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -213,7 +213,7 @@ func GetAllKompetensi(c *fiber.Ctx) error {
 	}
 
 	// find the projection
-	cursor, err := collection.Find(ctx, bson.M{"model.deleted_at": bson.M{"$exists": false}}, options.Find().SetProjection(projection))
+	cursor, err := collectionKompetensi.Find(ctx, bson.M{"model.deleted_at": bson.M{"$exists": false}}, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "No Competence found", "Find all kompetensi")
@@ -250,7 +250,7 @@ func GetDetailKompetensi(c *fiber.Ctx) error {
 	}
 
 	// connect to collection in MongoDB
-	collection := database.MongoClient.Database("certificate-generator").Collection("competence")
+	collectionKompetensi := database.GetCollection("competence")
 
 	// make filter to find document based on kompetensi_id (incremental id)
 	filter := bson.M{"kompetensi_id": kompetensiID}
@@ -259,7 +259,7 @@ func GetDetailKompetensi(c *fiber.Ctx) error {
 	var kompetensiDetail bson.M
 
 	// find a single document that matches the filter
-	err = collection.FindOne(context.TODO(), filter).Decode(&kompetensiDetail)
+	err = collectionKompetensi.FindOne(context.TODO(), filter).Decode(&kompetensiDetail)
 	if err != nil {
 		// if not found, return a 404 status
 		if err == mongo.ErrNoDocuments {
