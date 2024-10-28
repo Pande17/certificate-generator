@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -11,14 +13,26 @@ type Kompetensi struct {
 	NamaKompetensi string             `json:"nama_kompetensi" bson:"nama_kompetensi"`
 	HardSkills     []Skill            `json:"hard_skills" bson:"hard_skills"`
 	SoftSkills     []Skill            `json:"soft_skills" bson:"soft_skills"`
-	Model
+	Model          struct {
+		CreatedAt time.Time  `json:"created_at" bson:"created_at"`
+		UpdatedAt time.Time  `json:"updated_at" bson:"updated_at"`
+		DeletedAt *time.Time `json:"deleted_at,omitempty" bson:"deleted_at,omitempty"`
+	} `bson:",inline"`
 }
+
+// `bson:",inline"`   // flatten the model fields
 
 type Skill struct {
 	SkillName  string        `json:"skill_name" bson:"skill_name"`
 	SkillDescs []Description `json:"description" bson:"description"`
 	SkillJP    uint64        `json:"skill_jp" bson:"skill_jp"`
 	SkillScore float64       `json:"skill_score" bson:"skill_score"`
+}
+
+// struct for Deskripsi Hard Skill and Soft Skill
+type Description struct {
+	UnitCode  string `json:"unit_code" bson:"unit_code"`
+	UnitTitle string `json:"unit_title" bson:"unit_title"`
 }
 
 // struct for Hard Skills
@@ -38,9 +52,3 @@ type Skill struct {
 // 	// SoftSkillScore float64       `json:"softSkill_score" bson:"softSkill_score"`
 // 	Skill `json:"soft_skill" bson:"soft_skill"`
 // }
-
-// struct for Deskripsi Hard Skill and Soft Skill
-type Description struct {
-	UnitCode  string `json:"unit_code" bson:"unit_code"`
-	UnitTitle string `json:"unit_title" bson:"unit_title"`
-}
