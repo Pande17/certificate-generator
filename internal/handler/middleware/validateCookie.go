@@ -13,9 +13,10 @@ import (
 func ValidateCookie(c *fiber.Ctx) error {
 	// Retrieve the cookie named "Authorization"
 	cookie := c.Cookies("Authorization")
+	
 	if cookie == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Unauthorized, please login",
+			"error":  "Unauthorized, please login",
 			"status": fiber.StatusUnauthorized,
 		})
 	}
@@ -33,7 +34,7 @@ func ValidateCookie(c *fiber.Ctx) error {
 	// If there is an error or the token is invalid
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Invalid token",
+			"error":  "Invalid token",
 			"status": fiber.StatusUnauthorized,
 		})
 	}
@@ -44,7 +45,7 @@ func ValidateCookie(c *fiber.Ctx) error {
 		if exp, ok := claims["exp"].(float64); ok {
 			if time.Unix(int64(exp), 0).Before(time.Now()) {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					"error": "Token expired",
+					"error":  "Token expired",
 					"status": fiber.StatusUnauthorized,
 				})
 			}
@@ -53,7 +54,7 @@ func ValidateCookie(c *fiber.Ctx) error {
 		c.Locals("adminID", claims["sub"])
 	} else {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Invalid token",
+			"error":  "Invalid token",
 			"status": fiber.StatusUnauthorized,
 		})
 	}
