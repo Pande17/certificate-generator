@@ -2,8 +2,8 @@ package rest
 
 import (
 	"context"
+	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"pkl/finalProject/certificate-generator/internal/database"
@@ -199,7 +199,7 @@ func EditAdminAccount(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
 	// converts acc_id to integer data type
-	accID, err := strconv.Atoi(idParam)
+	accID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		return BadRequest(c, "Invalid ID format", "Can not convert params on Edit Admin")
 	}
@@ -208,7 +208,7 @@ func EditAdminAccount(c *fiber.Ctx) error {
 	adminCollection := database.GetCollection("adminAcc")
 
 	// make filter to find document based on acc_id (incremental id)
-	filter := bson.M{"acc_id": accID}
+	filter := bson.M{"_id": accID}
 
 	// variable to hold results
 	var acc bson.M
@@ -273,7 +273,7 @@ func DeleteAdminAccount(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
 	// Converts acc_id to integer data type
-	accID, err := strconv.Atoi(idParam)
+	accID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		return BadRequest(c, "Invalid ID format", "Can not convert params")
 	}
@@ -282,7 +282,7 @@ func DeleteAdminAccount(c *fiber.Ctx) error {
 	adminCollection := database.GetCollection("adminAcc")
 
 	// make filter to find document based on acc_id (incremental id)
-	filter := bson.M{"acc_id": accID}
+	filter := bson.M{"_id": accID}
 
 	// find admin account
 	var adminAccount bson.M
@@ -329,10 +329,11 @@ func GetAllAdminAccount(c *fiber.Ctx) error {
 
 	// set the projection to return the required fields
 	projection := bson.M{
-		"_id":            1,
-		"acc_id":         1,
-		"admin_name":     1,
-		"admin_password": 1,
+		"_id":        1,
+		"admin_name": 1,
+		"model":      1,
+		// "admin_password": 1,
+		// "acc_id":         1,
 	}
 	// 1 to include the field, _id will be included by default
 	// 0 to exclude the field
@@ -365,17 +366,18 @@ func GetAccountByID(c *fiber.Ctx) error {
 	// Get acc_id from params
 	idParam := c.Params("id")
 
-	// parsing acc_id to integer type data
-	accID, err := strconv.Atoi(idParam)
+	// // parsing acc_id to integer type data
+	accID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		return BadRequest(c, "Invalid ID", "Can not convert params")
+		fmt.Printf("error: %v\n", err)
+		return BadRequest(c, "Invalid ID", "Cannot convert ID to ObjectID")
 	}
 
 	// connect to collection in mongoDB
 	adminCollection := database.GetCollection("adminAcc")
 
-	// make filter to find document based on acc_id (incremental id)
-	filter := bson.M{"acc_id": accID}
+	// make filter to find document based on id
+	filter := bson.M{"_id": accID}
 
 	// Variable to hold search results
 	var accountDetail bson.M
@@ -385,6 +387,7 @@ func GetAccountByID(c *fiber.Ctx) error {
 	if err != nil {
 		// If not found, return a 404 status.
 		if err == mongo.ErrNoDocuments {
+			fmt.Printf("error: %v\n", err)
 			return NotFound(c, "Data not found", "Can not find account")
 		}
 		// If in server error, return status 500
