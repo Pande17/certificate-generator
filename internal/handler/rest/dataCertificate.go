@@ -109,9 +109,10 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	certificate := model.PDF{
-		ID:     primitive.NewObjectID(),
-		DataID: newDataID,
-		Data:   mappedData,
+		ID:         primitive.NewObjectID(),
+		DataID:     newDataID,
+		SertifName: pdfReq.Data.SertifName,
+		Data:       mappedData,
 		Model: model.Model{
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
@@ -143,11 +144,14 @@ func GetAllCertificates(c *fiber.Ctx) error {
 
 	// set the projection to return the required fields
 	projection := bson.M{
-		"_id":        1,
-		"dataid":     1,
-		"sertifname": 1,
+		"_id":         1,
+		"data_id":     1,
+		"sertif_name": 1,
+		"data":        1,
+		"model":       1,
 	}
 
+	// find the projection
 	cursor, err := certificateCollection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -157,17 +161,19 @@ func GetAllCertificates(c *fiber.Ctx) error {
 	}
 	defer cursor.Close(ctx)
 
+	// decode each document and append it to results
 	for cursor.Next(ctx) {
-		var admin bson.M
-		if err := cursor.Decode(&admin); err != nil {
+		var certificate bson.M
+		if err := cursor.Decode(&certificate); err != nil {
 			return InternalServerError(c, "Failed to decode data", "Cannot decode data")
 		}
-		results = append(results, admin)
+		results = append(results, certificate)
 	}
 	if err := cursor.Err(); err != nil {
 		return InternalServerError(c, "Cursor error", "Cursor error")
 	}
 
+	// return success
 	return OK(c, "Success get all data", results)
 }
 
@@ -179,7 +185,7 @@ func GetCertificateByID(c *fiber.Ctx) error {
 	certificateCollection := database.GetCollection("certificate")
 
 	// make filter to find document based on data_id (incremental id)
-	filter := bson.M{"dataid": idParam}
+	filter := bson.M{"data_id": idParam}
 
 	// Variable to hold search results
 	var accountDetail bson.M
