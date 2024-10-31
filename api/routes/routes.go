@@ -49,9 +49,9 @@ func RouteSetup(r *fiber.App) {
 	api.Delete("/accounts/:id", rest.DeleteAdminAccount) // Route to delete admin account by acc_id
 
 	// define routes for management competence
-	api.Post("/competence", rest.CreateKompetensi)       // route to create competence data
-	api.Get("/competence", rest.GetAllKompetensi)        // route to get all competence data
-	api.Get("/competence/:id", rest.GetDetailKompetensi) // route to get competence data based on their id
+	api.Post("/competence", rest.CreateKompetensi) // route to create competence data
+	api.Get("/competence", rest.GetKompetensi)     // route to get all competence data
+	//api.Get("/competence/:id", TEMPlate)                 // route to get competence data based on their id
 	api.Put("/competence/:id", rest.EditKompetensi)      // route to update competence data
 	api.Delete("/competence/:id", rest.DeleteKompetensi) // route to delete competence data
 
