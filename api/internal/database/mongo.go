@@ -38,15 +38,14 @@ func ConnectMongoDB() (*mongo.Client, error) {
 	return MongoClient, nil
 }
 
-//
 func CreateCollectionsAndIndexes(client *mongo.Client) error {
-	ctx, cancel := context.WithTimeout(context.Background(),10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	db := client.Database("certificate-generator")
 
 	// create collection (if there is none yet)
-	collections := []string{"adminAcc", "certificate", "competence", "counters"}
+	collections := []string{"adminAcc", "certificate", "competence", "counters", "auditLog"}
 	for _, collections := range collections {
 		if err := db.CreateCollection(ctx, collections); err != nil {
 			log.Printf("Collection %s already exists or an error occured: %v", collections, err)
@@ -58,7 +57,7 @@ func CreateCollectionsAndIndexes(client *mongo.Client) error {
 	certificateCollection := db.Collection("certificate")
 
 	indexModel := mongo.IndexModel{
-		Keys: bson.D{{Key: "admin_name", Value: 1}},
+		Keys:    bson.D{{Key: "admin_name", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 	_, err := adminCollection.Indexes().CreateOne(ctx, indexModel)
@@ -67,14 +66,14 @@ func CreateCollectionsAndIndexes(client *mongo.Client) error {
 	}
 
 	indexModel = mongo.IndexModel{
-		Keys: bson.D{{Key: "data_id", Value: 1}},
+		Keys:    bson.D{{Key: "data_id", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 	_, err = certificateCollection.Indexes().CreateOne(ctx, indexModel)
 	if err != nil {
 		return err
 	}
-	
+
 	log.Println("Collections and indexes created successfully")
 	return nil
 }
