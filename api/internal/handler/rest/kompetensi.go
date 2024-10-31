@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"pkl/finalProject/certificate-generator/internal/database"
-	"pkl/finalProject/certificate-generator/internal/generator"
 	model "pkl/finalProject/certificate-generator/model"
 	"strconv"
 	"time"
@@ -50,16 +49,9 @@ func CreateKompetensi(c *fiber.Ctx) error {
 		return InternalServerError(c, "Error chechking for existing Competence", "Filter Competence Name")
 	}
 
-	// generate kompetensi_id (incremental id)
-	nextKompetensiID, err := generator.GetNextIncrementalID(collectionKompetensi, "kompetensi_id")
-	if err != nil {
-		return InternalServerError(c, "Failed to generate Kompetensi ID", "Generate ID Kompetensi")
-	}
-
 	// append data from body request to struct Kompetensi
 	kompetensi := model.Kompetensi{
 		ID:             primitive.NewObjectID(),
-		KompetensiID:   uint64(nextKompetensiID),
 		NamaKompetensi: kompetensiReq.KompetensiName,
 		HardSkills:     kompetensiReq.HardSkills,
 		SoftSkills:     kompetensiReq.SoftSkills,
@@ -197,7 +189,26 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 }
 
 // function to get all kompetensi data
-func GetAllKompetensi(c *fiber.Ctx) error {
+func GetKompetensi(c *fiber.Ctx) error {
+	if len(c.Queries()) == 0 {
+		return getAllKompetensi(c)
+	}
+	key := c.Query("type")
+	val := c.Query("s")
+	var value any
+	if key == "id" {
+		key = "_id"
+		var err error
+		if value, err = primitive.ObjectIDFromHex(val); err != nil {
+			return BadRequest(c, "can't parse id", err.Error())
+		}
+	} else {
+		value = val
+	}
+	return getOneKompetensi(c, bson.M{key: value})
+}
+
+func getAllKompetensi(c *fiber.Ctx) error {
 	var results []bson.M
 
 	collectionKompetensi := database.GetCollection("competence")
@@ -238,29 +249,15 @@ func GetAllKompetensi(c *fiber.Ctx) error {
 	return OK(c, "Sucess get all Competence data", results)
 }
 
-// function to get detail kompetensi data based on their kompetensi_id
-func GetDetailKompetensi(c *fiber.Ctx) error {
-	// get kompetensi_id from params
-	idParam := c.Params("id")
-
-	// parsing kompetensi_id to integer type data
-	kompetensiID, err := strconv.Atoi(idParam)
-	if err != nil {
-		return BadRequest(c, "Invalid ID", "Convert params Detail Kompetensi")
-	}
-
+func getOneKompetensi(c *fiber.Ctx, filter bson.M) error {
 	// connect to collection in MongoDB
 	collectionKompetensi := database.GetCollection("competence")
-
-	// make filter to find document based on kompetensi_id (incremental id)
-	filter := bson.M{"kompetensi_id": kompetensiID}
 
 	// variable to hold search results
 	var kompetensiDetail bson.M
 
 	// find a single document that matches the filter
-	err = collectionKompetensi.FindOne(context.TODO(), filter).Decode(&kompetensiDetail)
-	if err != nil {
+	if err := collectionKompetensi.FindOne(context.TODO(), filter).Decode(&kompetensiDetail); err != nil {
 		// if not found, return a 404 status
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Data not found", "Find Detail Kompetensi")
@@ -277,20 +274,4 @@ func GetDetailKompetensi(c *fiber.Ctx) error {
 
 	// return success
 	return OK(c, "Sucess get detail Competence data", kompetensiDetail)
-}
-
-// function to get Kompetensi by Nama Kompetensi
-func GetKompetensiByNamaKompetensi(c *fiber.Ctx, namaKompetensi any) error {
-	var kompetensi model.Kompetensi
-
-	filter := bson.M{"nama_kompetensi": namaKompetensi}
-
-	collectionKompetensi := database.GetCollection("competence")
-
-	err := collectionKompetensi.FindOne(context.TODO(), filter).Decode(&kompetensi)
-	if err != nil {
-		return NotFound(c, "Competence Not Found", "Find Competence")
-	}
-
-	return OK(c, "Success get Kompetensi", kompetensi)
 }
