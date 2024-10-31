@@ -10,7 +10,7 @@ import (
 )
 
 // Function for generating an random string ID for data ID
-func GetRandomID(length int) string {
+func getRandomID(length int) string {
 	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 	rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -22,7 +22,7 @@ func GetRandomID(length int) string {
 }
 
 // function to check if ID is unique in MongoDB
-func IsIDUnique(collection *mongo.Collection, data_id string) (bool, error) {
+func isIDUnique(collection *mongo.Collection, data_id string) (bool, error) {
 	filter := bson.M{"data_id": data_id}
 	count, err := collection.CountDocuments(context.TODO(), filter)
 	if err != nil {
@@ -35,8 +35,8 @@ func IsIDUnique(collection *mongo.Collection, data_id string) (bool, error) {
 func GetUniqueRandomID(collection *mongo.Collection, length int) (string, error) {
 	var data_id string
 	for {
-		data_id = GetRandomID(8)
-		unique, err := IsIDUnique(collection, data_id)
+		data_id = getRandomID(8)
+		unique, err := isIDUnique(collection, data_id)
 		if err != nil {
 			return "", err
 		}
