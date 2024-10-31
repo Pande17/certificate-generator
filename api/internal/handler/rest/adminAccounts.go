@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"pkl/finalProject/certificate-generator/internal/database"
-	"pkl/finalProject/certificate-generator/internal/generator"
 	model "pkl/finalProject/certificate-generator/model"
 
 	"github.com/gofiber/fiber/v2"
@@ -68,15 +67,14 @@ func SignUp(c *fiber.Ctx) error {
 	}
 
 	// generate acc_id (incremental id)
-	nextAccID, err := generator.GetNextIncrementalID(adminCollection, "acc_id")
-	if err != nil {
-		return InternalServerError(c, "Failed to generate account ID", "Generate acc_id")
-	}
+	// nextAccID, err := generator.GetNextIncrementalID(adminCollection, "acc_id")
+	// if err != nil {
+	// 	return InternalServerError(c, "Failed to generate account ID", "Generate acc_id")
+	// }
 
 	// input data from req struct to struct "AdminAccount"
 	admin := model.AdminAccount{
 		ID:            primitive.NewObjectID(),
-		AccID:         nextAccID,
 		AdminName:     adminReq.AdminName,
 		AdminPassword: string(hash),
 		Model: model.Model{
