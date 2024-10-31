@@ -7,7 +7,6 @@ import (
 // struct for Kompetensi
 type Kompetensi struct {
 	ID             primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	KompetensiID   uint64             `json:"kompetensi_id" bson:"kompetensi_id"`
 	NamaKompetensi string             `json:"nama_kompetensi" bson:"nama_kompetensi"`
 	HardSkills     []Skill            `json:"hard_skills" bson:"hard_skills"`
 	SoftSkills     []Skill            `json:"soft_skills" bson:"soft_skills"`
