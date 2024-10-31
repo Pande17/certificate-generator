@@ -1,23 +1,17 @@
 package model
 
 import (
-	"time"
-
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // struct for Kompetensi
 type Kompetensi struct {
-	ID             primitive.ObjectID `bson:"_id,omitempty"`
+	ID             primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	KompetensiID   uint64             `json:"kompetensi_id" bson:"kompetensi_id"`
 	NamaKompetensi string             `json:"nama_kompetensi" bson:"nama_kompetensi"`
 	HardSkills     []Skill            `json:"hard_skills" bson:"hard_skills"`
 	SoftSkills     []Skill            `json:"soft_skills" bson:"soft_skills"`
-	Model          struct {
-		CreatedAt time.Time  `json:"created_at" bson:"created_at"`
-		UpdatedAt time.Time  `json:"updated_at" bson:"updated_at"`
-		DeletedAt *time.Time `json:"deleted_at,omitempty" bson:"deleted_at,omitempty"`
-	} `bson:",inline"`
+	Model          `bson:",inline"`
 }
 
 // `bson:",inline"`   // flatten the model fields

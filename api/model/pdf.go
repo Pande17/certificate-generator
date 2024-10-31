@@ -5,7 +5,7 @@ import (
 )
 
 type PDF struct {
-	ID         primitive.ObjectID `bson:"_id,omitempty"`
+	ID         primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	DataID     string             `json:"data_id" bson:"data_id"`
 	SertifName string             `json:"sertif_name" bson:"sertif_name"`
 	Data       CertificateData    `json:"data" bson:"data"`

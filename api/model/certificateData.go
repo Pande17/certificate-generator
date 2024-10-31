@@ -10,7 +10,7 @@ type CertificateData struct {
 	Validation     string       `json:"validation" bson:"validation"`
 	ValidDate      ValidDate    `json:"valid_date" bson:"valid_date"`
 	DataID         string       `json:"data_id" bson:"data_id"`
-	QRCode         QRCode       `json:"kode_qr" bson:"kode_qr"`
+	QRCode         string       `json:"kode_qr" bson:"kode_qr"`
 	TotalJP        uint64       `json:"total_jp" bson:"total_jp"`
 	TotalMeet      uint64       `json:"total_meet" bson:"total_meet"`
 	MeetTime       string       `json:"meet_time" bson:"meet_time"`
@@ -30,13 +30,6 @@ type ValidDate struct {
 	ValidTotal string `json:"valid_total" bson:"valid_total"`
 	ValidStart string `json:"valid_start" bson:"valid_start"`
 	ValidEnd   string `json:"valid_end" bson:"valid_end"`
-}
-
-type QRCode struct {
-	//QRCodeID    uint64 `json:"qrcode_id" bson:"qrcode_id"`
-	QRCodePDFID string `json:"qrcode_str" bson:"qrcode_str"`
-	QRCodeLink  string `json:"qrcode_link" bson:"qrcode_link"`
-	QRCodeEnc   string `json:"qrcode_enc" bson:"qrcode_enc"`
 }
 
 type SkillPDF struct {
