@@ -15,7 +15,8 @@ func RouteSetup(r *fiber.App) {
 			"message": "test",
 		})
 	})
-	r.Static("/assets/", "./temp")
+	r.Static("/assets/", "./temp/")
+	r.Static("/assets/d/", "./temp/", fiber.Static{Download: true})
 
 	// CORS Middleware setup
 	r.Use(cors.New(cors.Config{
