@@ -85,11 +85,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 		KompetenBidang: pdfReq.Data.KompetenBidang,
 		Kompetensi:     pdfReq.Data.Kompetensi,
 		Validation:     pdfReq.Data.Validation,
-		QRCode: model.QRCode{
-			QRCodePDFID: newDataID,
-			QRCodeLink:  link + newDataID + ".pdf",
-			QRCodeEnc:   encstr,
-		},
+		QRCode:   encstr,
 		DataID:    newDataID,
 		TotalJP:   totalHSJP + totalSSJP,
 		TotalMeet: pdfReq.Data.TotalMeet,

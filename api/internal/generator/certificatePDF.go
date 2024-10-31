@@ -19,7 +19,7 @@ func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64) error
 	if err := c.Render("temp/index.html", struct {
 		Data model.CertificateData
 		Enc  template.Srcset
-	}{Data: *dataReq, Enc: template.Srcset(dataReq.QRCode.QRCodeEnc)}); err != nil { // remember to change index.html path
+	}{Data: *dataReq, Enc: template.Srcset(dataReq.QRCode)}); err != nil { // remember to change index.html path
 		return err
 	}
 
