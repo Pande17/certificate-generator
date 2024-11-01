@@ -10,16 +10,34 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64) error {
+func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64) error { //, pageNum string) error {
 	pdfg, err := wkhtmltopdf.NewPDFGenerator()
 	if err != nil {
 		return err
 	}
 
-	if err := c.Render("temp/index.html", struct {
-		Data model.CertificateData
-		Enc  template.Srcset
-	}{Data: *dataReq, Enc: template.Srcset(dataReq.QRCode)}); err != nil { // remember to change index.html path
+	type renderer struct {
+		Data      model.CertificateData
+		Enc       template.Srcset
+		StyleReg  template.CSS
+		StylePage template.CSS
+	}
+
+	stReg, err := readCSS("styleReg")
+	if err != nil {
+		return err
+	}
+	// stPage, err := readCSS("stylePage" + pageNum)
+	// if err != nil {
+	// 	return err
+	// }
+
+	if err := c.Render("temp/index.html", renderer{
+		Data:     *dataReq,
+		Enc:      template.Srcset(dataReq.QRCode),
+		StyleReg: template.CSS(stReg),
+		//StylePage: template.CSS(stPage),
+	}); err != nil {
 		return err
 	}
 
@@ -55,4 +73,23 @@ func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64) error
 	}
 
 	return pdfg.WriteFile("temp/certificate/" + dataReq.DataID + ".pdf")
+}
+
+func readCSS(filename string) (string, error) {
+	file, err := os.Open("temp/" + filename + ".html")
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	fStat, err := file.Stat()
+	if err != nil {
+		return "", err
+	}
+
+	data := make([]byte, fStat.Size()*2)
+	if _, err := file.Read(data); err != nil {
+		return "", err
+	}
+	return string(data), nil
 }
