@@ -220,16 +220,17 @@ func getAllKompetensi(c *fiber.Ctx) error {
 	projection := bson.M{
 		"_id":             1, // 0 to exclude the field
 		"nama_kompetensi": 1, // 1 to include the field, _id will be included by default
-		"model":           1,
+		"created_at":      1,
+		"updated_at":      1,
 	}
 
 	// find the projection
 	cursor, err := collectionKompetensi.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "No Competence found", "Find all kompetensi")
+			return NotFound(c, "No Competence found", err.Error())
 		}
-		return InternalServerError(c, "Failed to fetch data", "Find all kompetensi")
+		return InternalServerError(c, "Failed to fetch data", err.Error())
 	}
 	defer cursor.Close(ctx)
 
