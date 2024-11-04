@@ -24,8 +24,7 @@ func main() {
 
 	err := app.Listen(":3000")
 	if err != nil {
-		log.Fatal(
-			"Error on running fiber, ",
-			err.Error())
+		log.Println("Error on running fiber, ", err.Error())
 	}
+	fiber.New().Get("/", func(c *fiber.Ctx) error { return c.Status(fiber.StatusServiceUnavailable).JSON("service unavailable") })
 }

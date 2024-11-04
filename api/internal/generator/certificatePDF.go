@@ -10,18 +10,32 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64) error { //, pageNum string) error {
-	pdfg, err := wkhtmltopdf.NewPDFGenerator()
+var pdfg *wkhtmltopdf.PDFGenerator
+
+func init() {
+	var err error
+	pdfg, err = wkhtmltopdf.NewPDFGenerator()
 	if err != nil {
-		return err
+		log.Println("wkhtmltopdf not found") // change to log.Fatal later
 	}
 
+	pdfg.MarginTop.Set(0)
+	pdfg.MarginRight.Set(0)
+	pdfg.MarginBottom.Set(0)
+	pdfg.MarginLeft.Set(0)
+	pdfg.Dpi.Set(300)
+	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
+}
+
+func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64) error { //, pageNum string) error {
 	type renderer struct {
 		Data      model.CertificateData
 		Enc       template.Srcset
 		StyleReg  template.CSS
 		StylePage template.CSS
 	}
+
+	pdfg.ResetPages()
 
 	stReg, err := readCSS("styleReg")
 	if err != nil {
@@ -57,15 +71,8 @@ func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64) error
 	}
 
 	page := wkhtmltopdf.NewPage("temp/temp" + dataReq.DataID + ".html")
-	page.Zoom.Set(zoom) // agak tergantung siapa yg buat file pdf-nya, di rendy zoom 1.064, di aku 1.3
-
+	page.Zoom.Set(zoom)
 	pdfg.AddPage(page)
-	pdfg.MarginTop.Set(0)
-	pdfg.MarginRight.Set(0)
-	pdfg.MarginBottom.Set(0)
-	pdfg.MarginLeft.Set(0)
-	pdfg.Dpi.Set(300)
-	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
 
 	err = pdfg.Create()
 	if err != nil {
