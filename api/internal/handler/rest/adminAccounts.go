@@ -316,8 +316,28 @@ func DeleteAdminAccount(c *fiber.Ctx) error {
 	return OK(c, "Successfully deleted account", accID)
 }
 
+// func for get admin account
+func GetAdminAccount(c *fiber.Ctx) error {
+	if len(c.Queries()) == 0 {
+		return getAllAdminAccount(c)
+	}
+	key := c.Query("type")
+	val := c.Query("s")
+	var value any
+	if key == "id" {
+		key = "_id"
+		var err error
+		if value, err = primitive.ObjectIDFromHex(val); err != nil {
+			return BadRequest(c, "can't parse id", err.Error())
+		}
+	} else {
+		value = val
+	}
+	return getOneAdminAccount(c, bson.M{key: value})
+}
+
 // Function to se all Admin Account
-func GetAllAdminAccount(c *fiber.Ctx) error {
+func getAllAdminAccount(c *fiber.Ctx) error {
 	var results []bson.M
 
 	adminCollection := database.GetCollection("adminAcc")
@@ -326,25 +346,25 @@ func GetAllAdminAccount(c *fiber.Ctx) error {
 	defer cancel()
 
 	// set the projection to return the required fields
-	projection := bson.M{
-		"_id":        1,
-		"admin_name": 1,
-		"model":      1,
-		// "admin_password": 1,
-		// "acc_id":         1,
-	}
-	// 1 to include the field, _id will be included by default
-	// 0 to exclude the field
 
+	projection := bson.M{
+		"_id":        1, // 1 to include the field, _id will be included by default
+		"admin_name": 1, // 0 to exclude the field
+		"created_at": 1,
+		"updated_at": 1,
+	}
+
+	// find the projection
 	cursor, err := adminCollection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "No Documents Found", "No admin acc found")
+			return NotFound(c, "No Account Found", err.Error())
 		}
 		return InternalServerError(c, "Failed to fetch data", "Failed found admin acc")
 	}
 	defer cursor.Close(ctx)
 
+	// decode each document and append it to results
 	for cursor.Next(ctx) {
 		var admin bson.M
 		if err := cursor.Decode(&admin); err != nil {
@@ -356,46 +376,47 @@ func GetAllAdminAccount(c *fiber.Ctx) error {
 		return InternalServerError(c, "Cursor error", "Cursor error")
 	}
 
-	return OK(c, "Success get all data", results)
+	return OK(c, "Success get all Admin Account data", results)
 }
 
 // function to get detail account by accID
-func GetAccountByID(c *fiber.Ctx) error {
-	// Get acc_id from params
-	idParam := c.Params("id")
-
-	// // parsing acc_id to integer type data
-	accID, err := primitive.ObjectIDFromHex(idParam)
-	if err != nil {
-		fmt.Printf("error: %v\n", err)
-		return BadRequest(c, "Invalid ID", "Cannot convert ID to ObjectID")
-	}
-
-	// connect to collection in mongoDB
+func getOneAdminAccount(c *fiber.Ctx, filter bson.M) error {
+	// connect to collection in MongoDB
 	adminCollection := database.GetCollection("adminAcc")
-
-	// make filter to find document based on id
-	filter := bson.M{"_id": accID}
 
 	// Variable to hold search results
 	var accountDetail bson.M
 
+	// Get acc_id from params
+	// idParam := c.Params("id")
+
+	// parsing ObjectID to string
+	// accID, err := primitive.ObjectIDFromHex(idParam)
+	// if err != nil {
+	// 	fmt.Printf("id on params: %v\n", idParam)
+	// 	fmt.Printf("id received: %v\n", accID)
+	// 	fmt.Printf("error: %v\n", err)
+	// 	return BadRequest(c, "Invalid ID", "Cannot convert ID to ObjectID")
+	// }
+
+	// // make filter to find document based on id
+	// filter := bson.M{"_id": accID}
+
 	// Find a single document that matches the filter
-	err = adminCollection.FindOne(context.TODO(), filter).Decode(&accountDetail)
-	if err != nil {
+	if err := adminCollection.FindOne(context.TODO(), filter).Decode(&accountDetail); err != nil {
 		// If not found, return a 404 status.
 		if err == mongo.ErrNoDocuments {
 			fmt.Printf("error: %v\n", err)
-			return NotFound(c, "Data not found", "Can not find account")
+			return NotFound(c, "Data not found 1", "Can not find account 2")
 		}
 		// If in server error, return status 500
 		return InternalServerError(c, "Failed to retrieve data", "Server can't find account")
 	}
 
 	// check if document is already deleted
-	if deletedAt, ok := accountDetail["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
+	if deletedAt, ok := accountDetail["deleted_at"]; ok && deletedAt != nil {
 		// Return the deletion time if the account is already deleted
-		return AlreadyDeleted(c, "This account has already been deleted", "Chechk deleted admin acc", deletedAt)
+		return AlreadyDeleted(c, "This account has already been deleted", "Check deleted admin acc", deletedAt)
 	}
 
 	// return success
