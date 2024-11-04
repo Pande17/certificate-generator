@@ -37,7 +37,7 @@ func RouteSetup(r *fiber.App) {
 
 	// Define api routes
 	// Every request to a path with the group "api" always checks the cookie
-	// protected := api.Use(middleware.ValidateCookie)
+	protected := api.Use(middleware.ValidateCookie)
 
 	// Define routes for authentication
 	api.Post("/logout", rest.Logout) // Route to logout from account
@@ -49,8 +49,8 @@ func RouteSetup(r *fiber.App) {
 	api.Delete("/accounts/:id", rest.DeleteAdminAccount) // Route to delete admin account by acc_id
 
 	// define routes for management competence
-	api.Post("/competence", rest.CreateKompetensi) // route to create competence data
-	api.Get("/competence", rest.GetKompetensi)     // route to get all competence data
+	api.Post("/competence", rest.CreateKompetensi)                                                    // route to create competence data
+	protected.Get("/competence", middleware.AuditMiddleware("GET", "Competence"), rest.GetKompetensi) // route to get all competence data
 	//api.Get("/competence/:id", TEMPlate)                 // route to get competence data based on their id
 	api.Put("/competence/:id", rest.EditKompetensi)      // route to update competence data
 	api.Delete("/competence/:id", rest.DeleteKompetensi) // route to delete competence data
