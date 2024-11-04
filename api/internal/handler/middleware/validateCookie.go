@@ -13,7 +13,7 @@ import (
 func ValidateCookie(c *fiber.Ctx) error {
 	// Retrieve the cookie named "Authorization"
 	cookie := c.Cookies("Authorization")
-	
+
 	if cookie == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error":  "Unauthorized, please login",
@@ -54,7 +54,7 @@ func ValidateCookie(c *fiber.Ctx) error {
 		c.Locals("adminID", claims["sub"])
 	} else {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":  "Invalid token",
+			"error":  "Invalid token 2",
 			"status": fiber.StatusUnauthorized,
 		})
 	}
