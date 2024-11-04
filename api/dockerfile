@@ -2,20 +2,19 @@
 FROM golang:1.22
 
 # set working directory in container
-WORKDIR /cmd
-
-# copy go.mod and go.sum, then install dependencies
-COPY go.mod go.sum ./
-RUN go mod download
+WORKDIR /usr/src/app
 
 # copy all code file to container
 COPY . .
 
-# build Go Application
-RUN go build -o main ./cmd
+# disable cgo
+ENV CGO_ENABLED=0
 
-# command to run program when this container started
-CMD ["./cmd/main.go"]
+# build app
+RUN go build -o app ./
+
+# app entrypoint
+ENTRYPOINT ["./app"]
 
 # export port
 EXPOSE 3000
