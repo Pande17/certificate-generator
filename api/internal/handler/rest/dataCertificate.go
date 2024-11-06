@@ -85,12 +85,12 @@ func CreateCertificate(c *fiber.Ctx) error {
 		KompetenBidang: pdfReq.Data.KompetenBidang,
 		Kompetensi:     pdfReq.Data.Kompetensi,
 		Validation:     pdfReq.Data.Validation,
-		QRCode:   encstr,
-		DataID:    newDataID,
-		TotalJP:   totalHSJP + totalSSJP,
-		TotalMeet: pdfReq.Data.TotalMeet,
-		MeetTime:  pdfReq.Data.MeetTime,
-		ValidDate: pdfReq.Data.ValidDate,
+		QRCode:         encstr,
+		DataID:         newDataID,
+		TotalJP:        totalHSJP + totalSSJP,
+		TotalMeet:      pdfReq.Data.TotalMeet,
+		MeetTime:       pdfReq.Data.MeetTime,
+		ValidDate:      pdfReq.Data.ValidDate,
 		HardSkills: model.SkillPDF{
 			Skills:          pdfReq.Data.HardSkills.Skills,
 			TotalSkillJP:    totalHSJP,
@@ -143,8 +143,10 @@ func GetAllCertificates(c *fiber.Ctx) error {
 		"_id":         1,
 		"data_id":     1,
 		"sertif_name": 1,
-		"data":        1,
-		"model":       1,
+		"created_at":  1,
+		"updated_at":  1,
+		"deleted_at":  1,
+		// "data":        1,
 	}
 
 	// find the projection
