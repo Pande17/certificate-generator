@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"fmt"
 	"pkl/finalProject/certificate-generator/internal/database"
 	"pkl/finalProject/certificate-generator/internal/generator"
 	model "pkl/finalProject/certificate-generator/model"
@@ -214,30 +215,37 @@ func DeleteCertificate(c *fiber.Ctx) error {
 	// Get dataid from params
 	idParam := c.Params("id")
 
+	// Convert idParam to ObjectID if needed
+	certifID, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		return BadRequest(c, "Invalid ID format", "Please provide a valid ObjectID")
+	}
+
 	// connect to collection in mongoDB
 	certificateCollection := database.GetCollection("certificate")
 
 	// make filter to find document based on acc_id (incremental id)
-	filter := bson.M{"dataid": idParam}
+	filter := bson.M{"_id": certifID}
 
 	// find admin account
 	var certificate bson.M
-	err := certificateCollection.FindOne(context.TODO(), filter).Decode(&certificate)
+	err = certificateCollection.FindOne(context.TODO(), filter).Decode(&certificate)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			fmt.Printf("error: %v\n", err.Error())
 			return NotFound(c, "Certificate not found", "Cannot find certificate")
 		}
 		return InternalServerError(c, "Failed to fetch certificate", "server error cannot find certificate")
 	}
 
 	// Check if DeletedAt field already has a value
-	if deletedAt, ok := certificate["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
+	if deletedAt, ok := certificate["deleted_at"]; ok && deletedAt != nil {
 		// Return the deletion time if the certificate is already deleted
 		return AlreadyDeleted(c, "This certificate has already been deleted", "Check deleted certificate", deletedAt)
 	}
 
 	// make update for input timestamp DeletedAt
-	update := bson.M{"$set": bson.M{"model.deleted_at": time.Now()}}
+	update := bson.M{"$set": bson.M{"deleted_at": time.Now()}}
 
 	// update document in collection MongoDB
 	result, err := certificateCollection.UpdateOne(context.TODO(), filter, update)
