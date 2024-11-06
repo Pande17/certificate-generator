@@ -28,10 +28,10 @@ COPY . .
 ENV CGO_ENABLED=0
 
 # build app
-RUN go build -o /usr/src/app/app ./
+RUN go build -o app ./
 
 # app entrypoint
-ENTRYPOINT ["/usr/src/app/app"]
+ENTRYPOINT ["./app"]
 
 # export port
 EXPOSE 3000
