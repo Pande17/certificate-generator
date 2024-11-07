@@ -39,7 +39,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	// generate qrcode
-	link := "http://localhost:3000/assets/certificate/"
+	link := fmt.Sprintf("%s://%s/assets/certificate/", c.Protocol(), c.Hostname())
 	encstr, err := generator.GenerateQRCode(link, newDataID)
 	if err != nil {
 		return InternalServerError(c, "Failed to generate QRCode Img", "Server failed generate qrcode img")
