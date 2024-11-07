@@ -74,14 +74,14 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	mappedData := model.CertificateData{
-		SertifName: pdfReq.Data.SertifName,
+		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
 		KodeReferral: model.KodeReferral{
 			ReferralID: nextReferralID,
 			Divisi:     pdfReq.Data.KodeReferral.Divisi,
 			BulanRilis: pdfReq.Data.KodeReferral.BulanRilis,
 			TahunRilis: pdfReq.Data.KodeReferral.TahunRilis,
 		},
-		NamaPeserta:    pdfReq.Data.NamaPeserta,
+		NamaPeserta:    strings.TrimSpace(pdfReq.Data.NamaPeserta),
 		SKKNI:          pdfReq.Data.SKKNI,
 		KompetenBidang: pdfReq.Data.KompetenBidang,
 		Kompetensi:     pdfReq.Data.Kompetensi,
@@ -108,7 +108,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 	certificate := model.PDF{
 		ID:         primitive.NewObjectID(),
 		DataID:     newDataID,
-		SertifName: pdfReq.Data.SertifName,
+		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
 		Data:       mappedData,
 		Model: model.Model{
 			CreatedAt: time.Now(),
