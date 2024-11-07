@@ -105,9 +105,7 @@ func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64) error
 		} else {
 			txtWidth++
 		}
-		fmt.Print(txtWidth, " ")
 	}
-	fmt.Println()
 	if txtWidth > 120 {
 		scale = 120 / float64(txtWidth)
 	}
