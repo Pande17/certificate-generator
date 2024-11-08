@@ -3,9 +3,11 @@ package rest
 import (
 	"context"
 	"fmt"
+	"math"
 	"pkl/finalProject/certificate-generator/internal/database"
 	"pkl/finalProject/certificate-generator/internal/generator"
 	model "pkl/finalProject/certificate-generator/model"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -95,14 +97,14 @@ func CreateCertificate(c *fiber.Ctx) error {
 		HardSkills: model.SkillPDF{
 			Skills:          pdfReq.Data.HardSkills.Skills,
 			TotalSkillJP:    totalHSJP,
-			TotalSkillScore: totalHSSkor / float64(len(pdfReq.Data.HardSkills.Skills)),
+			TotalSkillScore: float64(math.Round(totalHSSkor/float64(len(pdfReq.Data.HardSkills.Skills))*10) / 10),
 		},
 		SoftSkills: model.SkillPDF{
 			Skills:          pdfReq.Data.SoftSkills.Skills,
 			TotalSkillJP:    totalSSJP,
-			TotalSkillScore: totalSSSkor / float64(len(pdfReq.Data.SoftSkills.Skills)),
+			TotalSkillScore: float64(math.Round(totalSSSkor/float64(len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
 		},
-		FinalSkor: (totalHSSkor + totalSSSkor) / float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills)),
+		FinalSkor: float64(math.Round((totalHSSkor+totalSSSkor)/float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
 	}
 
 	certificate := model.PDF{
