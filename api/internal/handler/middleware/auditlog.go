@@ -23,6 +23,7 @@ func AuditMiddleware(action, entity string) fiber.Handler {
 			fmt.Printf("Type of adminToken: %T\n", adminToken) // Ini akan membantu verifikasi tipe
 			if adminToken == nil {
 				fmt.Println("No token found in context")
+				fmt.Printf("error: %v\n", err)
 				return err
 			}
 
