@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"fmt"
 	"html/template"
 	"log"
 	"math"
@@ -14,6 +13,37 @@ import (
 )
 
 var pdfg *wkhtmltopdf.PDFGenerator
+
+// functions for rendering html certificate
+var funcs = template.FuncMap{
+	"splittxt": func(s string) []string {
+		return strings.Split(s, "")
+	},
+	"add": func(a, b int) int {
+		return a + b
+	},
+	"rangecheck": func(s string) int {
+		scale := float64(1)
+		txtWidth := len(s) * 4
+		for _, c := range s {
+			if val, ok := txtWide[c]; ok {
+				if string(c) == strings.ToUpper(string(c)) && c != ' ' {
+					txtWidth += 4
+				}
+				txtWidth += val
+			} else {
+				txtWidth++
+			}
+		}
+		if txtWidth > 120 {
+			scale = 120 / float64(txtWidth)
+		}
+		return int(math.Floor(scale * 48))
+	},
+	"parity": func(i int) int {
+		return i % 2
+	},
+}
 
 // letter width is 4 for lowercase letters, and 8 for uppercase letters
 //
@@ -50,19 +80,11 @@ var txtWide = map[rune]int{
 	' ': -2,
 }
 
-type Funcs struct {
-	Text string
-}
-
-func (s Funcs) SplitTxt(t string) []string {
-	return strings.Split(t, "")
-}
-
 func init() {
 	var err error
 	pdfg, err = wkhtmltopdf.NewPDFGenerator()
 	if err != nil {
-		log.Println("wkhtmltopdf not found") // change to log.Fatal later
+		log.Fatal("wkhtmltopdf not found")
 	}
 
 	pdfg.MarginTop.Set(0)
@@ -73,67 +95,27 @@ func init() {
 	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
 }
 
-func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64, pageName string) error { //, pageNum string) error {
-	type renderer struct {
-		Data      model.CertificateData
-		Enc       template.Srcset
-		StyleReg  template.CSS
-		StylePage template.CSS
-		NameSize  string
-		Funcs
-	}
-
+func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64, pageName string) error {
 	pdfg.ResetPages()
 
-	stReg, err := readCSS("styleReg")
-	if err != nil {
+	if t, err := template.New(pageName).Funcs(funcs).ParseFiles("assets/" + pageName + ".html"); err != nil {
 		return err
-	}
-	// stPage, err := readCSS("stylePage" + pageNum)
-	// if err != nil {
-	// 	return err
-	// }
-
-	scale := float64(1)
-	txtWidth := len(dataReq.NamaPeserta) * 4
-	for _, c := range dataReq.NamaPeserta {
-		if val, ok := txtWide[c]; ok {
-			if string(c) == strings.ToUpper(string(c)) && c != ' ' {
-				txtWidth += 4
-			}
-			txtWidth += val
-		} else {
-			txtWidth++
-		}
-	}
-	if txtWidth > 120 {
-		scale = 120 / float64(txtWidth)
-	}
-	scale = math.Floor(scale * 48)
-
-	if err := c.Render("temp/index.html", renderer{
-		Data:     *dataReq,
-		Enc:      template.Srcset(dataReq.QRCode),
-		StyleReg: template.CSS(stReg),
-		//StylePage: template.CSS(stPage),
-		NameSize: fmt.Sprintf("style='font-size:%.fpx'", scale),
-		Funcs:    Funcs{Text: "foo"},
-	}); err != nil {
+	} else if err := t.Execute(c.Response().BodyWriter(), *dataReq); err != nil {
 		return err
 	}
 
-	pdfTempl, err := os.Create("temp/temp" + dataReq.DataID + ".html")
+	htmlSertif, err := os.Create("temp/temp" + dataReq.DataID + ".html")
 	if err != nil {
 		return err
 	}
 	defer func() {
-		pdfTempl.Close()
+		htmlSertif.Close()
 		if err := os.Remove("temp/temp" + dataReq.DataID + ".html"); err != nil {
 			log.Println("WARNING: memory leak (can't remove html file)\nerr:", err)
 		}
 	}()
 
-	if _, err := pdfTempl.Write(c.Response().Body()); err != nil {
+	if _, err := htmlSertif.Write(c.Response().Body()); err != nil {
 		return err
 	}
 
@@ -146,24 +128,5 @@ func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64, pageN
 		return err
 	}
 
-	return pdfg.WriteFile("temp/certificate/" + dataReq.DataID + ".pdf")
-}
-
-func readCSS(filename string) (string, error) {
-	file, err := os.Open("temp/" + filename + ".html")
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	fStat, err := file.Stat()
-	if err != nil {
-		return "", err
-	}
-
-	data := make([]byte, fStat.Size()*2)
-	if _, err := file.Read(data); err != nil {
-		return "", err
-	}
-	return string(data), nil
+	return pdfg.WriteFile("assets/certificate/" + dataReq.DataID + ".pdf")
 }
