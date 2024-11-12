@@ -73,7 +73,7 @@ func init() {
 	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
 }
 
-func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64) error { //, pageNum string) error {
+func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64, pageName string) error { //, pageNum string) error {
 	type renderer struct {
 		Data      model.CertificateData
 		Enc       template.Srcset
