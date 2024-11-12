@@ -15,8 +15,6 @@ func RouteSetup(r *fiber.App) {
 			"message": "test",
 		})
 	})
-	r.Static("/assets/", "./temp/")
-	r.Static("/assets/d/", "./temp/", fiber.Static{Download: true})
 
 	// CORS Middleware setup
 	r.Use(cors.New(cors.Config{
@@ -62,6 +60,7 @@ func RouteSetup(r *fiber.App) {
 	api.Put("/certiticate/:id", TEMPlate)
 	api.Delete("/certificate/:id", rest.DeleteCertificate)
 
+	r.Get("/assets/certificate/:id", rest.DownloadCertificate)
 }
 
 func TEMPlate(c *fiber.Ctx) error {

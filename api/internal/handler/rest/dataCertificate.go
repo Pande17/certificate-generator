@@ -3,9 +3,11 @@ package rest
 import (
 	"context"
 	"fmt"
+	"math"
 	"pkl/finalProject/certificate-generator/internal/database"
 	"pkl/finalProject/certificate-generator/internal/generator"
 	model "pkl/finalProject/certificate-generator/model"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -39,7 +41,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	// generate qrcode
-	link := "http://localhost:3000/assets/certificate/"
+	link := fmt.Sprintf("%s://%s/assets/certificate/", c.Protocol(), c.Hostname())
 	encstr, err := generator.GenerateQRCode(link, newDataID)
 	if err != nil {
 		return InternalServerError(c, "Failed to generate QRCode Img", "Server failed generate qrcode img")
@@ -74,14 +76,14 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	mappedData := model.CertificateData{
-		SertifName: pdfReq.Data.SertifName,
+		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
 		KodeReferral: model.KodeReferral{
 			ReferralID: nextReferralID,
 			Divisi:     pdfReq.Data.KodeReferral.Divisi,
 			BulanRilis: pdfReq.Data.KodeReferral.BulanRilis,
 			TahunRilis: pdfReq.Data.KodeReferral.TahunRilis,
 		},
-		NamaPeserta:    pdfReq.Data.NamaPeserta,
+		NamaPeserta:    strings.TrimSpace(pdfReq.Data.NamaPeserta),
 		SKKNI:          pdfReq.Data.SKKNI,
 		KompetenBidang: pdfReq.Data.KompetenBidang,
 		Kompetensi:     pdfReq.Data.Kompetensi,
@@ -95,20 +97,20 @@ func CreateCertificate(c *fiber.Ctx) error {
 		HardSkills: model.SkillPDF{
 			Skills:          pdfReq.Data.HardSkills.Skills,
 			TotalSkillJP:    totalHSJP,
-			TotalSkillScore: totalHSSkor / float64(len(pdfReq.Data.HardSkills.Skills)),
+			TotalSkillScore: float64(math.Round(totalHSSkor/float64(len(pdfReq.Data.HardSkills.Skills))*10) / 10),
 		},
 		SoftSkills: model.SkillPDF{
 			Skills:          pdfReq.Data.SoftSkills.Skills,
 			TotalSkillJP:    totalSSJP,
-			TotalSkillScore: totalSSSkor / float64(len(pdfReq.Data.SoftSkills.Skills)),
+			TotalSkillScore: float64(math.Round(totalSSSkor/float64(len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
 		},
-		FinalSkor: (totalHSSkor + totalSSSkor) / float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills)),
+		FinalSkor: float64(math.Round((totalHSSkor+totalSSSkor)/float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
 	}
 
 	certificate := model.PDF{
 		ID:         primitive.NewObjectID(),
 		DataID:     newDataID,
-		SertifName: pdfReq.Data.SertifName,
+		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
 		Data:       mappedData,
 		Model: model.Model{
 			CreatedAt: time.Now(),
@@ -267,6 +269,36 @@ func DeleteCertificate(c *fiber.Ctx) error {
 
 	// Respons success
 	return OK(c, "Successfully deleted certificate", idParam)
+}
+
+func DownloadCertificate(c *fiber.Ctx) error {
+	idParam := c.Params("id")
+
+	// connect to collection in mongoDB
+	certificateCollection := database.GetCollection("certificate")
+
+	// make filter to find document based on acc_id (incremental id)
+	filter := bson.M{"data_id": idParam}
+
+	var certifDetail model.PDF
+
+	// Find a single document that matches the filter
+	if err := certificateCollection.FindOne(context.TODO(), filter).Decode(&certifDetail); err != nil {
+		// If not found, return a 404 status.
+		if err == mongo.ErrNoDocuments {
+			return NotFound(c, "Data not found", "Cannot find certificate")
+		}
+		// If in server error, return status 500
+		return InternalServerError(c, "Failed to retrieve data", "Server can't find certificate")
+	}
+
+	// check if document is already deleted
+	if certifDetail.DeletedAt != nil {
+		// Return the deletion time if the account is already deleted
+		return AlreadyDeleted(c, "This certificate has already been deleted", "Check deleted certificate", certifDetail.DeletedAt)
+	}
+
+	return c.Download("./temp/certificate/"+idParam+".pdf", "Sertifikat BTW Edutech - "+certifDetail.Data.NamaPeserta)
 }
 
 // {
