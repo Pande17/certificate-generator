@@ -14,34 +14,44 @@ import (
 
 func AuditMiddleware(action, entity string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// call the next handler (perform the main action like GET, POST, PUT, DELETE)
+		// Call the next handler (perform the main action like GET, POST, PUT, DELETE)
 		err := c.Next()
 
 		if err == nil {
-			// retrieve admin token from context
-			adminToken := c.Locals("adminID")
-			fmt.Printf("Type of adminToken: %T\n", adminToken) // Ini akan membantu verifikasi tipe
-			if adminToken == nil {
-				fmt.Println("No token found in context")
-				fmt.Printf("error: %v\n", err)
+			// Retrieve admin token from context as a string
+			adminTokenStr, ok := c.Locals("adminID").(string)
+			if !ok || adminTokenStr == "" {
+				fmt.Println("No valid token found in context")
 				return err
 			}
 
-			// assert that adminToken is *jwt.token
-			token, ok := adminToken.(*jwt.Token)
-			if !ok {
-				fmt.Println("Invalid token claims or token is not valid coy")
+			// Debug: Print the token to verify its format
+			fmt.Printf("Retrieved adminTokenStr: %s\n", adminTokenStr)
+
+			// Parse the token string to get *jwt.Token
+			token, parseErr := jwt.Parse(adminTokenStr, func(token *jwt.Token) (interface{}, error) {
+				// Replace `yourSecretKey` with the actual secret key used for signing JWTs
+				return []byte("SECRET"), nil
+			})
+
+			if parseErr != nil {
+				fmt.Println("Invalid token or parsing failed:", parseErr)
 				return err
 			}
 
-			// extract claims for token
+			if !token.Valid {
+				fmt.Println("Token is invalid")
+				return err
+			}
+
+			// Extract claims from the token
 			claims, ok := token.Claims.(jwt.MapClaims)
-			if !ok || !token.Valid {
-				fmt.Println("Invalid token claims or token is not valid cuyy")
+			if !ok {
+				fmt.Println("Failed to extract claims from token")
 				return err
 			}
 
-			// retrieve admin ID (subject) from claims
+			// Retrieve admin ID (subject) from claims
 			adminIDHex, _ := claims["sub"].(string)
 			adminID, _ := primitive.ObjectIDFromHex(adminIDHex)
 			publicIP, _ := GetPublicIP()
@@ -61,7 +71,7 @@ func AuditMiddleware(action, entity string) fiber.Handler {
 
 			_, err := collection.InsertOne(context.TODO(), auditLog)
 			if err != nil {
-				fmt.Println("Error saving Audit Log: ", err)
+				fmt.Println("Error saving Audit Log:", err)
 			}
 		}
 
