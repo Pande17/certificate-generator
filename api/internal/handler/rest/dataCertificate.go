@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"pkl/finalProject/certificate-generator/internal/database"
@@ -20,13 +21,15 @@ import (
 func CreateCertificate(c *fiber.Ctx) error {
 	// add body request
 	var pdfReq struct {
-		Data model.CertificateData `json:"data" bson:"data"`
-		Zoom float64               `json:"zoom"`
+		Data     model.CertificateData `json:"data" bson:"data"`
+		Zoom     float64               `json:"zoom"`
+		SaveDB   bool                  `json:"savedb"`
+		PageName string                `json:"page_name"`
 	}
 
 	// parse the body request
 	if err := c.BodyParser(&pdfReq); err != nil {
-		return BadRequest(c, "Invalid body request", "Invalid req body")
+		return BadRequest(c, "Invalid body request", err.Error())
 	}
 
 	// connect collection certificate in database
@@ -119,13 +122,16 @@ func CreateCertificate(c *fiber.Ctx) error {
 		},
 	}
 
-	if err = generator.CreatePDF(c, &mappedData, pdfReq.Zoom); err != nil {
+	if err = generator.CreatePDF(c, &mappedData, pdfReq.Zoom, pdfReq.PageName); err != nil {
 		return InternalServerError(c, "can't create pdf file", err.Error())
 	}
+
 	// insert data from struct "PDF" to collection "certificate" in database MongoDB
-	_, err = certificateCollection.InsertOne(context.TODO(), certificate)
-	if err != nil {
-		return InternalServerError(c, "Failed to create new certificate data", "Server failed create new certificate")
+	if pdfReq.SaveDB {
+		_, err = certificateCollection.InsertOne(context.TODO(), certificate)
+		if err != nil {
+			return InternalServerError(c, "Failed to create new certificate data", "Server failed create new certificate")
+		}
 	}
 
 	// return success
@@ -274,28 +280,18 @@ func DeleteCertificate(c *fiber.Ctx) error {
 func DownloadCertificate(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
-	// connect to collection in mongoDB
-	certificateCollection := database.GetCollection("certificate")
-
-	// make filter to find document based on acc_id (incremental id)
-	filter := bson.M{"data_id": idParam}
-
-	var certifDetail model.PDF
-
-	// Find a single document that matches the filter
-	if err := certificateCollection.FindOne(context.TODO(), filter).Decode(&certifDetail); err != nil {
-		// If not found, return a 404 status.
-		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "Data not found", "Cannot find certificate")
-		}
-		// If in server error, return status 500
-		return InternalServerError(c, "Failed to retrieve data", "Server can't find certificate")
+	if err := c.RedirectToRoute("/certificate", fiber.Map{
+		"queries": map[string]string{
+			"type": "id",
+			"s":    idParam,
+		},
+	}); err != nil {
+		return err
 	}
 
-	// check if document is already deleted
-	if certifDetail.DeletedAt != nil {
-		// Return the deletion time if the account is already deleted
-		return AlreadyDeleted(c, "This certificate has already been deleted", "Check deleted certificate", certifDetail.DeletedAt)
+	var certifDetail model.PDF
+	if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
+		return InternalServerError(c, "can't unmarshal body", err.Error())
 	}
 
 	return c.Download("./temp/certificate/"+idParam+".pdf", "Sertifikat BTW Edutech - "+certifDetail.Data.NamaPeserta)

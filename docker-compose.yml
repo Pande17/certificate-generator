@@ -1,11 +1,11 @@
 services:
   backend:
+  image: certifgen-backend
     build: ./api
     depends_on:
       - mongo
     environment:
       APP_DEBUG: 'false'
-      MONGODB_URI: 'mongodb://mongo:27017/certificate-generator'
     env_file:
       - api/.env
     ports:

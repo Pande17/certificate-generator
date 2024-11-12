@@ -55,11 +55,11 @@ func CreateKompetensi(c *fiber.Ctx) error {
 		NamaKompetensi: kompetensiReq.KompetensiName,
 		HardSkills:     kompetensiReq.HardSkills,
 		SoftSkills:     kompetensiReq.SoftSkills,
-		// Model : {
-		// 	CreatedAt: time.Now(),
-		// 	UpdatedAt: time.Now(),
-		// 	DeletedAt: nil,
-		// },
+		Model: model.Model{
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			DeletedAt: nil,
+		},
 	}
 
 	// insert data from struct "Kompetensi" to collection "competence" in database MongoDB

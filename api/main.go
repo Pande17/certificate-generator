@@ -15,6 +15,7 @@ func main() {
 
 	// connect to database MongoDB
 	database.ConnectMongoDB()
+	database.CreateCollectionsAndIndexes(database.MongoClient)
 
 	// create a new fiber application instance
 	app := fiber.New()
@@ -26,5 +27,4 @@ func main() {
 	if err != nil {
 		log.Println("Error on running fiber, ", err.Error())
 	}
-	fiber.New().Get("/", func(c *fiber.Ctx) error { return c.Status(fiber.StatusServiceUnavailable).JSON("service unavailable") })
 }
