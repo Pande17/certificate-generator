@@ -4,7 +4,7 @@ services:
     depends_on:
       - mongo
     environment:
-      APP_DEBUG: "false"
+      APP_DEBUG: 'false'
       MONGODB_URI: 'mongodb://mongo:27017/certificate-generator'
     env_file:
       - api/.env
@@ -18,7 +18,7 @@ services:
   mongo:
     image: mongo:latest
     ports:
-      - '27017:28686'
+      - '27017:27017'
     volumes:
       - mongo-data:/usr/src/app/volumes
     networks:
