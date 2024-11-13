@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"certificate-generator/api/internal/database"
+	"certificate-generator/api/database"
 	model "certificate-generator/api/model"
 
 	"github.com/gofiber/fiber/v2"
