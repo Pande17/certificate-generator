@@ -2,7 +2,7 @@
 languages = ["go"]
 
 [phases.build]
-cmd = "go build -o main ."
+cmd = "cd api && go build -o main ."
 
 [phases.start]
-cmd = "./main"
+cmd = "cd api && ./main"
