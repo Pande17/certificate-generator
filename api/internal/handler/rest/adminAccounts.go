@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"pkl/finalProject/certificate-generator/internal/database"
-	model "pkl/finalProject/certificate-generator/model"
+	"certificate-generator/api/internal/database"
+	model "certificate-generator/api/model"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"

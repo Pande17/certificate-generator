@@ -1,9 +1,9 @@
 package generator
 
 import (
+	model "certificate-generator/api/model"
 	"context"
 	"fmt"
-	model "pkl/finalProject/certificate-generator/model"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"

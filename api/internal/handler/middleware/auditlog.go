@@ -3,8 +3,8 @@ package middleware
 // import (
 // 	"context"
 // 	"fmt"
-// 	"pkl/finalProject/certificate-generator/internal/database"
-// 	"pkl/finalProject/certificate-generator/model"
+// 	"certificate-generator/internal/database"
+// 	"certificate-generator/model"
 // 	"time"
 
 // 	"github.com/gofiber/fiber/v2"

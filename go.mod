@@ -1,4 +1,4 @@
-module pkl/finalProject/certificate-generator
+module certificate-generator
 
 go 1.22.0
 
