@@ -41,17 +41,17 @@ func RouteSetup(r *fiber.App) {
 	api.Post("/logout", rest.Logout) // Route to logout from account
 
 	// Define routes for management admin accounts
-	protected.Get("/accounts", middleware.AuditMiddleware("GET", "Account"), rest.GetAdminAccount) // Route to see all admin accounts
-	// api.Get("/accounts/:id", rest.GetAccountByID)        // Route to see admin account detail by acc_id
-	api.Put("/accounts/:id", rest.EditAdminAccount)      // Route to update password admin account by acc_id
-	api.Delete("/accounts/:id", rest.DeleteAdminAccount) // Route to delete admin account by acc_id
+	api.Get("/accounts", middleware.AuditMiddleware("GET", "Account"), rest.GetAdminAccount) // Route to see all admin accounts
+	api.Put("/accounts/:id", rest.EditAdminAccount)                                          // Route to update password admin account by acc_id
+	api.Delete("/accounts/:id", rest.DeleteAdminAccount)                                     // Route to delete admin account by acc_id
+	// api.Get("/accounts/:id", rest.GetAccountByID)        								 // Route to see admin account detail by acc_id
 
 	// define routes for management competence
-	api.Post("/competence", rest.CreateKompetensi)                                              // route to create competence data
-	api.Get("/competence", middleware.AuditMiddleware("GET", "Competence"), rest.GetKompetensi) // route to get all competence data
-	//api.Get("/competence/:id", TEMPlate)                 // route to get competence data based on their id
+	protected.Post("/competence", rest.CreateKompetensi) // route to create competence data
+	protected.Get("/competence", rest.GetKompetensi)     // route to get all competence data
 	api.Put("/competence/:id", rest.EditKompetensi)      // route to update competence data
 	api.Delete("/competence/:id", rest.DeleteKompetensi) // route to delete competence data
+	//api.Get("/competence/:id", TEMPlate)               // route to get competence data based on their id
 
 	// define routes for management certificate data
 	api.Post("/certificate", rest.CreateCertificate)
