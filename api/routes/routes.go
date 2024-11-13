@@ -41,7 +41,7 @@ func RouteSetup(r *fiber.App) {
 	api.Post("/logout", rest.Logout) // Route to logout from account
 
 	// Define routes for management admin accounts
-	api.Get("/accounts", middleware.AuditMiddleware("GET", "Account"), rest.GetAdminAccount) // Route to see all admin accounts
+	api.Get("/accounts", rest.GetAdminAccount) // Route to see all admin accounts
 	api.Put("/accounts/:id", rest.EditAdminAccount)                                          // Route to update password admin account by acc_id
 	api.Delete("/accounts/:id", rest.DeleteAdminAccount)                                     // Route to delete admin account by acc_id
 	// api.Get("/accounts/:id", rest.GetAccountByID)        								 // Route to see admin account detail by acc_id
