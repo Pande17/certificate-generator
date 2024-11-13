@@ -1,19 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { Form, Input, DatePicker, Button, InputNumber, Select } from "antd";
 import MainLayout from "../MainLayout/Layout";
 import axios from "axios";
 
 function MyForm() {
   const [data, setData] = useState([]);
-  const { control, handleSubmit, reset, watch } = useForm();
-  console.log(watch());
+  const [cData, setCData] = useState(null)
+  const { control, handleSubmit, reset} = useForm();
+  const { field, replace} = useFieldArray({
+    control,
+    name: "Hardskill",
+    name:"SoftSkill"
+  });
 
   const onSubmit = (data) => {
     console.log("Data submitted:", data);
-    reset(); // Reset form setelah submit
+    reset(); t
   };
 
+  const { Option } = Select;
   useEffect(() => {
     const fetchApi = async () => {
       try {
@@ -26,20 +32,42 @@ function MyForm() {
       }
     };
     fetchApi();
-  }, []);
+
+  }, 
+  []);
+
+ const fetchcompetence = async (competenceId) => {
+   const type = "id";
+   const url = `http://127.0.0.1:3000/api/competence?type=${type}&s=${competenceId}`;
+
+   try {
+     const response = await axios.get(url);
+     setCData(response.data.data);
+     console.log(response.data.data)
+
+   } catch (err) {
+     console.log(err);
+   }
+ };
+
+ const handleCompetence = (value) => {
+   fetchcompetence(value);
+ };
 
   return (
     <MainLayout>
       <Form
         layout="vertical"
-        onFinish={handleSubmit(onSubmit)}
         style={{
+          width:"95%",
           maxHeight: "100vh",
           overflowY: "scroll",
           backgroundColor: "white",
           padding: "40px",
           borderRadius: "20px",
+          margin:'auto',
         }}
+        onFinish={handleSubmit(onSubmit)}
       >
         <div className="text-center font-Poppins font-bold text-xl">
           Buat Sertifikat
@@ -53,7 +81,7 @@ function MyForm() {
               <Input
                 {...field}
                 placeholder="Masukkan nama"
-                style={{ width: "400px", height: "50px" }}
+                style={{ width: "100%", height: "50px" }}
               />
             )}
           />
@@ -68,7 +96,7 @@ function MyForm() {
               <Input
                 {...field}
                 placeholder="Masukkan field of study"
-                style={{ width: "400px", height: "50px" }}
+                style={{ width: "100%", height: "50px" }}
               />
             )}
           />
@@ -83,7 +111,7 @@ function MyForm() {
               <DatePicker
                 {...field}
                 placeholder="Pilih valid time"
-                style={{ width: "400px", height: "50px" }}
+                style={{ width: "100%", height: "50px" }}
               />
             )}
           />
@@ -98,7 +126,7 @@ function MyForm() {
               <DatePicker
                 {...field}
                 placeholder="Pilih expired time start"
-                style={{ width: "400px", height: "50px" }}
+                style={{ width: "100%", height: "50px" }}
               />
             )}
           />
@@ -113,7 +141,7 @@ function MyForm() {
               <DatePicker
                 {...field}
                 placeholder="Pilih expired time end"
-                style={{ width: "400px", height: "50px" }}
+                style={{ width: "100%", height: "50px" }}
               />
             )}
           />
@@ -128,7 +156,7 @@ function MyForm() {
               <Input
                 {...field}
                 placeholder="Masukkan code referral (order)"
-                style={{ width: "400px", height: "50px" }}
+                style={{ width: "100%", height: "50px" }}
               />
             )}
           />
@@ -143,7 +171,7 @@ function MyForm() {
               <Input
                 {...field}
                 placeholder="Masukkan code referral (field of study)"
-                style={{ width: "400px", height: "50px" }}
+                style={{ width: "100%", height: "50px" }}
               />
             )}
           />
@@ -158,7 +186,7 @@ function MyForm() {
               <Input
                 {...field}
                 placeholder="Masukkan code referral (month)"
-                style={{ width: "400px", height: "50px" }}
+                style={{ width: "100%", height: "50px" }}
               />
             )}
           />
@@ -173,7 +201,7 @@ function MyForm() {
               <Input
                 {...field}
                 placeholder="Masukkan code referral (year)"
-                style={{ width: "400px", height: "50px" }}
+                style={{ width: "100%", height: "50px" }}
               />
             )}
           />
@@ -188,7 +216,7 @@ function MyForm() {
               <Input
                 {...field}
                 placeholder="Masukkan SKKNI"
-                style={{ width: "400px", height: "50px" }}
+                style={{ width: "100%", height: "50px" }}
               />
             )}
           />
@@ -203,7 +231,7 @@ function MyForm() {
               <InputNumber
                 {...field}
                 placeholder="Masukkan total meeting"
-                style={{ width: "400px", height: "50px" }}
+                style={{ width: "100%", height: "50px" }}
               />
             )}
           />
@@ -218,49 +246,144 @@ function MyForm() {
               <Input
                 {...field}
                 placeholder="Masukkan meeting time"
-                style={{ width: "400px", height: "50px" }}
+                style={{ width: "100%", height: "50px" }}
               />
             )}
           />
         </Form.Item>
 
-        <Form.Item>
-          <h1 className="font-Poppins text-xl font-semibold">
-            Pilih kompetensi
-          </h1>
+        <h1 className="text-center font-Poppins text-2xl font-medium">
+          Pilih kompetensi
+        </h1>
+        <Form.Item label="Pilih Kompetensi" required>
           <Controller
-            name="Kompetensi"
+            name="selectedCompetenceId"
             control={control}
-            rules={{ required: "Please Chose One of Competence" }}
             render={({ field }) => (
-              <select
+              <Select
+                placeholder="Pilih kompetensi"
                 {...field}
-                placeholder="Kompetensi"
-                style={{
-                  width: "400px",
-                  height: "50px",
-                  border: "2px",
-                  borderStyle: "solid",
-                  borderRadius: "5px",
-                  padding: "10px",
-                  borderColor: "gray",
-                  opacity: "40%",
+                style={{ width: "100%", height: "50px" }}
+                onChange={(value) => {
+                  field.onChange(value);
+                  handleCompetence(value);
                 }}
               >
-                {data.map((item) => (
-                  <option key={item.kompetensi_id} value={item.kompetensi_id}>
-                    {item.nama_kompetensi}
-                  </option>
-                ))}
-              </select>
+                <Option value="" disabled>
+                  Tambah Kompetensi Baru
+                </Option>
+                {data.length > 0 ? (
+                  data.map((competence) => (
+                    <Option key={competence._id} value={competence._id}>
+                      {competence.nama_kompetensi || ""}
+                    </Option>
+                  ))
+                ) : (
+                  <Option disabled>Tidak ada kompetensi tersedia</Option>
+                )}
+              </Select>
             )}
           />
         </Form.Item>
 
-        <Form.Item></Form.Item>
+        <h1 className="text-center font-Poppins text-2xl font-medium">
+          Hard skill
+        </h1>
 
+        <Form.Item label="Hard skill">
+          <Controller
+            name="Hardskill"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                readOnly
+                style={{ width: "100%", height: "50px" }}
+                placeholder="Tes"
+              />
+            )}
+          />
+        </Form.Item>
+
+        <Form.Item label="Code unit & code title ">
+          <Controller
+            name="Code&JudulUnitHS"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                readOnly
+                style={{ width: "100%", height: "50px" }}
+                placeholder="Tes"
+              />
+            )}
+          />
+        </Form.Item>
+
+        <Form.Item label="JP" required>
+          <Controller
+            name="jpHardskill"
+            control={control}
+            rules={{ required: "Masukan nilai" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                style={{ width: "100%", height: "50px" }}
+                placeholder="1-10"
+              />
+            )}
+          />
+        </Form.Item>
+        <h1 className="text-center font-Poppins text-2xl font-medium">
+          Soft skill
+        </h1>
+
+        <Form.Item label="Soft skill">
+          <Controller
+            name="Softskill"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                readOnly
+                style={{ width: "100%", height: "50px" }}
+                placeholder="Tes"
+              />
+            )}
+          />
+        </Form.Item>
+
+        <Form.Item label="Code unit & code title ">
+          <Controller
+            name="Code&JudulUnitSS"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                readOnly
+                style={{ width: "100%", height: "50px" }}
+                placeholder="Tes"
+              />
+            )}
+          />
+        </Form.Item>
+
+        <Form.Item label="JP" required>
+          <Controller
+            name="jpSoftskill"
+            control={control}
+            rules={{ required: "Masukan nilai" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                style={{ width: "100%", height: "50px" }}
+                placeholder="1-10"
+              />
+            )}
+          />
+        </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" onSubmit={onSubmit}>
             Submit
           </Button>
         </Form.Item>

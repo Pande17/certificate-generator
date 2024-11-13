@@ -19,15 +19,30 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+
       try {
         const response = await axios.get(
           "http://127.0.0.1:3000/api/certificate"
         );
-        setDta(response.data.data);
-         const filteredData = response.data.data.filter(
-           (item) => !item.deleted_at
-         );
-         setDta(filteredData);
+        let certificates = response.data.data || []; // Ensure certificates are initialized
+
+        // // Menambahkan angka berturut-turut jika ada nama sertifikat yang sama
+        // const uniqueNames = {};
+        // certificates = certificates.map((cert) => {
+        //   if (uniqueNames[cert.sertif_name]) {
+        //     uniqueNames[cert.sertif_name] += 1;
+        //     cert.sertif_name = `${cert.sertif_name} ${
+        //       uniqueNames[cert.sertif_name]
+        //     }`; // Menambahkan angka berturut-turut di belakang nama
+        //   } else {
+        //     uniqueNames[cert.sertif_name] = 1;
+        //   }
+        //   return cert;
+        // });
+
+        // Menyaring data yang sudah terhapus
+        const filteredData = certificates.filter((item) => !item.deleted_at);
+        setDta(filteredData);
       } catch (err) {
         console.error("Error fetching data:", err);
         message.error("Gagal memuat data.");

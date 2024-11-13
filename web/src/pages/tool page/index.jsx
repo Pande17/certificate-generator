@@ -107,6 +107,7 @@ const Tool = () => {
         layout="vertical"
         onFinish={handleSubmit(onSubmit)}
         style={{
+          width:"60vh",
           maxHeight: "100vh",
           overflowY: "scroll",
           backgroundColor: "white",
@@ -122,7 +123,7 @@ const Tool = () => {
               <Select
                 placeholder="Pilih kompetensi"
                 {...field}
-                style={{ width: "400px", height: "50px" }}
+                style={{ width: "100%", height: "50px"}}
               >
                 <Option value={null}>Tambah Kompetensi Baru</Option>
                 {competencies.length > 0 ? (
@@ -147,13 +148,15 @@ const Tool = () => {
               <Input
                 placeholder="Masukkan nama kompetensi"
                 {...field}
-                style={{ width: "400px", height: "50px" }}
+                style={{ width: "100%",  height: "50px" }}
               />
             )}
           />
         </Form.Item>
 
-        <h3>Hard Skills</h3>
+        <h3 className="text-center text-2xl font-Poppins font-medium">
+          Hard Skills
+        </h3>
         {hardSkillsFields.map((field, index) => (
           <div key={field.id}>
             <Form.Item label={`Nama Hard Skill ${index + 1}`}>
@@ -164,7 +167,7 @@ const Tool = () => {
                   <Input
                     placeholder="Masukkan nama hard skill"
                     {...field}
-                    style={{ width: "400px", height: "50px" }}
+                    style={{ width: "100%", height: "50px"}}
                   />
                 )}
               />
@@ -178,7 +181,6 @@ const Tool = () => {
               </Button>
             </Form.Item>
             <Space direction="vertical">
-              <h4>Deskripsi</h4>
               {field.description.map((descField, descIndex) => (
                 <div key={descIndex}>
                   <Form.Item label="Unit Code">
@@ -189,7 +191,7 @@ const Tool = () => {
                         <Input
                           placeholder="Masukkan unit code"
                           {...field}
-                          style={{ width: "400px" }}
+                          style={{ width: "100%", height: "50px" }}
                         />
                       )}
                     />
@@ -202,7 +204,7 @@ const Tool = () => {
                         <Input
                           placeholder="Masukkan unit title"
                           {...field}
-                          style={{ width: "400px" }}
+                          style={{ width: "100%", height: "50px" }}
                         />
                       )}
                     />
@@ -227,7 +229,9 @@ const Tool = () => {
           Tambah Hard Skill
         </Button>
 
-        <h3>Soft Skills</h3>
+        <h3 className="text-center text-2xl font-Poppins font-medium">
+          Soft Skills
+        </h3>
         {softSkillsFields.map((field, index) => (
           <div key={field.id}>
             <Form.Item label={`Nama Soft Skill ${index + 1}`}>
@@ -238,7 +242,7 @@ const Tool = () => {
                   <Input
                     placeholder="Masukkan nama soft skill"
                     {...field}
-                    style={{ width: "400px", height: "50px" }}
+                    style={{ width: "100%", height: "50px"}}
                   />
                 )}
               />
@@ -262,7 +266,7 @@ const Tool = () => {
                         <Input
                           placeholder="Masukkan unit code"
                           {...field}
-                          style={{ width: "400px" }}
+                          style={{ width: "100%", height: "50px" }}
                         />
                       )}
                     />
@@ -275,7 +279,7 @@ const Tool = () => {
                         <Input
                           placeholder="Masukkan unit title"
                           {...field}
-                          style={{ width: "400px" }}
+                          style={{ width: "100%", height: "50px" }}
                         />
                       )}
                     />
@@ -304,7 +308,7 @@ const Tool = () => {
           <Button
             type="primary"
             htmlType="submit"
-            style={{ width: "400px", height: "50px" }}
+            style={{ width: "100%", height: "50px" }}
           >
             Simpan
           </Button>

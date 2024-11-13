@@ -68,9 +68,10 @@ const Sidebar = ({ children }) => {
             open={drawerOpen}
             width="50%" // Adjust drawer width as needed
           >
+            
             {renderMenu()}
           </Drawer>
-          {/* Main content displayed below the drawer in mobile view */}
+        
           <div className="mt-4">{children || <p>Main content</p>}</div>
         </>
       ) : (

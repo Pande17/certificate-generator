@@ -189,10 +189,11 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 		return InternalServerError(c, "Failed to fetch data", "Find Kompetensi")
 	}
 
-	// check if competence already deleted
-	if deletedAt, ok := competenceData["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
-		// return the deletion time if the competence is already deleted
-		return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi", deletedAt)
+	// Modified code for DeleteKompetensi
+	if modelData, ok := competenceData["model"].(bson.M); ok {
+		if deletedAt, exists := modelData["deleted_at"]; exists && deletedAt != nil {
+			return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi", deletedAt)
+		}
 	}
 
 	// make update for input timestamp DeletedAt
@@ -294,12 +295,13 @@ func getOneKompetensi(c *fiber.Ctx, filter bson.M) error {
 		return InternalServerError(c, "Failed to retrieve data", "Server Find Detail Kompetensi")
 	}
 
-	// check if document is already deleted
-	if deletedAt, ok := kompetensiDetail["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
-		// Return the deletion time if the account is already deleted
-		return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi on get Detail", deletedAt)
+	// Check if the competence has a "deleted_at" field
+	if modelData, modelOk := kompetensiDetail["model"].(bson.M); modelOk {
+		if deletedAt, exists := modelData["deleted_at"]; exists && deletedAt != nil {
+			return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi on get Detail", deletedAt)
+		}
 	}
 
 	// return success
-	return OK(c, "Sucess get detail Competence data", kompetensiDetail)
+	return OK(c, "Success get detail Competence data", kompetensiDetail)
 }
