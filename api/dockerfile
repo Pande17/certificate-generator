@@ -9,7 +9,14 @@ RUN apk add --no-cache \
     libstdc++ libx11 libxrender \
     libxext fontconfig freetype \
     ttf-droid ttf-freefont ttf-liberation \
-    bash
+    bash ca-certificates wget
+
+# Download and install wkhtmltopdf
+# RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.6/wkhtmltox_0.12.6-1.alpine3.11_x86_64.apk && \
+#     apk add --no-cache --allow-untrusted wkhtmltox_0.12.6-1.alpine3.11_x86_64.apk
+
+# # Cleanup
+# RUN rm wkhtmltox_0.12.6-1.alpine3.11_x86_64.apk
 
 # Copy the wkhtmltopdf binary from "wkhtmltopdf" reference image
 COPY --from=wkhtmltopdf /bin/wkhtmltopdf    /usr/local/bin/wkhtmltopdf
@@ -18,6 +25,9 @@ COPY --from=wkhtmltopdf /bin/libwkhtmltox*  /usr/local/bin
 
 # Add /usr/local/bin to PATH explicitly (if not already there)
 ENV PATH="/usr/local/bin:${PATH}"
+
+# perintah untuk mengecek keberadaan file wkhtmltopdf
+RUN ls -l /usr/local/bin/wkhtmltopdf
 
 # Verify that wkhtmltopdf is correctly installed (optional)
 RUN wkhtmltopdf --version
