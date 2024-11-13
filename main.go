@@ -2,7 +2,7 @@ package main
 
 import (
 	"certificate-generator/api/config"
-	"certificate-generator/api/internal/database"
+	"certificate-generator/api/database"
 	"certificate-generator/api/routes"
 	"log"
 

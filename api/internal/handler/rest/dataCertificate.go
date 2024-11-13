@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"certificate-generator/api/internal/database"
+	"certificate-generator/api/database"
 	"certificate-generator/api/internal/generator"
 	model "certificate-generator/api/model"
 	"context"

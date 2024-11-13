@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"certificate-generator/api/internal/database"
+	"certificate-generator/api/database"
 	model "certificate-generator/api/model"
 	"time"
 
