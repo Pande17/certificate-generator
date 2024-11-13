@@ -16,6 +16,9 @@ COPY --from=wkhtmltopdf /bin/wkhtmltopdf    /usr/local/bin/wkhtmltopdf
 COPY --from=wkhtmltopdf /bin/wkhtmltoimage  /usr/local/bin/wkhtmltoimage
 COPY --from=wkhtmltopdf /bin/libwkhtmltox*  /usr/local/bin
 
+# Add /usr/local/bin to PATH explicitly (if not already there)
+# ENV PATH="/usr/local/bin:${PATH}"
+
 # Verify that wkhtmltopdf is correctly installed (optional)
 RUN wkhtmltopdf --version
 
