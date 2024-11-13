@@ -2,10 +2,13 @@ package rest
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"math"
 	"pkl/finalProject/certificate-generator/internal/database"
 	"pkl/finalProject/certificate-generator/internal/generator"
 	model "pkl/finalProject/certificate-generator/model"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,13 +21,15 @@ import (
 func CreateCertificate(c *fiber.Ctx) error {
 	// add body request
 	var pdfReq struct {
-		Data model.CertificateData `json:"data" bson:"data"`
-		Zoom float64               `json:"zoom"`
+		Data     model.CertificateData `json:"data" bson:"data"`
+		Zoom     float64               `json:"zoom"`
+		SaveDB   bool                  `json:"savedb"`
+		PageName string                `json:"page_name"`
 	}
 
 	// parse the body request
 	if err := c.BodyParser(&pdfReq); err != nil {
-		return BadRequest(c, "Invalid body request", "Invalid req body")
+		return BadRequest(c, "Invalid body request", err.Error())
 	}
 
 	// connect collection certificate in database
@@ -39,7 +44,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	// generate qrcode
-	link := "http://localhost:3000/assets/certificate/"
+	link := fmt.Sprintf("%s://%s/assets/certificate/", c.Protocol(), c.Hostname())
 	encstr, err := generator.GenerateQRCode(link, newDataID)
 	if err != nil {
 		return InternalServerError(c, "Failed to generate QRCode Img", "Server failed generate qrcode img")
@@ -74,14 +79,14 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	mappedData := model.CertificateData{
-		SertifName: pdfReq.Data.SertifName,
+		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
 		KodeReferral: model.KodeReferral{
 			ReferralID: nextReferralID,
 			Divisi:     pdfReq.Data.KodeReferral.Divisi,
 			BulanRilis: pdfReq.Data.KodeReferral.BulanRilis,
 			TahunRilis: pdfReq.Data.KodeReferral.TahunRilis,
 		},
-		NamaPeserta:    pdfReq.Data.NamaPeserta,
+		NamaPeserta:    strings.TrimSpace(pdfReq.Data.NamaPeserta),
 		SKKNI:          pdfReq.Data.SKKNI,
 		KompetenBidang: pdfReq.Data.KompetenBidang,
 		Kompetensi:     pdfReq.Data.Kompetensi,
@@ -95,20 +100,20 @@ func CreateCertificate(c *fiber.Ctx) error {
 		HardSkills: model.SkillPDF{
 			Skills:          pdfReq.Data.HardSkills.Skills,
 			TotalSkillJP:    totalHSJP,
-			TotalSkillScore: totalHSSkor / float64(len(pdfReq.Data.HardSkills.Skills)),
+			TotalSkillScore: float64(math.Round(totalHSSkor/float64(len(pdfReq.Data.HardSkills.Skills))*10) / 10),
 		},
 		SoftSkills: model.SkillPDF{
 			Skills:          pdfReq.Data.SoftSkills.Skills,
 			TotalSkillJP:    totalSSJP,
-			TotalSkillScore: totalSSSkor / float64(len(pdfReq.Data.SoftSkills.Skills)),
+			TotalSkillScore: float64(math.Round(totalSSSkor/float64(len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
 		},
-		FinalSkor: (totalHSSkor + totalSSSkor) / float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills)),
+		FinalSkor: float64(math.Round((totalHSSkor+totalSSSkor)/float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
 	}
 
 	certificate := model.PDF{
 		ID:         primitive.NewObjectID(),
 		DataID:     newDataID,
-		SertifName: pdfReq.Data.SertifName,
+		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
 		Data:       mappedData,
 		Model: model.Model{
 			CreatedAt: time.Now(),
@@ -117,13 +122,16 @@ func CreateCertificate(c *fiber.Ctx) error {
 		},
 	}
 
-	if err = generator.CreatePDF(c, &mappedData, pdfReq.Zoom); err != nil {
+	if err = generator.CreatePDF(c, &mappedData, pdfReq.Zoom, pdfReq.PageName); err != nil {
 		return InternalServerError(c, "can't create pdf file", err.Error())
 	}
+
 	// insert data from struct "PDF" to collection "certificate" in database MongoDB
-	_, err = certificateCollection.InsertOne(context.TODO(), certificate)
-	if err != nil {
-		return InternalServerError(c, "Failed to create new certificate data", "Server failed create new certificate")
+	if pdfReq.SaveDB {
+		_, err = certificateCollection.InsertOne(context.TODO(), certificate)
+		if err != nil {
+			return InternalServerError(c, "Failed to create new certificate data", "Server failed create new certificate")
+		}
 	}
 
 	// return success
@@ -267,6 +275,26 @@ func DeleteCertificate(c *fiber.Ctx) error {
 
 	// Respons success
 	return OK(c, "Successfully deleted certificate", idParam)
+}
+
+func DownloadCertificate(c *fiber.Ctx) error {
+	idParam := c.Params("id")
+
+	if err := c.RedirectToRoute("/certificate", fiber.Map{
+		"queries": map[string]string{
+			"type": "id",
+			"s":    idParam,
+		},
+	}); err != nil {
+		return err
+	}
+
+	var certifDetail model.PDF
+	if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
+		return InternalServerError(c, "can't unmarshal body", err.Error())
+	}
+
+	return c.Download("./temp/certificate/"+idParam+".pdf", "Sertifikat BTW Edutech - "+certifDetail.Data.NamaPeserta)
 }
 
 // {

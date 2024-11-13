@@ -21,7 +21,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	// struct for the incoming request body
 	var kompetensiReq struct {
 		ID             primitive.ObjectID `bson:"_id,omitempty"`
-		KompetensiID   uint64             `bson:"kompetensi_id"`
+		AdminId        primitive.ObjectID `bson:"admin_id"`
 		KompetensiName string             `json:"nama_kompetensi"`
 		HardSkills     []model.Skill      `json:"hard_skills"`
 		SoftSkills     []model.Skill      `json:"soft_skills"`
@@ -30,6 +30,30 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	// parse the request body
 	if err := c.BodyParser(&kompetensiReq); err != nil {
 		return BadRequest(c, "Failed to read body", "Req body Create Kompetensi")
+	}
+
+	// retrieve the admin from the JWT token stored in context
+	adminID, ok := c.Locals("admin").(string)
+	if !ok {
+		return Unauthorized(c, "Invalid token format", "Authentication error")
+	}
+
+	// retrieve claims from the JWT token
+	// claims, ok := admin.Claims.(jwt.MapClaims)
+	// if !ok {
+	// 	return Unauthorized(c, "Invalid token claims", "Authentication error")
+	// }
+
+	// adminID, ok := claims["sub"].(string)
+	// if !ok {
+	// 	return Unauthorized(c, "Invalid AdminID format in token", "Authentication error")
+	// }
+
+	// convert adminID from string to MongoDB objectID
+	objectID, err := primitive.ObjectIDFromHex(adminID)
+	fmt.Println("Admin ID from token:", adminID)
+	if err != nil {
+		return BadRequest(c, "Invalid AdminID format", err.Error())
 	}
 
 	// connect collection competence in database
@@ -42,24 +66,25 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	filter := bson.M{"nama_kompetensi": kompetensiReq.KompetensiName}
 
 	// find competence with same competence name as input name
-	err := collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
+	err = collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
 	if err == nil {
-		return Conflict(c, "Competence already exists", "Filter Competence Name")
+		return Conflict(c, "Competence already exists", "Conflict")
 	} else if err != mongo.ErrNoDocuments {
-		return InternalServerError(c, "Error chechking for existing Competence", "Filter Competence Name")
+		return InternalServerError(c, "Error chechking for existing Competence", err.Error())
 	}
 
 	// append data from body request to struct Kompetensi
 	kompetensi := model.Kompetensi{
 		ID:             primitive.NewObjectID(),
+		AdminId:        objectID,
 		NamaKompetensi: kompetensiReq.KompetensiName,
 		HardSkills:     kompetensiReq.HardSkills,
 		SoftSkills:     kompetensiReq.SoftSkills,
-		// Model : {
-		// 	CreatedAt: time.Now(),
-		// 	UpdatedAt: time.Now(),
-		// 	DeletedAt: nil,
-		// },
+		Model: model.Model{
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			DeletedAt: nil,
+		},
 	}
 
 	// insert data from struct "Kompetensi" to collection "competence" in database MongoDB
@@ -219,9 +244,11 @@ func getAllKompetensi(c *fiber.Ctx) error {
 	// set the projection to return the required fields
 	projection := bson.M{
 		"_id":             1, // 0 to exclude the field
+		"admin_id":        1,
 		"nama_kompetensi": 1, // 1 to include the field, _id will be included by default
 		"created_at":      1,
 		"updated_at":      1,
+		"deleted_at":      1,
 	}
 
 	// find the projection

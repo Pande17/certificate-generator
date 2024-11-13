@@ -1,24 +1,24 @@
 services:
   backend:
+    image: certifgen-backend
     build: ./api
     depends_on:
       - mongo
     environment:
-      APP_DEBUG: "false"
-      MONGODB_URI: 'mongodb://mongo:27017/certificate-generator'
+      APP_DEBUG: 'false'
     env_file:
       - api/.env
     ports:
       - '3000:3000'
     volumes:
-      - ./api:/usr/src/app
+      - ./api:/app
     networks:
       - certif-network
 
   mongo:
     image: mongo:latest
     ports:
-      - '27017:28686'
+      - '27017:27017'
     volumes:
       - mongo-data:/usr/src/app/volumes
     networks:

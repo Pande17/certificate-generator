@@ -1,0 +1,479 @@
+{{define "page2a"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Sertifikat BTW Edutech{{if ne .NamaPeserta ""}} - {{.NamaPeserta}}{{end}}</title>
+</head>
+
+<style>
+	@font-face {
+		font-family: 'montecarlo';
+		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928092/aset%20pdf/font/benojrx8nj3xr65bdo6l.ttf);
+	}
+
+	@font-face {
+		font-family: 'gilroy-bold';
+		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928058/aset%20pdf/font/cfsykfkdicisorjoy7jj.ttf);
+	}
+
+	@font-face {
+		font-family: 'gilroy-medium';
+		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928018/aset%20pdf/font/ci72w1jhyllp3cmwpdo3.ttf);
+	}
+
+	@font-face {
+		font-family: 'vollkorn';
+		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928253/aset%20pdf/font/xlhzm5hxsqvdhsrpduzb.ttf);
+	}
+
+	* {
+		text-align: center;
+	}
+
+	body {
+		margin: 0;
+		padding: 0;
+		position: relative;
+	}
+
+	.pageW {
+		width: 17.5cm;
+	}
+
+	.pageH {
+		height: 27.2cm;
+	}
+
+	.certificate-wrapper {
+		display: block;
+		margin: 0 auto;
+		min-width: 21cm;
+		max-width: 21cm;
+		min-height: 29.7cm;
+		max-height: 29.7cm;
+		display: inline-block;
+		overflow: hidden;
+		margin: 0;
+		position: relative;
+		width: inherit;
+		height: inherit;
+		background-image: url(https://res.cloudinary.com/dektxbmmb/image/upload/v1727836212/aset%20pdf/w71uldhrqtl6v4rrqjht.png);
+		padding: 0.75cm;
+		box-sizing: border-box;
+	}
+
+	.certificate-wrapper::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-image: url(https://res.cloudinary.com/dektxbmmb/image/upload/v1727833020/aset%20pdf/soona09ynlokvggurfiu.png);
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: cover;
+		opacity: 1;
+		z-index: 1;
+	}
+
+	.pattern {
+		position: absolute;
+		left: 0;
+		width: 100%;
+		z-index: -1;
+	}
+
+	.top {
+		top: 0;
+	}
+
+	.bottom {
+		bottom: 0;
+	}
+
+	.certificate-card {
+		position: relative;
+		z-index: 100;
+		margin: 20px;
+		padding: 0.5cm 1cm;
+		min-width: 17.5cm;
+		max-width: 17.5cm;
+		min-height: 27.2cm;
+		max-height: 27.2cm;
+		margin: 0 auto;
+		background-color: white;
+		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+		text-align: center;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.certificate-badge img {
+		width: 250px;
+		margin-top: 33px;
+		margin-bottom: -15px;
+	}
+
+	header {
+		width: 100%;
+		margin: 0 auto;
+		padding: 10px 0;
+		gap: 35px;
+	}
+
+	header img {
+		width: 70px;
+	}
+
+	header h1,
+	header h2 {
+		font-family: 'vollkorn';
+		color: rgb(17, 17, 211);
+	}
+
+	header p {
+		font-family: 'gilroy-medium';
+	}
+
+	.desk h2 {
+		max-width: 40vh;
+		text-align: center;
+		font-size: 13.2px;
+	}
+
+	.desk h1 {
+		text-align: center;
+		margin-top: -17px;
+		margin-bottom: -14px;
+		font-size: 21.5px;
+	}
+
+	.desk p {
+		font-family: 'gilroy-medium';
+		font-size: 10px;
+	}
+
+	.certificate-badge img {
+		width: 30px;
+	}
+
+	.certificate-badge h1 {
+		line-height: 37px;
+		font-size: 36px;
+		font-family: 'vollkorn';
+		color: rgb(17, 17, 211);
+	}
+
+	.certificate-badge h3 {
+		font-size: 16px;
+		color: rgb(17, 17, 211);
+		margin-top: -20px;
+		margin-bottom: 20px;
+		font-family: 'gilroy-medium';
+	}
+
+	.badge img {
+		width: 320px;
+		align-items: center;
+		justify-content: center;
+		z-index: inherit;
+	}
+
+	nama {
+		height: fit-content;
+		display: inline-block;
+	}
+
+	nama h1 {
+		font-family: 'montecarlo';
+		margin: 0 auto -0.3em;
+		font-weight: 100;
+	}
+
+	competence p {
+		font-family: 'gilroy-medium';
+		margin-bottom: 5px;
+	}
+
+	cdesk p {
+		margin: 2px;
+	}
+
+	competence h1 {
+		font-size: 24px;
+		color: rgb(17, 17, 211);
+		font-family: 'vollkorn';
+	}
+
+	expired {
+		font-size: small;
+		font-family: 'gilroy-medium';
+	}
+
+	.certificate-signature {
+		margin-top: 60px;
+	}
+
+	.certificate-signature img {
+		margin: 20px -40px 20px -60px;
+	}
+
+	.certificate-signature p {
+		font-family: 'gilroy-medium';
+		font-size: small;
+		margin: 5px 0;
+		color: #333;
+	}
+
+	.desk-sg p {
+		font-size: medium;
+		font-family: 'gilroy-bold';
+		color: rgb(255, 157, 0);
+	}
+
+	.role p {
+		font-family: 'gilroy-bold';
+	}
+
+	qr {
+		font-family: 'gilroy-bold';
+		font-size: 10px;
+		margin-top: -80px;
+	}
+
+	qr img {
+		width: 90px;
+	}
+
+	qr p {
+		margin-top: 5px;
+	}
+
+	.badge h1 {
+		font-size: 14px;
+	}
+</style>
+
+<style>
+	.certificate-card div {
+		margin-bottom: 10px;
+	}
+
+	.metadata-table, .sktable, .scaleTable, .finScorTable {
+		border-bottom: solid 1.5px #dedede;
+		border-spacing: 0;
+	}
+
+	div .metadata-table, div .sktable, div .scaleTable, div .finScorTable {
+		margin-bottom: 12px;
+	}
+
+	.metadata-table th, .sktable th, .scaleTable th, .finScorTable th {
+		background-color: #3939bc;
+		color: white;
+		padding: 5px;
+	}
+
+	.metadata-table td, .sktable td, .scaleTable td, .finScorTable td {
+		border-left: solid 1.5px #dedede;
+		border-right: solid 1.5px #dedede;
+		padding: 10px;
+		font-size: 11px;
+	}
+
+	.titleheader th {
+		display: inline-block;
+		font-family: 'vollkorn';
+		color: #3939bc;
+		font-size: 36px;
+		margin: auto 6px;
+	}
+
+	.descs {
+		width: 40%;
+		text-align: left;
+		font-size: 10px;
+	}
+
+	.descs span {
+		padding-bottom: 3px;
+	}
+
+	/* bg for odd cells */
+	.cell0 {
+		background-color: white;
+	}
+
+	/* bg for even cells */
+	.cell1 {
+		background-color: #f1f3f4;
+	}
+
+	.scaleTable,
+	.finScorTable {
+		display: inline-block;
+	}
+
+	.scaleTable tr th,
+	.scaleTable tr td {
+		width: 100%;
+	}
+
+	.finScorTable tr th,
+	.finScorTable tr td {
+		width: 100%;
+	}
+</style>
+
+<body>
+	<div class="certificate-wrapper">
+		<div class="certificate-card">
+			<img src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727850035/aset%20pdf/idwqan8wur0eqcdkthsq.png"
+				alt="" class="pattern top" />
+
+			<table class="titleheader pageW" style="text-align: left; display:inline-block;">
+				<tr>
+					<th>
+						<img
+							src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833019/aset%20pdf/pnu45hydtyftsfxlqaxm.png"
+							alt="" width="50" />
+					</th>
+					<th style="margin-top: -5px;">
+						Kompetensi Peserta
+					</th>
+				</tr>
+			</table>
+
+			<div>
+				<table class="metadata-table pageW">
+					<tr>
+						<th colspan="2">{{.Kompetensi}}</th>
+						<th>Kompeten</th>
+					</tr>
+					<tr>
+						<td><b>Total {{.TotalJP}} JP</b></td>
+						<td><b>{{.TotalMeet}} Pertemuan</b></td>
+						<td><b>{{.MeetTime}}</b></td>
+					</tr>
+				</table>
+			</div>
+
+			{{if ne .HardSkills nil}} {{with .HardSkills}}
+			<div>
+				<table class="sktable pageW">
+					<tr>
+						<th colspan="2">Kompetensi Hard Skill</th>
+						<th style="width: 10%;">{{.TotalSkillJP}} JP</th>
+						<th style="width: 10%;">{{.TotalSkillScore}}</th>
+					</tr>
+					{{range $i, $skill := .Skills}}
+					<tr class="cell{{parity $i}}">
+						<td style="width: 40%; text-align: left;">{{add $i 1}}. {{.SkillName}}</td>
+						<td class="descs">
+							{{range .SkillDescs}}
+							<b>{{.UnitCode}} - </b>
+							{{.UnitTitle}} <br />
+							{{end}}
+						</td>
+						<td style="width: 10%;"><b>{{.SkillJP}} JP</b></td>
+						<td style="width: 10%;"><b>{{.SkillScore}}</b></td>
+					</tr>
+					{{end}}
+				</table>
+			</div>
+			{{end}} {{end}}
+
+			{{if ne .SoftSkills nil}} {{with .SoftSkills}}
+			<div>
+				<table class="sktable pageW">
+					<tr>
+						<th colspan="2" style="width: 80%;">Kompetensi Soft Skill</th>
+						<th style="width: 10%;">{{.TotalSkillJP}} JP</th>
+						<th style="width: 10%;">{{.TotalSkillScore}}</th>
+					</tr>
+					{{range $i, $skill := .Skills}}
+					<tr class="cell{{parity $i}}">
+						<td style="width: 40%; text-align: left;">{{add $i 1}}. {{.SkillName}}</td>
+						<td class="descs">
+							{{range .SkillDescs}}
+							<span>
+								<b>{{.UnitCode}} - </b>
+								{{.UnitTitle}} </span> <br />
+							{{end}}
+						</td>
+						<td style="width: 10%;"><b>{{.SkillJP}} JP</b></td>
+						<td style="width: 10%;"><b>{{.SkillScore}}</b></td>
+					</tr>
+					{{end}}
+				</table>
+			</div>
+			{{end}} {{end}}
+
+			<div class="pageW">
+				<div style="width: 37.5%;">
+					<table class="scaleTable">
+						<tr>
+							<th>Skala Nilai</th>
+						</tr>
+						<tr>
+							<td>
+								0 - 2.4
+								<span>Perlu Perbaikan</span>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								2.5 - 3.5
+								<span>Cukup</span>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								3.6 - 4.5
+								<span>Memuaskan</span>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								4.6 - 5
+								<span>Dengan Pujian</span>
+							</td>
+						</tr>
+					</table>
+				</div>
+
+				<div style="width: 57.5%;">
+					<table class="finScorTable">
+						<tr>
+							<th>Nilai Akhir Soft Skill & Hard Skill</th>
+						</tr>
+						<tr>
+							<th>
+								{{.FinalSkor}}
+								{{if gt .FinalSkor 4.5}}
+								<span>Dengan Pujian</span>
+								{{else if gt .FinalSkor 3.5}}
+								<span>Memuaskan</span>
+								{{else if gt .FinalSkor 2.4}}
+								<span>Cukup</span>
+								{{else}}
+								<span>Perlu Perbaikan</span>
+								{{end}}
+							</th>
+						</tr>
+					</table>
+				</div>
+			</div>
+
+			<img src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727850035/aset%20pdf/i28faklkktmzo3t4pcni.png"
+				alt="" class="pattern bottom" />
+		</div>
+	</div>
+</body>
+
+</html>
+{{end}}

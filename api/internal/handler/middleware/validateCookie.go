@@ -15,6 +15,7 @@ func ValidateCookie(c *fiber.Ctx) error {
 	cookie := c.Cookies("Authorization")
 
 	if cookie == "" {
+		fmt.Println("Cookie token:", cookie)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error":  "Unauthorized, please login",
 			"status": fiber.StatusUnauthorized,
@@ -51,8 +52,9 @@ func ValidateCookie(c *fiber.Ctx) error {
 			}
 		}
 		// Store the admin ID in the context for future use
-		c.Locals("adminID", claims["sub"])
+		c.Locals("admin", claims["sub"])
 	} else {
+		fmt.Println("Invalid token or claims:", err)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error":  "Invalid token 2",
 			"status": fiber.StatusUnauthorized,

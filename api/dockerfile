@@ -1,8 +1,8 @@
 # add wkhtmltopdf image source based on alpine 3.20 with "wkhtmltopdf" as reference name
 FROM surnet/alpine-wkhtmltopdf:3.20.0-0.12.6-full as wkhtmltopdf
 
-# use golang 1.23 on alpine 3.20 as image base
-FROM golang:1.23-alpine3.20
+# use golang 1.22 on alpine 3.20 as image base
+FROM golang:1.22-alpine3.20
 
 # add wkhtmltopdf required package
 RUN apk add --no-cache \
@@ -18,20 +18,10 @@ COPY --from=wkhtmltopdf /bin/libwkhtmltox*  /usr/local/bin
 #install golang air autoreload package
 RUN go install github.com/air-verse/air@v1.52.3
 
-# set the workdir to /usr/src/app folder, all files this project directory will be mounted here
-WORKDIR /usr/src/app
+# mount project to this directory in container
+WORKDIR /app
 
-# copy all code file to container
-COPY . .
+# run autoreload
+CMD ["air", "-c", ".air.toml"]
 
-# disable cgo
-ENV CGO_ENABLED=0
-
-# build app
-RUN go build -o /usr/src/app/app ./
-
-# app entrypoint
-ENTRYPOINT ["/usr/src/app/app"]
-
-# export port
 EXPOSE 3000
