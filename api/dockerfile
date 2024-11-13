@@ -11,7 +11,7 @@ RUN apk add --no-cache \
     ttf-droid ttf-freefont ttf-liberation \
     bash ca-certificates wget
 
-# Download and install wkhtmltopdf
+# # Download and install wkhtmltopdf
 # RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.6/wkhtmltox_0.12.6-1.alpine3.11_x86_64.apk && \
 #     apk add --no-cache --allow-untrusted wkhtmltox_0.12.6-1.alpine3.11_x86_64.apk
 
