@@ -6,7 +6,6 @@ import (
 
 	"pkl/finalProject/certificate-generator/internal/database"
 	model "pkl/finalProject/certificate-generator/model"
-	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -102,7 +101,7 @@ func EditKompetensi(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
 	// convert kompetensi_id to integer data type
-	kompetensiID, err := strconv.Atoi(idParam)
+	kompetensiID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		return BadRequest(c, "Invalid ID", "Convert Params")
 	}
@@ -111,7 +110,7 @@ func EditKompetensi(c *fiber.Ctx) error {
 	collectionKompetensi := database.GetCollection("competence")
 
 	// make filter to find document based on params
-	filter := bson.M{"kompetensi_id": kompetensiID}
+	filter := bson.M{"_id": kompetensiID}
 
 	// variabwle to hold results
 	var competenceData bson.M
@@ -124,10 +123,11 @@ func EditKompetensi(c *fiber.Ctx) error {
 		return InternalServerError(c, "Failed to fetch data", "Find kompetensi_id based on params")
 	}
 
-	// check if competence has already been deleted
-	if deletedAt, ok := competenceData["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
-		// return the deletion time if the competence is already deleted
-		return AlreadyDeleted(c, "This competence has already been Deleted", "Checking deleted competence", deletedAt)
+	// Modified code for DeleteKompetensi
+	if modelData, ok := competenceData["model"].(bson.M); ok {
+		if deletedAt, exists := modelData["deleted_at"]; exists && deletedAt != nil {
+			return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi", deletedAt)
+		}
 	}
 
 	// parsing req body to get new data
@@ -167,7 +167,7 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
 	// convert params to integer data type
-	kompetensiID, err := strconv.Atoi(idParam)
+	kompetensiID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		return BadRequest(c, "Invalid ID", "Convert Params Delete Kompetensi")
 	}
@@ -176,7 +176,7 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 	collectionKompetensi := database.GetCollection("competence")
 
 	// make filter to find document based on kompetensi_id
-	filter := bson.M{"kompetensi_id": kompetensiID}
+	filter := bson.M{"_id": kompetensiID}
 
 	// find competence
 	var competenceData bson.M
@@ -185,18 +185,18 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Competence not found", "Find Kompetensi")
 		}
-		fmt.Println("MongoDB FindOne Error:", err)
 		return InternalServerError(c, "Failed to fetch data", "Find Kompetensi")
 	}
 
-	// check if competence already deleted
-	if deletedAt, ok := competenceData["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
-		// return the deletion time if the competence is already deleted
-		return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi", deletedAt)
+	// Modified code for DeleteKompetensi
+	if modelData, ok := competenceData["model"].(bson.M); ok {
+		if deletedAt, exists := modelData["deleted_at"]; exists && deletedAt != nil {
+			return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi", deletedAt)
+		}
 	}
 
 	// make update for input timestamp DeletedAt
-	update := bson.M{"$set": bson.M{"model.deleted_at": time.Now()}}
+	update := bson.M{"$set": bson.M{"deleted_at": time.Now()}}
 
 	// update document in collection MongoDB
 	result, err := collectionKompetensi.UpdateOne(context.TODO(), filter, update)
@@ -294,12 +294,13 @@ func getOneKompetensi(c *fiber.Ctx, filter bson.M) error {
 		return InternalServerError(c, "Failed to retrieve data", "Server Find Detail Kompetensi")
 	}
 
-	// check if document is already deleted
-	if deletedAt, ok := kompetensiDetail["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
-		// Return the deletion time if the account is already deleted
-		return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi on get Detail", deletedAt)
+	// Check if the competence has a "deleted_at" field
+	if modelData, modelOk := kompetensiDetail["model"].(bson.M); modelOk {
+		if deletedAt, exists := modelData["deleted_at"]; exists && deletedAt != nil {
+			return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi on get Detail", deletedAt)
+		}
 	}
 
 	// return success
-	return OK(c, "Sucess get detail Competence data", kompetensiDetail)
+	return OK(c, "Success get detail Competence data", kompetensiDetail)
 }
