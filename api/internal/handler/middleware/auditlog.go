@@ -19,7 +19,7 @@ func AuditMiddleware(action, entity string) fiber.Handler {
 
 		if err == nil {
 			// Retrieve admin token from context as a string
-			adminTokenStr, ok := c.Locals("adminID").(string)
+			adminTokenStr, ok := c.Locals("admin").(string)
 			if !ok || adminTokenStr == "" {
 				fmt.Println("No valid token found in context")
 				return err

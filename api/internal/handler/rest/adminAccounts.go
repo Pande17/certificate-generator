@@ -168,7 +168,7 @@ func Login(c *fiber.Ctx) error {
 // Function to Validate checks if the user has a valid authentication cookie
 func Validate(c *fiber.Ctx) error {
 	// Retrieve the admin ID from the context set by the middleware
-	adminID := c.Locals("adminID")
+	adminID := c.Locals("admin")
 
 	// Check if adminID is present (meaning the user is authenticated)
 	if adminID == nil {
