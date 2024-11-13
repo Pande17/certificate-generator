@@ -5,24 +5,44 @@ import {
   DeleteOutlined,
   EditOutlined,
   DownloadOutlined,
-  FolderOpenOutlined,
 } from "@ant-design/icons";
+import MainLayout from "../MainLayout/Layout";
 
 const { confirm } = Modal;
 
 const Dashboard = () => {
   const [dta, setDta] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
   // Fetch data dari API
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+
       try {
         const response = await axios.get(
-          `http://127.0.0.1:3000/api/certificate`
+          "http://127.0.0.1:3000/api/certificate"
         );
-        setDta(response.data.data);
+        let certificates = response.data.data || []; // Ensure certificates are initialized
+
+        // // Menambahkan angka berturut-turut jika ada nama sertifikat yang sama
+        // const uniqueNames = {};
+        // certificates = certificates.map((cert) => {
+        //   if (uniqueNames[cert.sertif_name]) {
+        //     uniqueNames[cert.sertif_name] += 1;
+        //     cert.sertif_name = `${cert.sertif_name} ${
+        //       uniqueNames[cert.sertif_name]
+        //     }`; // Menambahkan angka berturut-turut di belakang nama
+        //   } else {
+        //     uniqueNames[cert.sertif_name] = 1;
+        //   }
+        //   return cert;
+        // });
+
+        // Menyaring data yang sudah terhapus
+        const filteredData = certificates.filter((item) => !item.deleted_at);
+        setDta(filteredData);
       } catch (err) {
         console.error("Error fetching data:", err);
         message.error("Gagal memuat data.");
@@ -33,27 +53,29 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
-  // Fungsi untuk menghapus data dari API dan update tabel
-  const deleteCompetence = async (dataid) => {
+  const deleteCompetence = async (_id) => {
     try {
-      await axios.delete(`http://127.0.0.1:3000/api/certificate/${dataid}`);
-      setDta((prevDta) => prevDta.filter((item) => item.dataid !== dataid));
-      message.success("Kompetensi berhasil dihapus!");
+      await axios.delete(`http://127.0.0.1:3000/api/certificate/${_id}`);
+      setDta((prevDta) => prevDta.filter((item) => item._id !== _id));
+      message.success("SERTIFIKAT berhasil dihapus!");
     } catch (error) {
-      message.error("Gagal menghapus kompetensi.");
+      message.error("Gagal menghapus SERTIFIKAT.");
     }
   };
 
-  // Fungsi untuk menampilkan konfirmasi sebelum menghapus
-  const showDeleteConfirm = (kompetensi_id) => {
+  const handleSearch = (e) => {
+    setSearchText(e.target.value);
+  };
+
+  const showDeleteConfirm = (_id) => {
     confirm({
-      title: "Apakah Anda yakin ingin menghapus kompetensi ini?",
+      title: "Apakah Anda yakin ingin menghapus SERTIFIKAT ini?",
       content: "Data yang dihapus tidak dapat dikembalikan.",
       okText: "Ya, Hapus",
       okType: "danger",
       cancelText: "Batal",
       onOk() {
-        deleteCompetence(kompetensi_id); // Panggil fungsi hapus data
+        deleteCompetence(_id);
       },
       onCancel() {
         console.log("Penghapusan dibatalkan");
@@ -61,51 +83,55 @@ const Dashboard = () => {
     });
   };
 
-  // Kolom untuk tabel
+  const filteredData = dta.filter((item) =>
+    item.sertif_name.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   const columns = [
     {
       title: "ID",
       align: "center",
-      render: (text, record, index) => index + 1, // index dimulai dari 0, jadi tambahkan 1
+      width: 100,
+      responsive: ["xs", "sm", "md", "lg"],
+      ellipsis: true,
+      render: (text, record, index) => index + 1,
     },
     {
-      title: "Nama Kompetensi",
-      dataIndex: "_id",
-      key: "_id",
+      title: "Daftar Sertifikat",
+      dataIndex: "sertif_name",
+      key: "sertif_name",
+      responsive: ["xs", "sm", "md", "lg"],
+      ellipsis: true,
     },
     {
       title: "Aksi",
       key: "actions",
       align: "center",
+      width: 300,
+      responsive: ["xs", "sm", "md", "lg"],
       render: (text, record) => (
         <div>
           <Button
             icon={<DeleteOutlined />}
-            style={{ marginRight: 8 }}
+            style={{ margin: 8 }}
             type="primary"
             danger
-            onClick={() => showDeleteConfirm(record.dataid)}
-          />
-          <Button
-            icon={<FolderOpenOutlined />}
-            style={{ marginRight: 8 }}
-            onClick={() =>
-              message.info(`Buka folder untuk ID ${record.dataid}`)
-            }
+            onClick={() => showDeleteConfirm(record._id)}
           />
           <Button
             icon={<EditOutlined />}
-            style={{ marginRight: 8 }}
+            style={{ margin: 8 }}
             type="primary"
             onClick={() =>
-              message.info(`Edit kompetensi dengan ID ${record.dataid}`)
+              message.info(`Edit sertifikat dengan ID ${record._id}`)
             }
           />
           <Button
             icon={<DownloadOutlined />}
             type="primary"
+            style={{ margin: 8 }}
             onClick={() =>
-              message.info(`Unduh kompetensi dengan ID ${record.dataid}`)
+              message.info(`Unduh sertifikat dengan ID ${record._id}`)
             }
           />
         </div>
@@ -114,20 +140,39 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="container">
-      <Row justify="center">
-        <Col xs={24} sm={20} md={18} lg={16} xl={14}>
-          <Table
-            dataSource={dta}
-            columns={columns}
-            rowKey="kompetensi_id"
-            pagination={false}
-            bordered
-            loading={loading}
-          />
-        </Col>
-      </Row>
-    </div>
+    <MainLayout>
+      <div className="flex flex-col items-center justify-center w-full lg:w-3/4 p-5">
+        <div>
+          <p className="text-xl font-Poppins font-semibold mb-5">
+            History list
+          </p>
+        </div>
+        <input
+          type="text"
+          placeholder="Search"
+          value={searchText}
+          onChange={handleSearch}
+          className="mb-4 p-2 border border-gray-300 rounded w-full md:w-1/2"
+        />
+        <Row style={{ width: "100%", overflowX: "auto" }}>
+          <Col span={24}>
+            <Table
+              dataSource={filteredData}
+              columns={columns}
+              rowKey="_id"
+              pagination={false}
+              bordered
+              loading={loading}
+              scroll={{
+                x: "max-content",
+                y: filteredData.length > 6 ? 500 : undefined,
+              }}
+              style={{ width: "100%" }}
+            />
+          </Col>
+        </Row>
+      </div>
+    </MainLayout>
   );
 };
 
