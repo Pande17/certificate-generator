@@ -1,0 +1,5 @@
+temp/
+resources/
+build/
+.env
+assets/certificate/
