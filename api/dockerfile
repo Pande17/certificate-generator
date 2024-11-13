@@ -8,12 +8,16 @@ FROM golang:1.22-alpine3.20
 RUN apk add --no-cache \
     libstdc++ libx11 libxrender \
     libxext fontconfig freetype \
-    ttf-droid ttf-freefont ttf-liberation
+    ttf-droid ttf-freefont ttf-liberation \
+    bash
 
 # Copy the wkhtmltopdf binary from "wkhtmltopdf" reference image
 COPY --from=wkhtmltopdf /bin/wkhtmltopdf    /usr/local/bin/wkhtmltopdf
 COPY --from=wkhtmltopdf /bin/wkhtmltoimage  /usr/local/bin/wkhtmltoimage
 COPY --from=wkhtmltopdf /bin/libwkhtmltox*  /usr/local/bin
+
+# Verify that wkhtmltopdf is correctly installed (optional)
+RUN wkhtmltopdf --version
 
 # Install Go Air autoreload package
 RUN go install github.com/air-verse/air@v1.52.3
