@@ -1,6 +1,6 @@
 services:
   backend:
-  image: certifgen-backend
+    image: certifgen-backend
     build: ./api
     depends_on:
       - mongo
