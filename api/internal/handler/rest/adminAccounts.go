@@ -23,14 +23,13 @@ func SignUp(c *fiber.Ctx) error {
 	// Struct for the incoming request body
 	var adminReq struct {
 		ID            primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-		AccID         uint64             `json:"acc_id" bson:"acc_id"`
 		AdminName     string             `json:"admin_name" bson:"admin_name"`
 		AdminPassword string             `json:"admin_password" bson:"admin_password"`
 	}
 
 	// parse the request body
 	if err := c.BodyParser(&adminReq); err != nil {
-		return BadRequest(c, "Failed to read body", "Body req signup")
+		return BadRequest(c, "Failed to read body", err.Error())
 	}
 
 	// validation to check if input username empty
