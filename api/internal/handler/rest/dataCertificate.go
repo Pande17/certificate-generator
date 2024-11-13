@@ -1,13 +1,13 @@
 package rest
 
 import (
+	"certificate-generator/api/internal/database"
+	"certificate-generator/api/internal/generator"
+	model "certificate-generator/api/model"
 	"context"
 	"encoding/json"
 	"fmt"
 	"math"
-	"pkl/finalProject/certificate-generator/internal/database"
-	"pkl/finalProject/certificate-generator/internal/generator"
-	model "pkl/finalProject/certificate-generator/model"
 	"strings"
 	"time"
 

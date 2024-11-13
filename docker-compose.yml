@@ -1,7 +1,8 @@
 services:
   backend:
     image: certifgen-backend
-    build: ./api
+    build:
+      context: ./api
     depends_on:
       - mongo
     environment:
@@ -12,6 +13,7 @@ services:
       - '3000:3000'
     volumes:
       - ./api:/app
+      # - .env:/app/.env # Salin file .env ke /app di dalam container
     networks:
       - certif-network
 

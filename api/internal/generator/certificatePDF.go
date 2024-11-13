@@ -1,11 +1,11 @@
 package generator
 
 import (
+	model "certificate-generator/api/model"
 	"html/template"
 	"log"
 	"math"
 	"os"
-	model "pkl/finalProject/certificate-generator/model"
 	"strings"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
