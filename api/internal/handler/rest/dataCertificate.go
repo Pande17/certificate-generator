@@ -288,7 +288,7 @@ func DownloadCertificate(c *fiber.Ctx) error {
 
 	if err := c.RedirectToRoute("/api/certificate", fiber.Map{
 		"queries": map[string]string{
-			"type": "id",
+			"type": "data_id",
 			"s":    idParam,
 		},
 	}); err != nil {
