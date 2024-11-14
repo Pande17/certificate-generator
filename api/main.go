@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	os.ReadDir("/")
+	log.Println(os.ReadDir("/"))
 	// intitialize environment variables
 	config.InitEnv()
 
