@@ -5,6 +5,7 @@ import (
 	"certificate-generator/internal/generator"
 	"certificate-generator/model"
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"strings"
@@ -284,25 +285,21 @@ func DeleteCertificate(c *fiber.Ctx) error {
 }
 
 func DownloadCertificate(c *fiber.Ctx) error {
-	c.Redirect(fmt.Sprintf("%s://%s/api/certificate?type=data_id&s=%s", c.Protocol(), c.Hostname(), c.Params("id")))
-	return c.JSON(c.Response().Body())
-	/*
-		if err := c.RedirectToRoute("/api/certificate", fiber.Map{
-			"queries": map[string]string{
-				"type": "data_id",
-				"s":    idParam,
-			},
-		}); err != nil {
-			return err
-		}*/
+	idParam := c.Params("id")
 
-	//return c.Status(200).JSON(c.Response().Body())
-	// var certifDetail model.PDF
-	// if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
-	// 	return InternalServerError(c, "can't unmarshal body", err.Error())
-	// }
+	if err := c.Redirect(
+		fmt.Sprintf("%s://%s/api/certificate?type=data_id&s=%s",
+			c.Protocol(), c.Hostname(), idParam),
+	); err != nil {
+		return err
+	}
 
-	// return c.Download("./temp/certificate/"+idParam+".pdf", "Sertifikat BTW Edutech - "+certifDetail.Data.NamaPeserta)
+	var certifDetail model.PDF
+	if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
+		return InternalServerError(c, "can't unmarshal body", err.Error())
+	}
+
+	return c.Download("./temp/certificate/"+idParam+".pdf", "Sertifikat BTW Edutech - "+certifDetail.Data.NamaPeserta)
 }
 
 // {
