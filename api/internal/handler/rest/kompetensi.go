@@ -188,11 +188,10 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 		return InternalServerError(c, "Failed to fetch data", "Find Kompetensi")
 	}
 
-	// Modified code for DeleteKompetensi
-	if modelData, ok := competenceData["model"].(bson.M); ok {
-		if deletedAt, exists := modelData["deleted_at"]; exists && deletedAt != nil {
-			return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi", deletedAt)
-		}
+	// Check if DeletedAt field already has a value
+	if deletedAt, ok := competenceData["deleted_at"]; ok && deletedAt != nil {
+		// Return the deletion time if the competence is already deleted
+		return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted competence", deletedAt)
 	}
 
 	// make update for input timestamp DeletedAt
@@ -267,6 +266,10 @@ func getAllKompetensi(c *fiber.Ctx) error {
 		if err := cursor.Decode(&competence); err != nil {
 			return InternalServerError(c, "Failed to decode data", "Decode Kompetensi")
 		}
+		if deletedAt, ok := competence["deleted_at"]; ok && deletedAt != nil {
+			// skip deleted certificates
+			continue
+		}
 		results = append(results, competence)
 	}
 	if err := cursor.Err(); err != nil {
@@ -294,11 +297,10 @@ func getOneKompetensi(c *fiber.Ctx, filter bson.M) error {
 		return InternalServerError(c, "Failed to retrieve data", "Server Find Detail Kompetensi")
 	}
 
-	// Check if the competence has a "deleted_at" field
-	if modelData, modelOk := kompetensiDetail["model"].(bson.M); modelOk {
-		if deletedAt, exists := modelData["deleted_at"]; exists && deletedAt != nil {
-			return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi on get Detail", deletedAt)
-		}
+	// Check if DeletedAt field already has a value
+	if deletedAt, ok := kompetensiDetail["deleted_at"]; ok && deletedAt != nil {
+		// Return the deletion time if the competence is already deleted
+		return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted competence", deletedAt)
 	}
 
 	// return success
