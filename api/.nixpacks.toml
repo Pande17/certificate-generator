@@ -1,4 +1,1 @@
 project_path = "."
-
-[phases.setup]
-languages = ["go"]
