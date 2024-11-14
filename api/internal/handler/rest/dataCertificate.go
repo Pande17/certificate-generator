@@ -5,7 +5,6 @@ import (
 	"certificate-generator/internal/generator"
 	"certificate-generator/model"
 	"context"
-	"encoding/json"
 	"fmt"
 	"math"
 	"strings"
@@ -289,12 +288,13 @@ func DownloadCertificate(c *fiber.Ctx) error {
 		return err
 	}
 
-	var certifDetail model.PDF
-	if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
-		return InternalServerError(c, "can't unmarshal body", err.Error())
-	}
+	return c.Status(200).JSON(c.Response().Body())
+	// var certifDetail model.PDF
+	// if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
+	// 	return InternalServerError(c, "can't unmarshal body", err.Error())
+	// }
 
-	return c.Download("./temp/certificate/"+idParam+".pdf", "Sertifikat BTW Edutech - "+certifDetail.Data.NamaPeserta)
+	// return c.Download("./temp/certificate/"+idParam+".pdf", "Sertifikat BTW Edutech - "+certifDetail.Data.NamaPeserta)
 }
 
 // {
