@@ -298,12 +298,12 @@ func DownloadCertificate(c *fiber.Ctx) error {
 		return err
 	}
 
-	var certifDetail model.PDF
+	var certifDetail bson.M
 	if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
 		return InternalServerError(c, "can't unmarshal body", err.Error())
 	}
 
-	return c.Download("./temp/certificate/"+idParam+".pdf", "Sertifikat BTW Edutech - "+certifDetail.Data.NamaPeserta)
+	return c.Download("./temp/certificate/"+idParam+".pdf", "Sertifikat BTW Edutech - "+certifDetail["data"].(bson.M)["nama_peserta"].(string))
 }
 
 // {
