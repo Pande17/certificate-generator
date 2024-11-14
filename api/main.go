@@ -1,9 +1,9 @@
 package main
 
 import (
-	"certificate-generator/api/config"
-	"certificate-generator/api/database"
-	"certificate-generator/api/routes"
+	"certificate-generator/config"
+	"certificate-generator/database"
+	"certificate-generator/routes"
 	"log"
 
 	"github.com/gofiber/fiber/v2"

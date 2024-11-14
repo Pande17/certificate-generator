@@ -1,7 +1,7 @@
 package generator
 
 import (
-	model "certificate-generator/api/model"
+	"certificate-generator/model"
 	"html/template"
 	"log"
 	"math"

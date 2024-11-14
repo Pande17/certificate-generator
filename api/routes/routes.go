@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"certificate-generator/api/internal/handler/middleware"
-	"certificate-generator/api/internal/handler/rest"
+	"certificate-generator/internal/handler/middleware"
+	"certificate-generator/internal/handler/rest"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -47,8 +47,8 @@ func RouteSetup(r *fiber.App) {
 	// api.Get("/accounts/:id", rest.GetAccountByID)        								 // Route to see admin account detail by acc_id
 
 	// define routes for management competence
-	api.Post("/competence", rest.CreateKompetensi) // route to create competence data
-	api.Get("/competence", rest.GetKompetensi)     // route to get all competence data
+	api.Post("/competence", rest.CreateKompetensi)       // route to create competence data
+	api.Get("/competence", rest.GetKompetensi)           // route to get all competence data
 	api.Put("/competence/:id", rest.EditKompetensi)      // route to update competence data
 	api.Delete("/competence/:id", rest.DeleteKompetensi) // route to delete competence data
 	//api.Get("/competence/:id", TEMPlate)               // route to get competence data based on their id
