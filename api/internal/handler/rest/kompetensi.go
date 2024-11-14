@@ -33,28 +33,28 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	}
 
 	// retrieve the admin from the JWT token stored in context
-	adminID, ok := c.Locals("admin").(string)
-	if !ok {
-		return Unauthorized(c, "Invalid token format", "Authentication error")
-	}
-
-	// retrieve claims from the JWT token
-	// claims, ok := admin.Claims.(jwt.MapClaims)
+	// adminID, ok := c.Locals("admin").(string)
 	// if !ok {
-	// 	return Unauthorized(c, "Invalid token claims", "Authentication error")
+	// 	return Unauthorized(c, "Invalid token format", "Authentication error")
 	// }
 
-	// adminID, ok := claims["sub"].(string)
-	// if !ok {
-	// 	return Unauthorized(c, "Invalid AdminID format in token", "Authentication error")
-	// }
+	// // retrieve claims from the JWT token
+	// // claims, ok := admin.Claims.(jwt.MapClaims)
+	// // if !ok {
+	// // 	return Unauthorized(c, "Invalid token claims", "Authentication error")
+	// // }
 
-	// convert adminID from string to MongoDB objectID
-	objectID, err := primitive.ObjectIDFromHex(adminID)
-	fmt.Println("Admin ID from token:", adminID)
-	if err != nil {
-		return BadRequest(c, "Invalid AdminID format", err.Error())
-	}
+	// // adminID, ok := claims["sub"].(string)
+	// // if !ok {
+	// // 	return Unauthorized(c, "Invalid AdminID format in token", "Authentication error")
+	// // }
+
+	// // convert adminID from string to MongoDB objectID
+	// objectID, err := primitive.ObjectIDFromHex(adminID)
+	// fmt.Println("Admin ID from token:", adminID)
+	// if err != nil {
+	// 	return BadRequest(c, "Invalid AdminID format", err.Error())
+	// }
 
 	// connect collection competence in database
 	collectionKompetensi := database.GetCollection("competence")
@@ -66,7 +66,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	filter := bson.M{"nama_kompetensi": kompetensiReq.KompetensiName}
 
 	// find competence with same competence name as input name
-	err = collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
+	err := collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
 	if err == nil {
 		return Conflict(c, "Competence already exists", "Conflict")
 	} else if err != mongo.ErrNoDocuments {
@@ -76,7 +76,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	// append data from body request to struct Kompetensi
 	kompetensi := model.Kompetensi{
 		ID:             primitive.NewObjectID(),
-		AdminId:        objectID,
+		// AdminId:        objectID,
 		NamaKompetensi: kompetensiReq.KompetensiName,
 		HardSkills:     kompetensiReq.HardSkills,
 		SoftSkills:     kompetensiReq.SoftSkills,

@@ -44,14 +44,14 @@ const Sidebar = ({ children }) => {
         className="flex items-center gap-2 font-Poppins font-medium"
         onClick={closeDrawer}
       >
-        <ToolTwoTone /> Tool
+        <ToolTwoTone /> Competence
       </Link>
     </div>
   );
 
   return (
     <div
-      className="p-9 bg-Background"
+      className="p-9 bg-Background min-h-screen"
       style={{
         backgroundImage: `url(${backgroundImage})`,
      backgroundRepeat:"no-repeat",

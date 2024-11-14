@@ -107,7 +107,7 @@ const Tool = () => {
         layout="vertical"
         onFinish={handleSubmit(onSubmit)}
         style={{
-          width:"60vh",
+          width: "95%",
           maxHeight: "100vh",
           overflowY: "scroll",
           backgroundColor: "white",
@@ -115,31 +115,8 @@ const Tool = () => {
           borderRadius: "20px",
         }}
       >
-        <Form.Item label="Pilih Kompetensi" required>
-          <Controller
-            name="selectedCompetenceId"
-            control={control}
-            render={({ field }) => (
-              <Select
-                placeholder="Pilih kompetensi"
-                {...field}
-                style={{ width: "100%", height: "50px"}}
-              >
-                <Option value={null}>Tambah Kompetensi Baru</Option>
-                {competencies.length > 0 ? (
-                  competencies.map((competence) => (
-                    <Option key={competence._id} value={competence._id}>
-                      {competence.nama_kompetensi}
-                    </Option>
-                  ))
-                ) : (
-                  <Option disabled>Tidak ada kompetensi tersedia</Option>
-                )}
-              </Select>
-            )}
-          />
-        </Form.Item>
-
+        <h3 className="text-center font-Poppins text-2xl font-bold p-6">
+          Buat kompetensi        </h3>
         <Form.Item label="Nama Kompetensi" required>
           <Controller
             name="competenceName"
@@ -148,13 +125,13 @@ const Tool = () => {
               <Input
                 placeholder="Masukkan nama kompetensi"
                 {...field}
-                style={{ width: "100%",  height: "50px" }}
+                style={{ width: "100%", height: "50px" }}
               />
             )}
           />
         </Form.Item>
 
-        <h3 className="text-center text-2xl font-Poppins font-medium">
+        <h3 className="text-center font-Poppins text-2xl font-medium p-6">
           Hard Skills
         </h3>
         {hardSkillsFields.map((field, index) => (
@@ -167,7 +144,7 @@ const Tool = () => {
                   <Input
                     placeholder="Masukkan nama hard skill"
                     {...field}
-                    style={{ width: "100%", height: "50px"}}
+                    style={{ width: "100%", height: "50px" }}
                   />
                 )}
               />
@@ -229,7 +206,7 @@ const Tool = () => {
           Tambah Hard Skill
         </Button>
 
-        <h3 className="text-center text-2xl font-Poppins font-medium">
+        <h3 className="text-center font-Poppins text-2xl font-medium p-6">
           Soft Skills
         </h3>
         {softSkillsFields.map((field, index) => (
@@ -242,7 +219,7 @@ const Tool = () => {
                   <Input
                     placeholder="Masukkan nama soft skill"
                     {...field}
-                    style={{ width: "100%", height: "50px"}}
+                    style={{ width: "100%", height: "50px" }}
                   />
                 )}
               />
