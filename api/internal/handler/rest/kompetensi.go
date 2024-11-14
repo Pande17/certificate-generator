@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"certificate-generator/api/database"
-	model "certificate-generator/api/model"
+	"certificate-generator/database"
+	"certificate-generator/model"
 	"time"
 
 	"github.com/gofiber/fiber/v2"

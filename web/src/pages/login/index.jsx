@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios"; 
+import backgroundImage from "../assets/Element.svg"
 
 const LoginPage = () => {
   const [admin_name, setAdminName] = useState(""); 
@@ -43,8 +44,12 @@ setShowPassword(!showPassword)
 
   return (
     <>
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="max-h-fit justify-center align-middle bg-white border-2 p-6 text-center rounded-md border-black sm:w-2/6">
+      <div className="flex justify-center items-center min-h-screen bg-Background"  style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundRepeat:"no-repeat",
+        backgroundPosition: "center",
+      }}>
+        <div className="max-h-fit justify-center align-middle bg-white p-6 text-center rounded-md border-black sm:w-2/6">
           <form onSubmit={loginHandle}>
             <p className="font-Poppins font-bold text-3xl text-Text mb-6 text-center">
               Login

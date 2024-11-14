@@ -3,3 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
+label{
+    font-size: 1px;
+    font-family: 'poppins';
+}

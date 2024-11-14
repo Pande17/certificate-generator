@@ -1,9 +1,9 @@
 package rest
 
 import (
-	"certificate-generator/api/database"
-	"certificate-generator/api/internal/generator"
-	model "certificate-generator/api/model"
+	"certificate-generator/database"
+	"certificate-generator/internal/generator"
+	"certificate-generator/model"
 	"context"
 	"encoding/json"
 	"fmt"

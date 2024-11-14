@@ -1,9 +1,7 @@
 services:
   backend:
     build:
-      context: .
-      dockerfile: api/dockerfile
-    image: certifgen-backend
+      context: ./api
     depends_on:
       - mongo
     environment:

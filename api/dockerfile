@@ -17,17 +17,17 @@ COPY --from=wkhtmltopdf /bin/wkhtmltoimage  /usr/local/bin/wkhtmltoimage
 COPY --from=wkhtmltopdf /bin/libwkhtmltox*  /usr/local/bin
 
 # Ensure binaries are executable
-RUN chmod +x /usr/local/bin/wkhtmltopdf && \
-    chmod +x /usr/local/bin/wkhtmltoimage
+# RUN chmod +x /usr/local/bin/wkhtmltopdf && \
+#     chmod +x /usr/local/bin/wkhtmltoimage
 
-# perintah untuk mengecek keberadaan file wkhtmltopdf
-# RUN ls -l /usr/local/bin/wkhtmltopdf
+# # perintah untuk mengecek keberadaan file wkhtmltopdf
+# # RUN ls -l /usr/local/bin/wkhtmltopdf
 
-# Add /usr/local/bin to PATH explicitly
-ENV PATH="/usr/local/bin:${PATH}"
+# # Add /usr/local/bin to PATH explicitly
+# ENV PATH="/usr/local/bin:${PATH}"
 
-# Verify that wkhtmltopdf is correctly installed (optional)
-RUN wkhtmltopdf --version
+# # Verify that wkhtmltopdf is correctly installed (optional)
+# RUN wkhtmltopdf --version
 
 # Install Go Air autoreload package
 RUN go install github.com/air-verse/air@v1.52.3
@@ -36,15 +36,15 @@ RUN go install github.com/air-verse/air@v1.52.3
 # Set working directory to /app
 WORKDIR /app
 
-# Copy Go module files and download dependencies
-COPY /go.mod /go.sum ./
-RUN go mod download
+# # Copy Go module files and download dependencies
+# COPY /go.mod /go.sum ./
+# RUN go mod download
 
-# Copy all files from api to /app in container
-COPY . .
+# # Copy all files from api to /app in container
+# COPY . .
 
-# Build the Go application
-RUN go build -o certifgen-backend
+# # Build the Go application
+# RUN go build -o certifgen-backend
 
 # Run autoreload or direct binary depending on environment
 CMD ["air", "-c", ".air.toml"]
