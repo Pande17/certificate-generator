@@ -37,7 +37,7 @@ RUN go install github.com/air-verse/air@v1.52.3
 WORKDIR /app
 
 # Copy Go module files and download dependencies
-COPY ../go.mod ../go.sum ./
+COPY /go.mod /go.sum ./
 RUN go mod download
 
 # Copy all files from api to /app in container
