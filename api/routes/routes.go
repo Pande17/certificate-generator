@@ -51,12 +51,10 @@ func RouteSetup(r *fiber.App) {
 	api.Get("/competence", rest.GetKompetensi)           // route to get all competence data
 	api.Put("/competence/:id", rest.EditKompetensi)      // route to update competence data
 	api.Delete("/competence/:id", rest.DeleteKompetensi) // route to delete competence data
-	//api.Get("/competence/:id", TEMPlate)               // route to get competence data based on their id
 
 	// define routes for management certificate data
 	api.Post("/certificate", rest.CreateCertificate)
-	api.Get("/certificate", rest.GetAllCertificates)
-	api.Get("/certificate/:id", rest.GetCertificateByID)
+	api.Get("/certificate", rest.GetCertificate)
 	api.Put("/certiticate/:id", TEMPlate)
 	api.Delete("/certificate/:id", rest.DeleteCertificate)
 
