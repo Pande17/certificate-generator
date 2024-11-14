@@ -25,16 +25,16 @@ services:
     networks:
       - certif-network
 
+  # frontend:
+  #   build:
+  #     context: ./web
+  #   ports:
+  #     - '80:80'
+  #   networks:
+  #     - certif-network
+
 volumes:
   mongo-data:
 
 networks:
   certif-network:
-
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #   ports:
-  #     - "3000:3000"
-  #   networks:
-  #     - certif-network
