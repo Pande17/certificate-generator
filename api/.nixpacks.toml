@@ -7,4 +7,4 @@ languages = ["go"]
 cmd = "go build -o main ."
 
 [phases.start]
-cmd = "./main"
+cmd = "main"
