@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math"
 	"strings"
 	"time"
@@ -285,24 +284,17 @@ func DeleteCertificate(c *fiber.Ctx) error {
 	return OK(c, "Successfully deleted certificate", idParam)
 }
 
-func DownloadCertificate(c *fiber.Ctx) error {
-	idParam := c.Params("id")
+func DownloadCertificatePt1(c *fiber.Ctx) error {
+	c.Redirect(fmt.Sprintf("%s://%s/api/certificate?type=data_id&s=%s", c.Protocol(), c.Hostname(), c.Params("id")))
+	return c.Next()
+}
 
-	if err := c.Redirect(
-		fmt.Sprintf("%s://%s/api/certificate?type=data_id&s=%s",
-			c.Protocol(), c.Hostname(), idParam),
-	); err != nil {
-		return err
-	}
-
-	c.Response().BodyWriteTo(log.Writer())
-
+func DownloadCertificatePt2(c *fiber.Ctx) error {
 	var certifDetail model.PDF
 	if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
 		return InternalServerError(c, "can't unmarshal body", err.Error())
 	}
-
-	return c.Download("./temp/certificate/"+idParam+".pdf", "Sertifikat BTW Edutech - "+certifDetail.Data.NamaPeserta)
+	return c.Download("./temp/certificate/"+certifDetail.DataID+".pdf", "Sertifikat BTW Edutech - "+certifDetail.Data.NamaPeserta)
 }
 
 // {
