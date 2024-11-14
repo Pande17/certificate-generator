@@ -284,7 +284,8 @@ func DeleteCertificate(c *fiber.Ctx) error {
 }
 
 func DownloadCertificate(c *fiber.Ctx) error {
-	return c.Redirect(fmt.Sprintf("%s://%s/assets/certificate/api/certificate?type=data_id&s=%s", c.Protocol(), c.Hostname(), c.Params("id")))
+	c.Redirect(fmt.Sprintf("%s://%s/api/certificate?type=data_id&s=%s", c.Protocol(), c.Hostname(), c.Params("id")))
+	return c.JSON(c.Response().Body())
 	/*
 		if err := c.RedirectToRoute("/api/certificate", fiber.Map{
 			"queries": map[string]string{
@@ -295,7 +296,7 @@ func DownloadCertificate(c *fiber.Ctx) error {
 			return err
 		}*/
 
-	return c.Status(200).JSON(c.Response().Body())
+	//return c.Status(200).JSON(c.Response().Body())
 	// var certifDetail model.PDF
 	// if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
 	// 	return InternalServerError(c, "can't unmarshal body", err.Error())
