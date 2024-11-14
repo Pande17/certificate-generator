@@ -5,11 +5,13 @@ import (
 	"certificate-generator/database"
 	"certificate-generator/routes"
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
+	log.Println(os.ReadDir("."))
 	// intitialize environment variables
 	config.InitEnv()
 
