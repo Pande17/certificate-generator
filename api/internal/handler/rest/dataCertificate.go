@@ -284,14 +284,7 @@ func DeleteCertificate(c *fiber.Ctx) error {
 }
 
 func DownloadCertificate(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-
-	return c.RedirectToRoute("/api/certificate", fiber.Map{
-		"queries": map[string]string{
-			"type": "data_id",
-			"s":    idParam,
-		},
-	})
+	return c.Redirect(fmt.Sprintf("%s://%s/assets/certificate/api/certificate?type=data_id&s=%s", c.Protocol(), c.Hostname(), c.Params("id")))
 	/*
 		if err := c.RedirectToRoute("/api/certificate", fiber.Map{
 			"queries": map[string]string{
