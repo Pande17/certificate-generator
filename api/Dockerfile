@@ -20,9 +20,6 @@ COPY --from=wkhtmltopdf /bin/libwkhtmltox*  /usr/local/bin
 RUN chmod +x /usr/local/bin/wkhtmltopdf && \
     chmod +x /usr/local/bin/wkhtmltoimage
 
-# # perintah untuk mengecek keberadaan file wkhtmltopdf
-# # RUN ls -l /usr/local/bin/wkhtmltopdf
-
 # # Add /usr/local/bin to PATH explicitly
 ENV PATH="/usr/local/bin:${PATH}"
 
@@ -30,11 +27,11 @@ ENV PATH="/usr/local/bin:${PATH}"
 # RUN wkhtmltopdf --version
 
 # Install Go Air autoreload package
-RUN go install github.com/air-verse/air@v1.52.3
+# RUN go install github.com/air-verse/air@v1.52.3
 # RUN go install github.com/cosmtrek/air@v1.52.3
 
 # Set working directory to /app
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # # Copy Go module files and download dependencies
 # COPY /go.mod /go.sum ./
@@ -43,11 +40,13 @@ WORKDIR /app
 # # Copy all files from api to /app in container
 COPY . .
 
+CMD ["go build -gcflags='all=-N -l' -o ./build/app main.go"]
+
 # # Build the Go application
 # RUN go build -o certifgen-backend
 
 # Run autoreload or direct binary depending on environment
-CMD ["air", "-c", ".air.toml"]
+# CMD ["air", "-c", ".air.toml"]
 
 # Expose port 3000
 EXPOSE 3000
