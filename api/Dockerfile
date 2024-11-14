@@ -42,7 +42,7 @@ COPY . .
 
 RUN go build -gcflags='all=-N -l' -o ./app main.go
 
-ENTRYPOINT ["app"]
+ENTRYPOINT ["./app"]
 
 # # Build the Go application
 # RUN go build -o certifgen-backend
