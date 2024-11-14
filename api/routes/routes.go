@@ -58,7 +58,7 @@ func RouteSetup(r *fiber.App) {
 	api.Put("/certiticate/:id", TEMPlate)
 	api.Delete("/certificate/:id", rest.DeleteCertificate)
 
-	r.Get("/assets/certificate/:id", rest.DownloadCertificatePt1, rest.DownloadCertificatePt2)
+	r.Get("/assets/certificate/:id", rest.DownloadCertificate)
 }
 
 func TEMPlate(c *fiber.Ctx) error {
