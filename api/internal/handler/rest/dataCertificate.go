@@ -294,6 +294,10 @@ func DownloadCertificate(c *fiber.Ctx) error {
 		return err
 	}
 
+	if err := c.Response().BodyWriteTo(c.Response().BodyWriter()); err != nil {
+		return err
+	}
+
 	var certifDetail model.PDF
 	if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
 		return InternalServerError(c, "can't unmarshal body", err.Error())
