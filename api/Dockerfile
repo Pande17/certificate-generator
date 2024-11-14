@@ -41,7 +41,7 @@ WORKDIR /app
 # RUN go mod download
 
 # # Copy all files from api to /app in container
-# COPY . .
+COPY . .
 
 # # Build the Go application
 # RUN go build -o certifgen-backend
