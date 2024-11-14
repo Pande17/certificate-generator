@@ -2,12 +2,14 @@ package rest
 
 import (
 	"context"
+	"fmt"
 
 	"certificate-generator/database"
 	"certificate-generator/model"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -47,19 +49,19 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	// 	return Unauthorized(c, "Invalid AdminID format in token", "Authentication error")
 	// }
 
-	// Retrieve the admin ID from the claims stored in context
-	// claims := c.Locals("admin").(jwt.MapClaims)
-	// adminID, ok := claims["sub"].(string)
-	// if !ok {
-	// 	return BadRequest(c, "Invalid UserID in token", "error")
-	// }
+	// Retrieve the user ID from the claims stored in context
+	claims := c.Locals("admin").(jwt.MapClaims)
+	adminID, ok := claims["sub"].(string)
+	if !ok {
+		return BadRequest(c, "Invalid UserID in token", "Invalid UserID in token")
+	}
 
-	// // convert adminID from string to MongoDB objectID
-	// objectID, err := primitive.ObjectIDFromHex(adminID)
-	// fmt.Println("Admin ID from token:", adminID)
-	// if err != nil {
-	// 	return BadRequest(c, "Invalid AdminID format", err.Error())
-	// }
+	// Convert userID (which is a string) to MongoDB ObjectID
+	objectID, err := primitive.ObjectIDFromHex(adminID)
+	fmt.Println("Admin ID from token:", adminID)
+	if err != nil {
+		return BadRequest(c, "Invalid UserID format", err.Error())
+	}
 
 	// connect collection competence in database
 	collectionKompetensi := database.GetCollection("competence")
@@ -71,7 +73,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	filter := bson.M{"nama_kompetensi": kompetensiReq.KompetensiName}
 
 	// find competence with same competence name as input name
-	err := collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
+	err = collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
 	if err == nil {
 		return Conflict(c, "Competence already exists", "Conflict")
 	} else if err != mongo.ErrNoDocuments {
@@ -80,8 +82,8 @@ func CreateKompetensi(c *fiber.Ctx) error {
 
 	// append data from body request to struct Kompetensi
 	kompetensi := model.Kompetensi{
-		ID: primitive.NewObjectID(),
-		// AdminId:        objectID,
+		ID:             primitive.NewObjectID(),
+		AdminId:        objectID,
 		NamaKompetensi: kompetensiReq.KompetensiName,
 		HardSkills:     kompetensiReq.HardSkills,
 		SoftSkills:     kompetensiReq.SoftSkills,
