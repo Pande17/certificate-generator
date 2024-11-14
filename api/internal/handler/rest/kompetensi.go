@@ -32,23 +32,6 @@ func CreateKompetensi(c *fiber.Ctx) error {
 		return BadRequest(c, "Failed to read body", "Req body Create Kompetensi")
 	}
 
-	// retrieve the admin from the JWT token stored in context
-	// adminID, ok := c.Locals("admin").(string)
-	// if !ok {
-	// 	return Unauthorized(c, "Invalid token format", "Authentication error")
-	// }
-
-	// retrieve claims from the JWT token
-	// claims, ok := admin.Claims.(jwt.MapClaims)
-	// if !ok {
-	// 	return Unauthorized(c, "Invalid token claims", "Authentication error")
-	// }
-
-	// adminID, ok := claims["sub"].(string)
-	// if !ok {
-	// 	return Unauthorized(c, "Invalid AdminID format in token", "Authentication error")
-	// }
-
 	// Retrieve the user ID from the claims stored in context
 	claims := c.Locals("admin").(jwt.MapClaims)
 	adminID, ok := claims["sub"].(string)
@@ -82,12 +65,12 @@ func CreateKompetensi(c *fiber.Ctx) error {
 
 	// append data from body request to struct Kompetensi
 	kompetensi := model.Kompetensi{
-		ID:             primitive.NewObjectID(),
 		AdminId:        objectID,
 		NamaKompetensi: kompetensiReq.KompetensiName,
 		HardSkills:     kompetensiReq.HardSkills,
 		SoftSkills:     kompetensiReq.SoftSkills,
 		Model: model.Model{
+			ID:        primitive.NewObjectID(),
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 			DeletedAt: nil,
