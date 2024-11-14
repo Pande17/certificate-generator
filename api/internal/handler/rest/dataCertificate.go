@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math"
 	"strings"
 	"time"
@@ -294,16 +295,14 @@ func DownloadCertificate(c *fiber.Ctx) error {
 		return err
 	}
 
-	if err := c.Response().BodyWriteTo(c.Response().BodyWriter()); err != nil {
-		return err
-	}
+	log.Println(c.Response().Body())
 
-	var certifDetail bson.M
+	var certifDetail model.PDF
 	if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
 		return InternalServerError(c, "can't unmarshal body", err.Error())
 	}
 
-	return c.Download("./temp/certificate/"+idParam+".pdf", "Sertifikat BTW Edutech - "+certifDetail["data"].(bson.M)["nama_peserta"].(string))
+	return c.Download("./temp/certificate/"+idParam+".pdf", "Sertifikat BTW Edutech - "+certifDetail.Data.NamaPeserta)
 }
 
 // {
