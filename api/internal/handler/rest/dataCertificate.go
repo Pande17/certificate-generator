@@ -286,14 +286,21 @@ func DeleteCertificate(c *fiber.Ctx) error {
 func DownloadCertificate(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
-	if err := c.RedirectToRoute("/api/certificate", fiber.Map{
+	return c.RedirectToRoute("/api/certificate", fiber.Map{
 		"queries": map[string]string{
 			"type": "data_id",
 			"s":    idParam,
 		},
-	}); err != nil {
-		return err
-	}
+	})
+	/*
+		if err := c.RedirectToRoute("/api/certificate", fiber.Map{
+			"queries": map[string]string{
+				"type": "data_id",
+				"s":    idParam,
+			},
+		}); err != nil {
+			return err
+		}*/
 
 	return c.Status(200).JSON(c.Response().Body())
 	// var certifDetail model.PDF
