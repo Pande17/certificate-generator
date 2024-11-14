@@ -2,9 +2,3 @@ project_path = "."
 
 [phases.setup]
 languages = ["go"]
-
-[phases.build]
-cmd = "go build -o main ."
-
-[phases.start]
-cmd = "main"
