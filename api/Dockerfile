@@ -1,5 +1,5 @@
 # Stage 1 - wkhtmltopdf dependencies
-FROM surnet/alpine-wkhtmltopdf:3.20.0-0.12.6-full as wkhtmltopdf
+FROM surnet/alpine-wkhtmltopdf:3.20.0-0.12.6-full AS wkhtmltopdf
 
 # Stage 2 - Go with wkhtmltopdf and air autoreload
 FROM golang:1.22-alpine3.20
@@ -41,7 +41,7 @@ WORKDIR /app
 # RUN go mod download
 
 # # Copy all files from api to /app in container
-# COPY . .
+COPY . .
 
 # # Build the Go application
 # RUN go build -o certifgen-backend
