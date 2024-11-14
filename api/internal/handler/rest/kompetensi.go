@@ -29,21 +29,21 @@ func CreateKompetensi(c *fiber.Ctx) error {
 
 	// parse the request body
 	if err := c.BodyParser(&kompetensiReq); err != nil {
-		return BadRequest(c, "Failed to read body", "Req body Create Kompetensi")
+		return BadRequest(c, "Failed to read body", "Data yang dimasukkan tidak valid!")
 	}
 
 	// Retrieve the user ID from the claims stored in context
 	claims := c.Locals("admin").(jwt.MapClaims)
 	adminID, ok := claims["sub"].(string)
 	if !ok {
-		return BadRequest(c, "Invalid UserID in token", "Invalid UserID in token")
+		return Unauthorized(c, "Invalid AdminID in token", "Token Admin tidak valid!")
 	}
 
 	// Convert userID (which is a string) to MongoDB ObjectID
 	objectID, err := primitive.ObjectIDFromHex(adminID)
 	fmt.Println("Admin ID from token:", adminID)
 	if err != nil {
-		return BadRequest(c, "Invalid UserID format", err.Error())
+		return Unauthorized(c, "Invalid AdminID format", "Formaat token admin tidak valid!")
 	}
 
 	// connect collection competence in database
@@ -58,7 +58,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	// find competence with same competence name as input name
 	err = collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
 	if err == nil {
-		return Conflict(c, "Competence already exists", "Conflict")
+		return Conflict(c, "Competence already exists", "Kompetensi dengan nama yang sama sudah ada!")
 	} else if err != mongo.ErrNoDocuments {
 		return InternalServerError(c, "Error chechking for existing Competence", err.Error())
 	}
@@ -80,7 +80,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	// insert data from struct "Kompetensi" to collection "competence" in database MongoDB
 	_, err = collectionKompetensi.InsertOne(context.TODO(), kompetensi)
 	if err != nil {
-		return InternalServerError(c, "Failed to create New Competence", "Insert Data Kompetensi")
+		return InternalServerError(c, "Failed to create New Competence", "Gagal membuat data kompetensi yang baru!")
 	}
 
 	// return success
@@ -115,11 +115,11 @@ func EditKompetensi(c *fiber.Ctx) error {
 	}
 
 	// Modified code for DeleteKompetensi
-	if modelData, ok := competenceData["model"].(bson.M); ok {
-		if deletedAt, exists := modelData["deleted_at"]; exists && deletedAt != nil {
-			return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi", deletedAt)
-		}
+	// if modelData, ok := competenceData["model"].(bson.M); ok {
+	if deletedAt, exists := competenceData["deleted_at"]; exists && deletedAt != nil {
+		return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi", deletedAt)
 	}
+	// }
 
 	// parsing req body to get new data
 	var input struct {
@@ -180,11 +180,11 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 	}
 
 	// Modified code for DeleteKompetensi
-	if modelData, ok := competenceData["model"].(bson.M); ok {
-		if deletedAt, exists := modelData["deleted_at"]; exists && deletedAt != nil {
-			return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi", deletedAt)
-		}
+	// if modelData, ok := competenceData["model"].(bson.M); ok {
+	if deletedAt, exists := competenceData["deleted_at"]; exists && deletedAt != nil {
+		return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi", deletedAt)
 	}
+	// }
 
 	// make update for input timestamp DeletedAt
 	update := bson.M{"$set": bson.M{"deleted_at": time.Now()}}
@@ -286,11 +286,11 @@ func getOneKompetensi(c *fiber.Ctx, filter bson.M) error {
 	}
 
 	// Check if the competence has a "deleted_at" field
-	if modelData, modelOk := kompetensiDetail["model"].(bson.M); modelOk {
-		if deletedAt, exists := modelData["deleted_at"]; exists && deletedAt != nil {
-			return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi on get Detail", deletedAt)
-		}
+	// if modelData, modelOk := kompetensiDetail["model"].(bson.M); modelOk {
+	if deletedAt, exists := kompetensiDetail["deleted_at"]; exists && deletedAt != nil {
+		return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi on get Detail", deletedAt)
 	}
+	// }
 
 	// return success
 	return OK(c, "Success get detail Competence data", kompetensiDetail)
