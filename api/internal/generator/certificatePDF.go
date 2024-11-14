@@ -84,7 +84,7 @@ func init() {
 	var err error
 	pdfg, err = wkhtmltopdf.NewPDFGenerator()
 	if err != nil {
-		log.Fatal("wkhtmltopdf not found")
+		log.Println("wkhtmltopdf not found")
 	}
 
 	pdfg.MarginTop.Set(0)

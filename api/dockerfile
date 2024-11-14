@@ -17,14 +17,14 @@ COPY --from=wkhtmltopdf /bin/wkhtmltoimage  /usr/local/bin/wkhtmltoimage
 COPY --from=wkhtmltopdf /bin/libwkhtmltox*  /usr/local/bin
 
 # Ensure binaries are executable
-# RUN chmod +x /usr/local/bin/wkhtmltopdf && \
-#     chmod +x /usr/local/bin/wkhtmltoimage
+RUN chmod +x /usr/local/bin/wkhtmltopdf && \
+    chmod +x /usr/local/bin/wkhtmltoimage
 
 # # perintah untuk mengecek keberadaan file wkhtmltopdf
 # # RUN ls -l /usr/local/bin/wkhtmltopdf
 
 # # Add /usr/local/bin to PATH explicitly
-# ENV PATH="/usr/local/bin:${PATH}"
+ENV PATH="/usr/local/bin:${PATH}"
 
 # # Verify that wkhtmltopdf is correctly installed (optional)
 # RUN wkhtmltopdf --version
