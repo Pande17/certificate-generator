@@ -295,7 +295,7 @@ func DownloadCertificate(c *fiber.Ctx) error {
 		return err
 	}
 
-	log.Println(c.Response().Body())
+	c.Response().BodyWriteTo(log.Writer())
 
 	var certifDetail model.PDF
 	if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
