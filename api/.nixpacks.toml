@@ -1,4 +1,4 @@
-project_path = "./api"
+project_path = "."
 
 [phases.setup]
 languages = ["go"]
