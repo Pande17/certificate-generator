@@ -5,7 +5,6 @@ import (
 	"certificate-generator/internal/generator"
 	"certificate-generator/model"
 	"context"
-	"encoding/json"
 	"fmt"
 	"math"
 	"strings"
@@ -155,7 +154,8 @@ func GetCertificate(c *fiber.Ctx) error {
 	} else {
 		value = val
 	}
-	return getOneCertificate(c, bson.M{key: value})
+	_, err := getOneCertificate(c, bson.M{key: value})
+	return err
 }
 
 func getAllCertificates(c *fiber.Ctx) error {
@@ -204,7 +204,7 @@ func getAllCertificates(c *fiber.Ctx) error {
 	return OK(c, "Sucess get all Certificate data", results)
 }
 
-func getOneCertificate(c *fiber.Ctx, filter bson.M) error {
+func getOneCertificate(c *fiber.Ctx, filter bson.M) (bson.M, error) {
 	// connect to collection in MongoDB
 	collection := database.GetCollection("certificate")
 	ctx := c.Context()
@@ -216,20 +216,20 @@ func getOneCertificate(c *fiber.Ctx, filter bson.M) error {
 	if err := collection.FindOne(ctx, filter).Decode(&certifDetail); err != nil {
 		// if not found, return a 404 status
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "Data not found", "Find Detail Certificate")
+			return nil, NotFound(c, "Data not found", "Find Detail Certificate")
 		}
 		// if in server error, return status 500
-		return InternalServerError(c, "Failed to retrieve data", err.Error())
+		return nil, InternalServerError(c, "Failed to retrieve data", err.Error())
 	}
 
 	// Check if DeletedAt field already has a value
 	if deletedAt, ok := certifDetail["deleted_at"]; ok && deletedAt != nil {
 		// Return the deletion time if the certificate is already deleted
-		return AlreadyDeleted(c, "This certificate has already been deleted", "Check deleted certificate", deletedAt)
+		return nil, AlreadyDeleted(c, "This certificate has already been deleted", "Check deleted certificate", deletedAt)
 	}
 
 	// return success
-	return OK(c, "Success get detail Certificate data", certifDetail)
+	return certifDetail, OK(c, "Success get detail Certificate data", certifDetail)
 }
 
 // Function for soft delete admin account
@@ -284,17 +284,13 @@ func DeleteCertificate(c *fiber.Ctx) error {
 	return OK(c, "Successfully deleted certificate", idParam)
 }
 
-func DownloadCertificatePt1(c *fiber.Ctx) error {
-	c.Redirect(fmt.Sprintf("%s://%s/api/certificate?type=data_id&s=%s", c.Protocol(), c.Hostname(), c.Params("id")))
-	return c.Next()
-}
-
-func DownloadCertificatePt2(c *fiber.Ctx) error {
-	var certifDetail model.PDF
-	if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
-		return InternalServerError(c, "can't unmarshal body", err.Error())
+func DownloadCertificate(c *fiber.Ctx) error {
+	data, err := getOneCertificate(c, primitive.M{"data_id": c.Params("id")})
+	if err != nil {
+		return err
 	}
-	return c.Download("./temp/certificate/"+certifDetail.DataID+".pdf", "Sertifikat BTW Edutech - "+certifDetail.Data.NamaPeserta)
+	//log.Println(data)
+	return c.Download("./temp/certificate/"+data["data_id"].(string)+".pdf", "Sertifikat BTW Edutech - "+data["data"].(primitive.M)["nama_peserta"].(string))
 }
 
 // {
