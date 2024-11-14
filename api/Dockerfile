@@ -40,7 +40,9 @@ WORKDIR /usr/src/app
 # # Copy all files from api to /app in container
 COPY . .
 
-CMD ["go build -gcflags='all=-N -l' -o ./build/app main.go"]
+RUN go build -gcflags='all=-N -l' -o ./app main.go
+
+ENTRYPOINT ["app"]
 
 # # Build the Go application
 # RUN go build -o certifgen-backend
