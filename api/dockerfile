@@ -9,7 +9,7 @@ RUN apk add --no-cache \
     libstdc++ libx11 libxrender \
     libxext fontconfig freetype \
     ttf-droid ttf-freefont ttf-liberation \
-    bash ca-certificates wget
+    bash ca-certificates wget gcompat
 
 # Copy the wkhtmltopdf binary from "wkhtmltopdf" reference image
 COPY --from=wkhtmltopdf /bin/wkhtmltopdf    /usr/local/bin/wkhtmltopdf
