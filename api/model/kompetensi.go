@@ -8,6 +8,7 @@ import (
 type Kompetensi struct {
 	AdminId        primitive.ObjectID `json:"admin_id" bson:"admin_id"`
 	NamaKompetensi string             `json:"nama_kompetensi" bson:"nama_kompetensi"`
+	Divisi         string             `json:"divisi" bson:"divisi"`
 	HardSkills     []Skill            `json:"hard_skills" bson:"hard_skills"`
 	SoftSkills     []Skill            `json:"soft_skills" bson:"soft_skills"`
 	Model          `bson:",inline"`
