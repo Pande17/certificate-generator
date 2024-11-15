@@ -116,11 +116,11 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	certificate := model.PDF{
-		ID:         primitive.NewObjectID(),
 		DataID:     newDataID,
 		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
 		Data:       mappedData,
 		Model: model.Model{
+			ID:        primitive.NewObjectID(),
 			CreatedAt: currentTime,
 			UpdatedAt: currentTime,
 			DeletedAt: nil,
