@@ -56,6 +56,11 @@ func CreateCertificate(c *fiber.Ctx) error {
 		return InternalServerError(c, "Failed to generate Referral ID", "Server failed generate Referral ID")
 	}
 
+	// generate month roman and year
+	currentTime := time.Now()
+	year := currentTime.Year()
+	monthRoman := generator.MonthToRoman(int(currentTime.Month()))
+
 	// fetch Kompetensi by the given nama_kompetensi from the request
 	var kompetensi model.Kompetensi
 	filter := bson.M{"nama_kompetensi": pdfReq.Data.Kompetensi}
@@ -83,8 +88,8 @@ func CreateCertificate(c *fiber.Ctx) error {
 		KodeReferral: model.KodeReferral{
 			ReferralID: nextReferralID,
 			Divisi:     pdfReq.Data.KodeReferral.Divisi,
-			BulanRilis: pdfReq.Data.KodeReferral.BulanRilis,
-			TahunRilis: pdfReq.Data.KodeReferral.TahunRilis,
+			BulanRilis: monthRoman,
+			TahunRilis: year,
 		},
 		NamaPeserta:    strings.TrimSpace(pdfReq.Data.NamaPeserta),
 		SKKNI:          pdfReq.Data.SKKNI,
@@ -116,8 +121,8 @@ func CreateCertificate(c *fiber.Ctx) error {
 		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
 		Data:       mappedData,
 		Model: model.Model{
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: currentTime,
+			UpdatedAt: currentTime,
 			DeletedAt: nil,
 		},
 	}
