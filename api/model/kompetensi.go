@@ -6,9 +6,9 @@ import (
 
 // struct for Kompetensi
 type Kompetensi struct {
-	ID             primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	AdminId        primitive.ObjectID `json:"admin_id" bson:"admin_id"`
-	NamaKompetensi string             `json:"nama_kompetensi" bson:"nama_kompetensi"`
+	NamaKompetensi string             `json:"nama_kompetensi" bson:"nama_kompetensi"  valid:"required~Nama Kompetensi tidak boleh kosong!, stringLength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
+	Divisi         string             `json:"divisi" bson:"divisi" valid:"required~Divisi tidak boleh kosong!, stringLength(1|5)~Divisi harus antara 1-5 karakter"`
 	HardSkills     []Skill            `json:"hard_skills" bson:"hard_skills"`
 	SoftSkills     []Skill            `json:"soft_skills" bson:"soft_skills"`
 	Model          `bson:",inline"`
@@ -25,8 +25,8 @@ type Skill struct {
 
 // struct for Deskripsi Hard Skill and Soft Skill
 type Description struct {
-	UnitCode  string `json:"unit_code" bson:"unit_code"`
-	UnitTitle string `json:"unit_title" bson:"unit_title"`
+	UnitCode  string `json:"unit_code" bson:"unit_code" valid:"required~Kode Unit tidak boleh kosong!"`
+	UnitTitle string `json:"unit_title" bson:"unit_title" valid:"required~Judul Unit tidak boleh kosong!"`
 }
 
 // struct for Hard Skills

@@ -27,3 +27,12 @@ func GenerateReferralID(collection *mongo.Collection, createdAt time.Time) (int6
 
 	return updatedCounter.Counter, err
 }
+
+// function for convert month to roman numerals
+func MonthToRoman(month int) string {
+	romans := []string{"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"}
+	if month >= 1 && month <=12 {
+		return romans[month]
+	}
+	return ""
+}

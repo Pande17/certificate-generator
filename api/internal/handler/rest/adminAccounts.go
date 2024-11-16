@@ -158,6 +158,8 @@ func Login(c *fiber.Ctx) error {
 		Value:    tokenString,
 		Expires:  time.Now().Add(24 * time.Hour * 30),
 		HTTPOnly: true,
+		Secure:   false,
+		Path:     "/",
 	})
 
 	// return success
