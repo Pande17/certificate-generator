@@ -9,6 +9,7 @@ import (
 	"certificate-generator/database"
 	"certificate-generator/model"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson"
@@ -22,30 +23,34 @@ import (
 func SignUp(c *fiber.Ctx) error {
 	// Struct for the incoming request body
 	var adminReq struct {
-		ID            primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-		AdminName     string             `json:"admin_name" bson:"admin_name"`
-		AdminPassword string             `json:"admin_password" bson:"admin_password"`
+		AdminName     string `json:"admin_name" valid:"required~Nama tidak boleh kosong!, stringlength(1|30)~Nama harus antara 1 hingga 30 karakter!"`
+		AdminPassword string `json:"admin_password" valid:"required~Password tidak boleh kosong!"`
 	}
 
 	// parse the request body
 	if err := c.BodyParser(&adminReq); err != nil {
-		return BadRequest(c, "Failed to read body", err.Error())
+		return BadRequest(c, "Data yang dimasukkan tidak valid!", err.Error())
 	}
 
-	// validation to check if input username empty
-	if adminReq.AdminName == "" {
-		return BadRequest(c, "Admin Name cannot be empty", "Check admin name")
+	// Validate the input data using govalidator
+	if _, err := govalidator.ValidateStruct(&adminReq); err != nil {
+		return BadRequest(c, "Data yang dimasukkan tidak valid!", err.Error())
 	}
 
-	// validation to check if input password empty
-	if adminReq.AdminPassword == "" {
-		return BadRequest(c, "Password cannot be empty", "Check password empty")
-	}
+	// // validation to check if input username empty
+	// if adminReq.AdminName == "" {
+	// 	return BadRequest(c, "Admin Name cannot be empty", "Check admin name")
+	// }
+
+	// // validation to check if input password empty
+	// if adminReq.AdminPassword == "" {
+	// 	return BadRequest(c, "Password cannot be empty", "Check password empty")
+	// }
 
 	// hashing the input password with bcrypt
 	hash, err := bcrypt.GenerateFromPassword([]byte(adminReq.AdminPassword), bcrypt.DefaultCost)
 	if err != nil {
-		return BadRequest(c, "Failed to hashed password", "Hashing password signup")
+		return Conflict(c, "Konflik!", "Hashing password signup")
 	}
 
 	// connect collection admin account in database
@@ -60,9 +65,9 @@ func SignUp(c *fiber.Ctx) error {
 	// find admin account with same account name as input name
 	err = adminCollection.FindOne(context.TODO(), filter).Decode(&existingAdmin)
 	if err == nil {
-		return Conflict(c, "Admin name already exists", "Check admin name")
+		return Conflict(c, "Nama ini sudah ada!", "Check admin name")
 	} else if err != mongo.ErrNoDocuments {
-		return InternalServerError(c, "Error checking for existing admin name", "Check admin name")
+		return InternalServerError(c, "Server error", "Check admin name")
 	}
 
 	// generate acc_id (incremental id)
@@ -73,10 +78,10 @@ func SignUp(c *fiber.Ctx) error {
 
 	// input data from req struct to struct "AdminAccount"
 	admin := model.AdminAccount{
-		ID:            primitive.NewObjectID(),
 		AdminName:     adminReq.AdminName,
 		AdminPassword: string(hash),
 		Model: model.Model{
+			ID:        primitive.NewObjectID(),
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 			DeletedAt: nil,
