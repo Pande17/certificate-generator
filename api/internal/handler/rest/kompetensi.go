@@ -57,7 +57,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	filter := bson.M{"nama_kompetensi": kompetensiReq.KompetensiName}
 
 	// find competence with same competence name as input name
-	err := collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
+	err = collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
 	if err == nil {
 		return Conflict(c, "Kompetensi dengan nama ini sudah ada!", "Kompetensi dengan nama yang sama sudah ada!")
 	} else if err != mongo.ErrNoDocuments {
@@ -210,22 +210,20 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 
 // function to get all kompetensi data
 func GetKompetensi(c *fiber.Ctx) error {
-	if len(c.Queries()) == 0 {
+	id := c.Params("id") // Get ID from the URL path
+	if id == "" {
+		// If ID is not provided, return all kompetensi data
 		return getAllKompetensi(c)
 	}
-	key := c.Query("type")
-	val := c.Query("s")
+
+	// If ID is provided, proceed with getting specific kompetensi
 	var value any
-	if key == "id" {
-		key = "_id"
-		var err error
-		if value, err = primitive.ObjectIDFromHex(val); err != nil {
-			return BadRequest(c, "Gagal mendapatkan Kompetensi!", err.Error())
-		}
-	} else {
-		value = val
+	var err error
+	value, err = primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return BadRequest(c, "Gagal mendapatkan Kompetensi!", err.Error())
 	}
-	return getOneKompetensi(c, bson.M{key: value})
+	return getOneKompetensi(c, bson.M{"_id": value})
 }
 
 func getAllKompetensi(c *fiber.Ctx) error {
@@ -291,11 +289,9 @@ func getOneKompetensi(c *fiber.Ctx, filter bson.M) error {
 	}
 
 	// Check if the competence has a "deleted_at" field
-	// if modelData, modelOk := kompetensiDetail["model"].(bson.M); modelOk {
 	if deletedAt, exists := kompetensiDetail["deleted_at"]; exists && deletedAt != nil {
 		return AlreadyDeleted(c, "Kompetensi ini telah dihapus!", "Check deleted kompetensi on get Detail", deletedAt)
 	}
-	// }
 
 	// return success
 	return OK(c, "Berhasil menampilkan data Kompetensi!", kompetensiDetail)
