@@ -197,7 +197,7 @@ func GetCertificateByID(c *fiber.Ctx) error {
 	certifID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		fmt.Printf("error: %v\n", err.Error())
-		return BadRequest(c, "Invalid ID format", "Please provide a valid ObjectID")
+		return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
 	}
 
 	// connect to collection in mongoDB
@@ -238,7 +238,7 @@ func DeleteCertificate(c *fiber.Ctx) error {
 	// Convert idParam to ObjectID if needed
 	certifID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		return BadRequest(c, "Invalid ID format", "Please provide a valid ObjectID")
+		return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
 	}
 
 	// connect to collection in mongoDB

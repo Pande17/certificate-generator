@@ -23,13 +23,13 @@ func ValidateToken(c *fiber.Ctx) error {
 
 	// If token is missing, return unauthorized error
 	if tokenString == "" {
-		return rest.Unauthorized(c, "Unauthorized, please login", "Unauthorized, please login")
+		return rest.Unauthorized(c, "Mohon login terlebih dahulu", "Mohon login terlebih dahulu")
 	}
 
 	// Retrieve secret key from environment variables
 	secretKey := os.Getenv("SECRET")
 	if secretKey == "" {
-		return rest.Unauthorized(c, "Server error", "Server error")
+		return rest.Conflict(c, "Server error", "Server error")
 	}
 
 	// Initialize claims as MapClaims to store all claims
