@@ -1,4 +1,4 @@
-# Dockerfile for app deployment
+# Dockerfile for developing app
 
 # Stage 1 - wkhtmltopdf dependencies
 FROM surnet/alpine-wkhtmltopdf:3.20.0-0.12.6-full AS wkhtmltopdf
@@ -25,16 +25,14 @@ RUN chmod +x /usr/local/bin/wkhtmltopdf && \
 # # Add /usr/local/bin to PATH explicitly
 ENV PATH="/usr/local/bin:${PATH}"
 
+# Install Go Air autoreload package
+RUN go install github.com/air-verse/air@v1.52.3
+
 # Set working directory to /app
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Copy all files to container
-COPY . .
-
-# build app
-RUN go build -gcflags='all=-N -l' -o ./app main.go
-
-ENTRYPOINT ["./app"]
+# Run autoreload or direct binary depending on environment
+CMD ["air", "-c", ".air.toml"]
 
 # Expose port 3000
 EXPOSE 3000

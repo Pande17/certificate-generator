@@ -261,6 +261,10 @@ func getAllKompetensi(c *fiber.Ctx) error {
 		if err := cursor.Decode(&competence); err != nil {
 			return InternalServerError(c, "Gagal mengambil data", "Decode Kompetensi")
 		}
+		if deletedAt, ok := competence["deleted_at"]; ok && deletedAt != nil {
+			// skip deleted certificates
+			continue
+		}
 		results = append(results, competence)
 	}
 	if err := cursor.Err(); err != nil {

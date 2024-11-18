@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
@@ -13,6 +14,7 @@ import (
 )
 
 var pdfg *wkhtmltopdf.PDFGenerator
+var zoom float64
 
 // functions for rendering html certificate
 var funcs = template.FuncMap{
@@ -93,20 +95,61 @@ func init() {
 	pdfg.MarginLeft.Set(0)
 	pdfg.Dpi.Set(300)
 	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
+
+	zoom, err = strconv.ParseFloat(os.Getenv("PDF_ZOOM"), 64)
+	if err != nil {
+		log.Println(err, "\nenv PDF_ZOOM error, using default value 1")
+		zoom = 1
+	}
 }
 
-func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64, pageName string) error {
-	pdfg.ResetPages()
+func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData) error {
+	page1, err := makePage(c, dataReq, "page1")
+	if err != nil {
+		return err
+	}
+	page2a, err := makePage(c, dataReq, "page2a")
+	if err != nil {
+		return err
+	}
+	page2b, err := makePage(c, dataReq, "page2b")
+	if err != nil {
+		return err
+	}
 
+	pdfg.ResetPages()
+	pdfg.AddPage(page1)
+	pdfg.AddPage(page2a)
+	if err := pdfg.Create(); err != nil {
+		return err
+	}
+	if err := pdfg.WriteFile("assets/certificate/" + dataReq.DataID + "-a.pdf"); err != nil {
+		return err
+	}
+
+	pdfg.ResetPages()
+	pdfg.AddPage(page1)
+	pdfg.AddPage(page2b)
+	if err := pdfg.Create(); err != nil {
+		return err
+	}
+	if err := pdfg.WriteFile("assets/certificate/" + dataReq.DataID + "-b.pdf"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func makePage(c *fiber.Ctx, dataReq *model.CertificateData, pageName string) (*wkhtmltopdf.Page, error) {
 	if t, err := template.New(pageName).Funcs(funcs).ParseFiles("assets/" + pageName + ".html"); err != nil {
-		return err
+		return nil, err
 	} else if err := t.Execute(c.Response().BodyWriter(), *dataReq); err != nil {
-		return err
+		return nil, err
 	}
 
 	htmlSertif, err := os.Create("temp/temp" + dataReq.DataID + ".html")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer func() {
 		htmlSertif.Close()
@@ -116,17 +159,10 @@ func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64, pageN
 	}()
 
 	if _, err := htmlSertif.Write(c.Response().Body()); err != nil {
-		return err
+		return nil, err
 	}
 
 	page := wkhtmltopdf.NewPage("temp/temp" + dataReq.DataID + ".html")
 	page.Zoom.Set(zoom)
-	pdfg.AddPage(page)
-
-	err = pdfg.Create()
-	if err != nil {
-		return err
-	}
-
-	return pdfg.WriteFile("assets/certificate/" + dataReq.DataID + ".pdf")
+	return page, nil
 }
