@@ -126,7 +126,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 		},
 	}
 
-	if err = generator.CreatePDF(c, &mappedData, pdfReq.Zoom, pdfReq.PageName); err != nil {
+	if err = generator.CreatePDF(c, &mappedData); err != nil {
 		return InternalServerError(c, "can't create pdf file", err.Error())
 	}
 
@@ -294,8 +294,14 @@ func DownloadCertificate(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	//log.Println(data)
-	return c.Download("./temp/certificate/"+data["data_id"].(string)+".pdf", "Sertifikat BTW Edutech - "+data["data"].(primitive.M)["nama_peserta"].(string))
+
+	if err := c.Download("./assets/certificate/"+data["data_id"].(string)+"-a.pdf", "Sertifikat BTW Edutech a - "+data["data"].(primitive.M)["nama_peserta"].(string)); err != nil {
+		return err
+	}
+	if err := c.Download("./assets/certificate/"+data["data_id"].(string)+"-b.pdf", "Sertifikat BTW Edutech b - "+data["data"].(primitive.M)["nama_peserta"].(string)); err != nil {
+		return err
+	}
+	return OK(c, "Sertifikat berhasil diunduh.", nil)
 }
 
 // {
