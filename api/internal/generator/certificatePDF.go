@@ -105,15 +105,15 @@ func init() {
 
 func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData) error {
 	page1, err := makePage(c, dataReq, "page1")
-	if err == nil {
+	if err != nil {
 		return err
 	}
 	page2a, err := makePage(c, dataReq, "page2a")
-	if err == nil {
+	if err != nil {
 		return err
 	}
 	page2b, err := makePage(c, dataReq, "page2b")
-	if err == nil {
+	if err != nil {
 		return err
 	}
 
