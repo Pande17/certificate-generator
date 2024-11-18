@@ -1,15 +1,15 @@
 # # stage 1 - build stage
-FROM node:18-alpine as build
+# FROM node:18-alpine AS build
 
 # # set working directory
 # WORKDIR /app
 
 # # install dependencies
-# COPY web/package*.json ./
+# COPY package*.json .
 # RUN npm install
 
 # # copy all source code to build it
-# COPY web ./
+# COPY . .
 
 # # build the react app
 # RUN npm run build

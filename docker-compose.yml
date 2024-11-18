@@ -30,6 +30,8 @@ services:
   #     context: ./web
   #   ports:
   #     - '80:80'
+  #   volumes:
+  #     - ./web:/app
   #   networks:
   #     - certif-network
 
