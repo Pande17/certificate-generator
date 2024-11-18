@@ -46,6 +46,7 @@ func RouteSetup(r *fiber.App) {
 	// define routes for management competence
 	api.Post("/competence", middleware.ValidateToken, middleware.AuditMiddleware("POST", "Competence"), rest.CreateKompetensi)         // route to create competence data
 	api.Get("/competence", middleware.ValidateToken, middleware.AuditMiddleware("GET", "Competence"), rest.GetKompetensi)              // route to get all competence data
+	api.Get("/competence/:id", middleware.ValidateToken, middleware.AuditMiddleware("GET", "Competence"), rest.GetKompetensi)
 	api.Put("/competence/:id", middleware.ValidateToken, middleware.AuditMiddleware("PUT", "Competence"), rest.EditKompetensi)         // route to update competence data
 	api.Delete("/competence/:id", middleware.ValidateToken, middleware.AuditMiddleware("DELETE", "Competence"), rest.DeleteKompetensi) // route to delete competence data
 
