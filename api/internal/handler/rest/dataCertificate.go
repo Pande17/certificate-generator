@@ -6,7 +6,9 @@ import (
 	"certificate-generator/model"
 	"context"
 	"fmt"
+	"log"
 	"math"
+	"os"
 	"strings"
 	"time"
 
@@ -292,14 +294,16 @@ func DeleteCertificate(c *fiber.Ctx) error {
 func DownloadCertificate(c *fiber.Ctx) error {
 	data, err := getOneCertificate(c, primitive.M{"data_id": c.Params("id")})
 	if err != nil {
-		return err
+		return NotFound(c, "Sertifikat dengan id "+c.Params("id", "yang dicari")+" tidak ditemukan.", err.Error())
 	}
 
 	if err := c.Download("./assets/certificate/"+data["data_id"].(string)+"-a.pdf", "Sertifikat BTW Edutech a - "+data["data"].(primitive.M)["nama_peserta"].(string)); err != nil {
-		return err
+		log.Println(os.ReadDir("assets/certificate/"))
+		return InternalServerError(c, "error (errHandler not implemented yet)", err.Error())
 	}
 	if err := c.Download("./assets/certificate/"+data["data_id"].(string)+"-b.pdf", "Sertifikat BTW Edutech b - "+data["data"].(primitive.M)["nama_peserta"].(string)); err != nil {
-		return err
+		log.Println(os.ReadDir("assets/certificate/"))
+		return InternalServerError(c, "error (errHandler not implemented yet)", err.Error())
 	}
 	return OK(c, "Sertifikat berhasil diunduh.", nil)
 }
