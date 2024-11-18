@@ -55,7 +55,7 @@ function MyForm() {
     try {
       const formattedData = {
         savedb: true,
-        page_name: "page2",
+        page_name: "page2a",
         zoom: 1.367,
         data: {
           sertif_name: formData.sertifikat,
@@ -310,9 +310,9 @@ function MyForm() {
             control={control}
             rules={{ required: "Code Referral (Order) is required" }}
             render={({ field }) => (
-              <Input
+              <InputNumber
                 {...field}
-                placeholder="Masukkan code referral (order)"
+                placeholder="0"
                 style={{ width: "100%", height: "50px" }}
               />
             )}
@@ -386,6 +386,7 @@ function MyForm() {
             rules={{ required: "Total Meeting is required" }}
             render={({ field }) => (
               <InputNumber
+              
                 {...field}
                 placeholder="Masukkan total meeting"
                 style={{ width: "100%", height: "50px" }}

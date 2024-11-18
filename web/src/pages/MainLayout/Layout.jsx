@@ -40,7 +40,7 @@ const Sidebar = ({ children }) => {
         <FileAddTwoTone /> Create
       </Link>
       <Link
-        to="/tool"
+        to="/competence"
         className="flex items-center gap-2 font-Poppins font-medium"
         onClick={closeDrawer}
       >
