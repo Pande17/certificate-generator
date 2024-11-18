@@ -1,92 +1,111 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
-import { Form, Input, Button, Select } from "antd";
-import MainLayout from "../MainLayout/Layout";
 import axios from "axios";
+import { Form, Input, Button, Space, message, Select } from "antd";
+import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
+import MainLayout from "../MainLayout/Layout";
 
-function MyForm() {
-  const [data, setData] = useState([]); // Competence data
-  const [competenceData, setCompetenceData] = useState(null); // Selected competence data
-  const { control, handleSubmit, reset } = useForm({
+const { Option } = Select;
+
+const Tool = () => {
+  const { control, handleSubmit, reset, watch } = useForm({
     defaultValues: {
-      hardSkill: [],
-      softSkill: [],
-      selectedCompetenceId: "",
+      competenceName: "",
+      hardSkills: [
+        { skill_name: "", description: [{ unit_code: "", unit_title: "" }] },
+      ],
+      softSkills: [
+        { skill_name: "", description: [{ unit_code: "", unit_title: "" }] },
+      ],
+      selectedCompetenceId: null,
     },
   });
 
-  const { fields: hardSkillFields, append: appendHardSkill } = useFieldArray({
-    control,
-    name: "hardSkill",
-  });
+  const {
+    fields: hardSkillsFields,
+    append: addHardSkill,
+    remove: removeHardSkill,
+  } = useFieldArray({ control, name: "hardSkills" });
 
-  const { fields: softSkillFields, append: appendSoftSkill } = useFieldArray({
-    control,
-    name: "softSkill",
-  });
+  const {
+    fields: softSkillsFields,
+    append: addSoftSkill,
+    remove: removeSoftSkill,
+  } = useFieldArray({ control, name: "softSkills" });
 
-  const onSubmit = (data) => {
-    console.log("Data submitted:", data);
-    reset(); // Reset after form submission
-  };
+  const [competencies, setCompetencies] = useState([]);
+  const selectedCompetenceId = watch("selectedCompetenceId");
 
-  const { Option } = Select;
-
+  // Fetch competencies from the API
   useEffect(() => {
-    const fetchApi = async () => {
+    const fetchCompetencies = async () => {
       try {
         const response = await axios.get(
           "http://127.0.0.1:3000/api/competence"
         );
-        setData(response.data.data); // Store competence data
+        if (response.data && Array.isArray(response.data.data)) {
+          setCompetencies(response.data.data);
+        } else {
+          message.error("Data kompetensi tidak valid!");
+        }
       } catch (error) {
-        console.log(error);
+        console.error("Error fetching competencies:", error);
+        message.error("Error fetching competencies!");
       }
     };
-    fetchApi();
+    fetchCompetencies();
   }, []);
 
-  const fetchCompetence = async (competenceId) => {
-    const type = "id";
-    const url = `http://127.0.0.1:3000/api/competence?type=${type}&s=${competenceId}`;
-    try {
-      const response = await axios.get(url);
-      setCompetenceData(response.data.data);
-
-      if (response.data.data.hard_skills) {
-        response.data.data.hard_skills.forEach((hardSkill) =>
-          appendHardSkill({
-            skill_name: hardSkill.hardskill_name || "",
-            combined_units: hardSkill.description
-              .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
-              .join("\n"), // Combines unit code and title in a single TextArea format
-          })
-        );
-      }
-
-      if (response.data.data.soft_skills) {
-        response.data.data.soft_skills.forEach((softSkill) =>
-          appendSoftSkill({
-            skill_name: softSkill.softskill_name || "",
-            combined_units: softSkill.description
-              .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
-              .join("\n"), // Combines unit code and title in a single TextArea format
-          })
-        );
-      }
-    } catch (err) {
-      console.log(err);
+  // Set form values when a competence is selected
+  useEffect(() => {
+    const selectedCompetence = competencies.find(
+      (c) => c._id === selectedCompetenceId
+    );
+    if (selectedCompetence) {
+      reset({
+        competenceName: selectedCompetence.nama_kompetensi,
+        hardSkills: selectedCompetence.hard_skills || [],
+        softSkills: selectedCompetence.soft_skills || [],
+        selectedCompetenceId,
+      });
+    } else {
+      reset();
     }
-  };
+  }, [selectedCompetenceId, competencies, reset]);
 
-  const handleCompetence = (value) => {
-    fetchCompetence(value);
+  const onSubmit = async (data) => {
+    const competenceData = {
+      nama_kompetensi: data.competenceName,
+      hard_skills: data.hardSkills,
+      soft_skills: data.softSkills,
+    };
+
+    try {
+      if (data.selectedCompetenceId) {
+        await axios.put(
+          `http://127.0.0.1:3000/api/competence/${data.selectedCompetenceId}`,
+          competenceData
+        );
+        message.success("Kompetensi berhasil diperbarui!");
+      } else {
+        await axios.post(
+          "http://127.0.0.1:3000/api/competence",
+          competenceData
+        );
+        message.success("Kompetensi berhasil ditambahkan!");
+      }
+      reset();
+    } catch (error) {
+      console.error("Error saat menyimpan kompetensi:", error);
+      message.error("Error saat menyimpan kompetensi!");
+    }
   };
 
   return (
     <MainLayout>
       <Form
         layout="vertical"
+        onFinish={handleSubmit(onSubmit)}
         style={{
           width: "95%",
           maxHeight: "100vh",
@@ -94,109 +113,187 @@ function MyForm() {
           backgroundColor: "white",
           padding: "40px",
           borderRadius: "20px",
-          margin: "auto",
         }}
-        onFinish={handleSubmit(onSubmit)}
       >
-        <div className="text-center font-Poppins font-bold text-xl">
-          Buat Sertifikat
-        </div>
-
-        <Form.Item label="Pilih Kompetensi" required>
+        <h3 className="text-center font-Poppins text-2xl font-bold p-6">
+          Buat kompetensi{" "}
+        </h3>
+        <Form.Item label="Nama Kompetensi" required>
           <Controller
-            name="selectedCompetenceId"
+            name="competenceName"
             control={control}
             render={({ field }) => (
-              <Select
-                placeholder="Pilih kompetensi"
+              <Input
+                placeholder="Masukkan nama kompetensi"
                 {...field}
                 style={{ width: "100%", height: "50px" }}
-                onChange={(value) => {
-                  field.onChange(value);
-                  handleCompetence(value);
-                }}
-              >
-                <Option value="" disabled>
-                  Tambah Kompetensi Baru
-                </Option>
-                {data.length > 0 ? (
-                  data.map((competence) => (
-                    <Option key={competence._id} value={competence._id}>
-                      {competence.nama_kompetensi || ""}
-                    </Option>
-                  ))
-                ) : (
-                  <Option disabled>Tidak ada kompetensi tersedia</Option>
-                )}
-              </Select>
+              />
             )}
           />
         </Form.Item>
 
-        {/* Hard Skills */}
-        {hardSkillFields.map((skill, index) => (
-          <div key={index}>
-            <Form.Item label={`Hardskill ${index + 1} Name`}>
+        <h3 className="text-center font-Poppins text-2xl font-medium p-6">
+          Hard Skills
+        </h3>
+        {hardSkillsFields.map((field, index) => (
+          <div key={field.id}>
+            <Form.Item label={`Nama Hard Skill ${index + 1}`}>
               <Controller
-                name={`hardSkill[${index}].skill_name`}
+                name={`hardSkills.${index}.skill_name`}
                 control={control}
                 render={({ field }) => (
-                  <Input {...field} placeholder="Skill Name" />
-                )}
-              />
-            </Form.Item>
-            <Form.Item label="Units">
-              <Controller
-                name={`hardSkill[${index}].combined_units`}
-                control={control}
-                render={({ field }) => (
-                  <Input.TextArea
+                  <Input
+                    placeholder="Masukkan nama hard skill"
                     {...field}
-                    placeholder="Unit Code and Title"
-                    rows={4}
+                    style={{ width: "100%", height: "50px" }}
                   />
                 )}
               />
+              <Button
+                type="text"
+                danger
+                icon={<MinusCircleOutlined />}
+                onClick={() => removeHardSkill(index)}
+              >
+                Hapus
+              </Button>
             </Form.Item>
+            <Space direction="vertical">
+              {field.description.map((descField, descIndex) => (
+                <div key={descIndex}>
+                  <Form.Item label="Unit Code">
+                    <Controller
+                      name={`hardSkills.${index}.description.${descIndex}.unit_code`}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          placeholder="Masukkan unit code"
+                          {...field}
+                          style={{ width: "100%", height: "50px" }}
+                        />
+                      )}
+                    />
+                  </Form.Item>
+                  <Form.Item label="Unit Title">
+                    <Controller
+                      name={`hardSkills.${index}.description.${descIndex}.unit_title`}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          placeholder="Masukkan unit title"
+                          {...field}
+                          style={{ width: "100%", height: "50px" }}
+                        />
+                      )}
+                    />
+                  </Form.Item>
+                </div>
+              ))}
+            </Space>
           </div>
         ))}
+        <Button
+          type="dashed"
+          onClick={() =>
+            addHardSkill({
+              skill_name: "",
+              description: [{ unit_code: "", unit_title: "" }],
+            })
+          }
+          block
+          icon={<PlusOutlined />}
+          style={{ marginBottom: "20px" }}
+        >
+          Tambah Hard Skill
+        </Button>
 
-        {/* Soft Skills */}
-        {softSkillFields.map((skill, index) => (
-          <div key={index}>
-            <Form.Item label={`Softskill ${index + 1} Name`}>
+        <h3 className="text-center font-Poppins text-2xl font-medium p-6">
+          Soft Skills
+        </h3>
+        {softSkillsFields.map((field, index) => (
+          <div key={field.id}>
+            <Form.Item label={`Nama Soft Skill ${index + 1}`}>
               <Controller
-                name={`softSkill[${index}].skill_name`}
+                name={`softSkills.${index}.skill_name`}
                 control={control}
                 render={({ field }) => (
-                  <Input {...field} placeholder="Skill Name" />
-                )}
-              />
-            </Form.Item>
-            <Form.Item label="Units">
-              <Controller
-                name={`softSkill[${index}].combined_units`}
-                control={control}
-                render={({ field }) => (
-                  <Input.TextArea
+                  <Input
+                    placeholder="Masukkan nama soft skill"
                     {...field}
-                    placeholder="Unit Code and Title"
-                    rows={4}
+                    style={{ width: "100%", height: "50px" }}
                   />
                 )}
               />
+              <Button
+                type="text"
+                danger
+                icon={<MinusCircleOutlined />}
+                onClick={() => removeSoftSkill(index)}
+              >
+                Hapus
+              </Button>
             </Form.Item>
+            <Space direction="vertical">
+              {field.description.map((descField, descIndex) => (
+                <div key={descIndex}>
+                  <Form.Item label="Unit Code">
+                    <Controller
+                      name={`softSkills.${index}.description.${descIndex}.unit_code`}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          placeholder="Masukkan unit code"
+                          {...field}
+                          style={{ width: "100%", height: "50px" }}
+                        />
+                      )}
+                    />
+                  </Form.Item>
+                  <Form.Item label="Unit Title">
+                    <Controller
+                      name={`softSkills.${index}.description.${descIndex}.unit_title`}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          placeholder="Masukkan unit title"
+                          {...field}
+                          style={{ width: "100%", height: "50px" }}
+                        />
+                      )}
+                    />
+                  </Form.Item>
+                </div>
+              ))}
+            </Space>
           </div>
         ))}
+        <Button
+          type="dashed"
+          onClick={() =>
+            addSoftSkill({
+              skill_name: "",
+              description: [{ unit_code: "", unit_title: "" }],
+            })
+          }
+          block
+          icon={<PlusOutlined />}
+          style={{ marginBottom: "20px" }}
+        >
+          Tambah Soft Skill
+        </Button>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit">
-            Submit
+          <Button
+            type="primary"
+            htmlType="submit"
+            style={{ width: "100%", height: "50px" }}
+          >
+            Simpan
           </Button>
         </Form.Item>
       </Form>
     </MainLayout>
   );
-}
+};
 
-export default MyForm;
+export default Tool;

@@ -25,15 +25,14 @@ services:
     networks:
       - certif-network
 
-  # frontend:
-  #   build:
-  #     context: ./web
-  #   ports:
-  #     - '80:80'
-  #   volumes:
-  #     - ./web:/app
-  #   networks:
-  #     - certif-network
+  frontend:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - '80:5173'
+    networks:
+      - certif-network
 
 volumes:
   mongo-data:

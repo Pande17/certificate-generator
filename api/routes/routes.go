@@ -44,10 +44,11 @@ func RouteSetup(r *fiber.App) {
 	api.Delete("/accounts/:id", middleware.ValidateToken, middleware.AuditMiddleware("account"), rest.DeleteAdminAccount) // Route to delete admin account by acc_id
 
 	// define routes for management competence
-	api.Post("/competence", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.CreateKompetensi)       // route to create competence data
-	api.Get("/competence", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.GetKompetensi)           // route to get all competence data
-	api.Put("/competence/:id", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.EditKompetensi)      // route to update competence data
-	api.Delete("/competence/:id", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.DeleteKompetensi) // route to delete competence data
+	api.Post("/competence", middleware.ValidateToken, middleware.AuditMiddleware("POST", "Competence"), rest.CreateKompetensi)         // route to create competence data
+	api.Get("/competence", middleware.ValidateToken, middleware.AuditMiddleware("GET", "Competence"), rest.GetKompetensi)              // route to get all competence data
+	api.Get("/competence/:id", middleware.ValidateToken, middleware.AuditMiddleware("GET", "Competence"), rest.GetKompetensi)
+	api.Put("/competence/:id", middleware.ValidateToken, middleware.AuditMiddleware("PUT", "Competence"), rest.EditKompetensi)         // route to update competence data
+	api.Delete("/competence/:id", middleware.ValidateToken, middleware.AuditMiddleware("DELETE", "Competence"), rest.DeleteKompetensi) // route to delete competence data
 
 	// define routes for management certificate data
 	api.Post("/certificate", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.CreateCertificate)

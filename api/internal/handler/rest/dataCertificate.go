@@ -211,10 +211,22 @@ func getAllCertificates(c *fiber.Ctx) error {
 	return OK(c, "Sucess get all Certificate data", results)
 }
 
-func getOneCertificate(c *fiber.Ctx, filter bson.M) (bson.M, error) {
-	// connect to collection in MongoDB
-	collection := database.GetCollection("certificate")
-	ctx := c.Context()
+func GetCertificateByID(c *fiber.Ctx) error {
+	// Get acc_id from params
+	idParam := c.Params("id")
+
+	// Convert idParam to ObjectID if needed
+	certifID, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		fmt.Printf("error: %v\n", err.Error())
+		return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
+	}
+
+	// connect to collection in mongoDB
+	certificateCollection := database.GetCollection("certificate")
+
+	// make filter to find document based on data_id (incremental id)
+	filter := bson.M{"_id": certifID}
 
 	// variable to hold search results
 	var certifDetail bson.M
@@ -247,7 +259,7 @@ func DeleteCertificate(c *fiber.Ctx) error {
 	// Convert idParam to ObjectID if needed
 	certifID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		return BadRequest(c, "Invalid ID format", "Please provide a valid ObjectID")
+		return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
 	}
 
 	// connect to collection in mongoDB
