@@ -91,24 +91,24 @@ func SignUp(c *fiber.Ctx) error {
 	// insert data from struct "AdminAccount" to collection in database MongoDB
 	_, err = adminCollection.InsertOne(context.TODO(), admin)
 	if err != nil {
-		return InternalServerError(c, "Failed to create admin account", "Insert admin acc")
+		return InternalServerError(c, "Gagal membuat akun admin!", "Insert admin acc")
 	}
 
 	// return success
-	return OK(c, "Admin account created successfully", admin)
+	return OK(c, "Akun Admin berhasil dibuat!", admin)
 }
 
 // function to login to admin account
 func Login(c *fiber.Ctx) error {
 	// struct for the incoming request body
 	var adminReq struct {
-		AdminName     string `json:"admin_name" bson:"admin_name"`
-		AdminPassword string `json:"admin_password" bson:"admin_password"`
+		AdminName     string `json:"admin_name" valid:"required~Nama tidak boleh kosong!, stringlength(1|30)~Nama harus antara 1 hingga 30 karakter!"`
+		AdminPassword string `json:"admin_password" valid:"required~Password tidak boleh kosong!"`
 	}
 
 	// parse the request body
 	if err := c.BodyParser(&adminReq); err != nil {
-		return BadRequest(c, "Failed to read body", "Req body login")
+		return BadRequest(c, "Input tidak valid", "Req body login")
 	}
 
 	// new variable to store admin login data
