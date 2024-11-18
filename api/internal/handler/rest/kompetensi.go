@@ -57,7 +57,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	filter := bson.M{"nama_kompetensi": kompetensiReq.KompetensiName}
 
 	// find competence with same competence name as input name
-	err = collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
+	err := collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
 	if err == nil {
 		return Conflict(c, "Kompetensi dengan nama ini sudah ada!", "Kompetensi dengan nama yang sama sudah ada!")
 	} else if err != mongo.ErrNoDocuments {

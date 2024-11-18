@@ -143,7 +143,7 @@ const Dashboard = () => {
     <MainLayout>
       <div className="flex flex-col items-center justify-center w-full lg:w-3/4 p-5">
         <div>
-          <p className="text-xl font-Poppins font-semibold mb-5">
+          <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl">
             History list
           </p>
         </div>
