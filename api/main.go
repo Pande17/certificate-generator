@@ -1,10 +1,10 @@
 package main
 
 import (
+	"certificate-generator/config"
+	"certificate-generator/database"
+	"certificate-generator/routes"
 	"log"
-	"pkl/finalProject/certificate-generator/config"
-	"pkl/finalProject/certificate-generator/internal/database"
-	"pkl/finalProject/certificate-generator/routes"
 
 	"github.com/gofiber/fiber/v2"
 )

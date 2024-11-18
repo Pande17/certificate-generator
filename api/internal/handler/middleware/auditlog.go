@@ -1,10 +1,10 @@
 package middleware
 
 import (
+	"certificate-generator/database"
+	"certificate-generator/model"
 	"context"
 	"fmt"
-	"pkl/finalProject/certificate-generator/internal/database"
-	"pkl/finalProject/certificate-generator/model"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,40 +14,28 @@ import (
 
 func AuditMiddleware(action, entity string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Call the next handler (perform the main action like GET, POST, PUT, DELETE)
+		// Call the next handler (perform the main action like GET, POST, etc.)
 		err := c.Next()
 
 		if err == nil {
-			// Retrieve admin token from context as a string
-			adminTokenStr, ok := c.Locals("admin").(string)
-			if !ok || adminTokenStr == "" {
-				fmt.Println("No valid token found in context")
+			// Retrieve admin token from context
+			adminClaims := c.Locals("admin")
+			if adminClaims == nil {
+				fmt.Println("No token found in context")
 				return err
 			}
 
-			// Debug: Print the token to verify its format
-			fmt.Printf("Retrieved adminTokenStr: %s\n", adminTokenStr)
+			// Assert that adminToken is of type *jwt.Token
+			// token, ok := adminToken.(*jwt.Token)
+			// if !ok {
+			// 	fmt.Println("Token is not of type *jwt.Token")
+			// 	return err
+			// }
 
-			// Parse the token string to get *jwt.Token
-			token, parseErr := jwt.Parse(adminTokenStr, func(token *jwt.Token) (interface{}, error) {
-				// Replace `yourSecretKey` with the actual secret key used for signing JWTs
-				return []byte("SECRET"), nil
-			})
-
-			if parseErr != nil {
-				fmt.Println("Invalid token or parsing failed:", parseErr)
-				return err
-			}
-
-			if !token.Valid {
-				fmt.Println("Token is invalid")
-				return err
-			}
-
-			// Extract claims from the token
-			claims, ok := token.Claims.(jwt.MapClaims)
+			// Extract claims from token
+			claims, ok := adminClaims.(jwt.MapClaims)
 			if !ok {
-				fmt.Println("Failed to extract claims from token")
+				fmt.Println("Invalid token claims or token is not valid")
 				return err
 			}
 
@@ -56,9 +44,7 @@ func AuditMiddleware(action, entity string) fiber.Handler {
 			adminID, _ := primitive.ObjectIDFromHex(adminIDHex)
 			publicIP, _ := GetPublicIP()
 
-			collection := database.GetCollection("auditLog")
-
-			// Log Audit action
+			// Log audit action
 			auditLog := model.AuditLog{
 				ID:        primitive.NewObjectID(),
 				AdminID:   adminID,
@@ -69,9 +55,10 @@ func AuditMiddleware(action, entity string) fiber.Handler {
 				IPAddress: publicIP,
 			}
 
+			collection := database.GetCollection("auditLog")
 			_, err := collection.InsertOne(context.TODO(), auditLog)
 			if err != nil {
-				fmt.Println("Error saving Audit Log:", err)
+				fmt.Println("Error saving audit log:", err)
 			}
 		}
 

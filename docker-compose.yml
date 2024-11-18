@@ -1,13 +1,13 @@
 services:
   backend:
-    image: certifgen-backend
-    build: ./api
+    build:
+      context: ./api
     depends_on:
       - mongo
     environment:
       APP_DEBUG: 'false'
     env_file:
-      - api/.env
+      - ./api/.env
     ports:
       - '3000:3000'
     volumes:
@@ -20,20 +20,20 @@ services:
     ports:
       - '27017:27017'
     volumes:
-      - mongo-data:/usr/src/app/volumes
+      - mongo-data:/data/db
     networks:
       - certif-network
+
+  # frontend:
+  #   build:
+  #     context: ./web
+  #   ports:
+  #     - '80:80'
+  #   networks:
+  #     - certif-network
 
 volumes:
   mongo-data:
 
 networks:
   certif-network:
-
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #   ports:
-  #     - "3000:3000"
-  #   networks:
-  #     - certif-network
