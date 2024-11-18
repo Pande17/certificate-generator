@@ -18,28 +18,28 @@ func AuditMiddleware(action, entity string) fiber.Handler {
 		err := c.Next()
 
 		if err == nil {
-			// Retrieve user token from context
-			adminToken := c.Locals("admin")
-			if adminToken == nil {
+			// Retrieve admin token from context
+			adminClaims := c.Locals("admin")
+			if adminClaims == nil {
 				fmt.Println("No token found in context")
 				return err
 			}
 
-			// Assert that userToken is of type *jwt.Token
-			token, ok := adminToken.(*jwt.Token)
-			if !ok {
-				fmt.Println("Token is not of type *jwt.Token")
-				return err
-			}
+			// Assert that adminToken is of type *jwt.Token
+			// token, ok := adminToken.(*jwt.Token)
+			// if !ok {
+			// 	fmt.Println("Token is not of type *jwt.Token")
+			// 	return err
+			// }
 
 			// Extract claims from token
-			claims, ok := token.Claims.(jwt.MapClaims)
-			if !ok || !token.Valid {
+			claims, ok := adminClaims.(jwt.MapClaims)
+			if !ok {
 				fmt.Println("Invalid token claims or token is not valid")
 				return err
 			}
 
-			// Retrieve user ID (subject) from claims
+			// Retrieve admin ID (subject) from claims
 			adminIDHex, _ := claims["sub"].(string)
 			adminID, _ := primitive.ObjectIDFromHex(adminIDHex)
 			publicIP, _ := GetPublicIP()
