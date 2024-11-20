@@ -7,6 +7,7 @@ import AddPage from "./pages/Competence/index.jsx";
 import Layout from "./pages/MainLayout/Layout.jsx"
 import Side from "./pages/Side/index.jsx"
 import Tes from "./pages/tes/Index.jsx"
+import CreateKompetensi from "./pages/create/index.jsx"
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
       <Route path="/dashboard" element={<Dashboard />}/>
       <Route path="/create" element={<CreatePage />}/>
       <Route path="/competence" element={<AddPage />} />
+      <Route path="/competence/create-competence" element={<CreateKompetensi />}/>
       <Route path="/layout" element={<Layout />} />
       <Route path="/side" element={<Side />} />
       <Route path="/Tes" element={<Tes />} />

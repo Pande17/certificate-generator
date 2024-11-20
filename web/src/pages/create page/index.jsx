@@ -237,14 +237,14 @@ function MyForm() {
             render={({ field }) => (
               <Input
                 {...field}
-                placeholder="Masukkan nama"
+                placeholder="Made Rendy Putra Mahardika"
                 style={{ width: "100%", height: "50px" }}
               />
             )}
           />
         </Form.Item>
 
-        <Form.Item label="Field of Study" required>
+        <Form.Item label="Bidang Studi" required>
           <Controller
             name="fieldOfStudy"
             control={control}
@@ -252,14 +252,14 @@ function MyForm() {
             render={({ field }) => (
               <Input
                 {...field}
-                placeholder="Masukkan field of study"
+                placeholder="Masukkan Bidang Studi"
                 style={{ width: "100%", height: "50px" }}
               />
             )}
           />
         </Form.Item>
 
-        <Form.Item label="Valid Time" required>
+        <Form.Item label="Total tahun" required>
           <Controller
             name="validTime"
             control={control}
@@ -274,7 +274,7 @@ function MyForm() {
           />
         </Form.Item>
 
-        <Form.Item label="Expired Time (Start)" required>
+        <Form.Item label="Waktu Expired (Mulai)" required>
           <Controller
             name="expiredTimeStart"
             control={control}
@@ -282,14 +282,14 @@ function MyForm() {
             render={({ field }) => (
               <DatePicker
                 {...field}
-                placeholder="Pilih expired time start"
+                placeholder="Pilih waktu"
                 style={{ width: "100%", height: "50px" }}
               />
             )}
           />
         </Form.Item>
 
-        <Form.Item label="Expired Time (End)" required>
+        <Form.Item label="Waktu Expired (Seleai)" required>
           <Controller
             name="expiredTimeEnd"
             control={control}
@@ -297,113 +297,38 @@ function MyForm() {
             render={({ field }) => (
               <DatePicker
                 {...field}
-                placeholder="Pilih expired time end"
+                placeholder="Pilih Waktu"
                 style={{ width: "100%", height: "50px" }}
               />
             )}
           />
         </Form.Item>
 
-        <Form.Item label="Code Referral (Order)" required>
-          <Controller
-            name="codeReferralOrder"
-            control={control}
-            rules={{ required: "Code Referral (Order) is required" }}
-            render={({ field }) => (
-              <InputNumber
-                {...field}
-                placeholder="0"
-                style={{ width: "100%", height: "50px" }}
-              />
-            )}
-          />
-        </Form.Item>
-
-        <Form.Item label="Code Referral (Field of Study)" required>
-          <Controller
-            name="codeReferralFieldOfStudy"
-            control={control}
-            rules={{ required: "Code Referral (Field of Study) is required" }}
-            render={({ field }) => (
-              <Input
-                {...field}
-                placeholder="Masukkan code referral (field of study)"
-                style={{ width: "100%", height: "50px" }}
-              />
-            )}
-          />
-        </Form.Item>
-
-        <Form.Item label="Code Referral (Month)" required>
-          <Controller
-            name="codeReferralMonth"
-            control={control}
-            rules={{ required: "Code Referral (Month) is required" }}
-            render={({ field }) => (
-              <Input
-                {...field}
-                placeholder="Masukkan code referral (month)"
-                style={{ width: "100%", height: "50px" }}
-              />
-            )}
-          />
-        </Form.Item>
-
-        <Form.Item label="Code Referral (Year)" required>
-          <Controller
-            name="codeReferralYear"
-            control={control}
-            rules={{ required: "Code Referral (Year) is required" }}
-            render={({ field }) => (
-              <Input
-                {...field}
-                placeholder="Masukkan code referral (year)"
-                style={{ width: "100%", height: "50px" }}
-              />
-            )}
-          />
-        </Form.Item>
-
-        <Form.Item label="SKKNI" required>
-          <Controller
-            name="skkni"
-            control={control}
-            rules={{ required: "SKKNI is required" }}
-            render={({ field }) => (
-              <Input
-                {...field}
-                placeholder="Masukkan SKKNI"
-                style={{ width: "100%", height: "50px" }}
-              />
-            )}
-          />
-        </Form.Item>
-
-        <Form.Item label="Total Meeting" required>
+    
+        <Form.Item label="Total Pertemuan" required>
           <Controller
             name="totalMeeting"
             control={control}
             rules={{ required: "Total Meeting is required" }}
             render={({ field }) => (
               <InputNumber
-              
                 {...field}
-                placeholder="Masukkan total meeting"
+                placeholder="contoh: 14"
                 style={{ width: "100%", height: "50px" }}
               />
             )}
           />
         </Form.Item>
 
-        <Form.Item label="Meeting Time" required>
+        <Form.Item label="Total waktu Pertemuan" required>
           <Controller
             name="meetingTime"
             control={control}
             rules={{ required: "Meeting Time is required" }}
             render={({ field }) => (
-              <Input
+              <InputNumber
                 {...field}
-                placeholder="Masukkan meeting time"
+                placeholder="contoh: 13"
                 style={{ width: "100%", height: "50px" }}
               />
             )}
