@@ -147,13 +147,14 @@ func makePage(c *fiber.Ctx, dataReq *model.CertificateData, pageName string) (*w
 		return nil, err
 	}
 
-	htmlSertif, err := os.Create("temp/temp" + dataReq.DataID + ".html")
+	fileName := "temp/temp" + dataReq.DataID + pageName + ".html"
+	htmlSertif, err := os.Create(fileName)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
 		htmlSertif.Close()
-		if err := os.Remove("temp/temp" + dataReq.DataID + ".html"); err != nil {
+		if err := os.Remove(fileName); err != nil {
 			log.Println("WARNING: memory leak (can't remove html file)\nerr:", err)
 		}
 	}()
@@ -161,8 +162,9 @@ func makePage(c *fiber.Ctx, dataReq *model.CertificateData, pageName string) (*w
 	if _, err := htmlSertif.Write(c.Response().Body()); err != nil {
 		return nil, err
 	}
+	c.Response().Reset()
 
-	page := wkhtmltopdf.NewPage("temp/temp" + dataReq.DataID + ".html")
+	page := wkhtmltopdf.NewPage(fileName)
 	page.Zoom.Set(zoom)
 	return page, nil
 }
