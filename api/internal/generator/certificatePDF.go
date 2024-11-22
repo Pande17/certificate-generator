@@ -107,14 +107,20 @@ func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData) error {
 	page1, err := makePage(c, dataReq, "page1")
 	if err != nil {
 		return err
+	} else {
+		defer removeFile(page1)
 	}
 	page2a, err := makePage(c, dataReq, "page2a")
 	if err != nil {
 		return err
+	} else {
+		defer removeFile(page2a)
 	}
 	page2b, err := makePage(c, dataReq, "page2b")
 	if err != nil {
 		return err
+	} else {
+		defer removeFile(page2b)
 	}
 
 	pdfg.ResetPages()
@@ -154,9 +160,6 @@ func makePage(c *fiber.Ctx, dataReq *model.CertificateData, pageName string) (*w
 	}
 	defer func() {
 		htmlSertif.Close()
-		if err := os.Remove(fileName); err != nil {
-			log.Println("WARNING: memory leak (can't remove html file)\nerr:", err)
-		}
 	}()
 
 	if _, err := htmlSertif.Write(c.Response().Body()); err != nil {
@@ -167,4 +170,10 @@ func makePage(c *fiber.Ctx, dataReq *model.CertificateData, pageName string) (*w
 	page := wkhtmltopdf.NewPage(fileName)
 	page.Zoom.Set(zoom)
 	return page, nil
+}
+
+func removeFile(page *wkhtmltopdf.Page) {
+	if err := os.Remove(page.InputFile()); err != nil {
+		log.Println("WARNING: memory leak (can't remove html file)\nerr:", err)
+	}
 }
