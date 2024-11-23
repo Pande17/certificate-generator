@@ -1,8 +1,13 @@
-import { Table, Button, Modal, message, Row, Col } from 'antd';
-import axios from 'axios';
-import { useEffect, useState } from 'react';
-import { DeleteOutlined, EditOutlined, DownloadOutlined } from '@ant-design/icons';
-import MainLayout from '../MainLayout/Layout';
+import { Table, Button, Modal, message, Row, Col } from "antd";
+import axios from "axios";
+import { Sertifikat } from "../api middleware";
+import { useEffect, useState } from "react";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  DownloadOutlined,
+} from "@ant-design/icons";
+import MainLayout from "../MainLayout/Layout";
 
 const { confirm } = Modal;
 
@@ -16,9 +21,11 @@ const Dashboard = () => {
 		const fetchData = async () => {
 			setLoading(true);
 
-			try {
-				const response = await axios.get('http://127.0.0.1:3000/api/certificate');
-				let certificates = response.data.data || []; // Ensure certificates are initialized
+      try {
+        const response = await Sertifikat.get(
+          "http://127.0.0.1:3000/api/certificate"
+        );
+        let certificates = response.data.data || []; // Ensure certificates are initialized
 
 				// // Menambahkan angka berturut-turut jika ada nama sertifikat yang sama
 				// const uniqueNames = {};
@@ -47,19 +54,19 @@ const Dashboard = () => {
 		fetchData();
 	}, []);
 
-	const deleteCompetence = async (_id) => {
-		try {
-			await axios.delete(`http://127.0.0.1:3000/api/certificate/${_id}`);
-			setDta((prevDta) => prevDta.filter((item) => item._id !== _id));
-			message.success('SERTIFIKAT berhasil dihapus!');
-		} catch (error) {
-			message.error('Gagal menghapus SERTIFIKAT.');
-		}
-	};
+  const deleteCompetence = async (_id) => {
+    try {
+      await Sertifikat.delete(`http://127.0.0.1:3000/api/certificate/${_id}`);
+      setDta((prevDta) => prevDta.filter((item) => item._id !== _id));
+      message.success("SERTIFIKAT berhasil dihapus!");
+    } catch (error) {
+      message.error("Gagal menghapus SERTIFIKAT.");
+    }
+  };
 
-	const handleSearch = (e) => {
-		setSearchText(e.target.value);
-	};
+ const handleSearch = (e) => {
+    setSearchText(e.target.value);
+  };
 
 	const showDeleteConfirm = (_id) => {
 		confirm({

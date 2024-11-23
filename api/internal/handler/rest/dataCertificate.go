@@ -5,6 +5,7 @@ import (
 	"certificate-generator/internal/generator"
 	"certificate-generator/model"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math"
@@ -145,27 +146,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 }
 
 // function to get all kompetensi data
-func GetCertificate(c *fiber.Ctx) error {
-	if len(c.Queries()) == 0 {
-		return getAllCertificates(c)
-	}
-	key := c.Query("type")
-	val := c.Query("s")
-	var value any
-	if key == "id" {
-		key = "_id"
-		var err error
-		if value, err = primitive.ObjectIDFromHex(val); err != nil {
-			return BadRequest(c, "can't parse id", err.Error())
-		}
-	} else {
-		value = val
-	}
-	_, err := getOneCertificate(c, bson.M{key: value})
-	return err
-}
-
-func getAllCertificates(c *fiber.Ctx) error {
+func GetAllCertificates(c *fiber.Ctx) error {
 	var results []bson.M
 
 	collection := database.GetCollection("certificate")
@@ -223,7 +204,7 @@ func GetCertificateByID(c *fiber.Ctx) error {
 	}
 
 	// connect to collection in mongoDB
-	certificateCollection := database.GetCollection("certificate")
+	collection := database.GetCollection("certificate")
 
 	// make filter to find document based on data_id (incremental id)
 	filter := bson.M{"_id": certifID}
@@ -232,23 +213,23 @@ func GetCertificateByID(c *fiber.Ctx) error {
 	var certifDetail bson.M
 
 	// find a single document that matches the filter
-	if err := collection.FindOne(ctx, filter).Decode(&certifDetail); err != nil {
+	if err := collection.FindOne(c.Context(), filter).Decode(&certifDetail); err != nil {
 		// if not found, return a 404 status
 		if err == mongo.ErrNoDocuments {
-			return nil, NotFound(c, "Data not found", "Find Detail Certificate")
+			return NotFound(c, "Data not found", "Find Detail Certificate")
 		}
 		// if in server error, return status 500
-		return nil, InternalServerError(c, "Failed to retrieve data", err.Error())
+		return InternalServerError(c, "Failed to retrieve data", err.Error())
 	}
 
 	// Check if DeletedAt field already has a value
 	if deletedAt, ok := certifDetail["deleted_at"]; ok && deletedAt != nil {
 		// Return the deletion time if the certificate is already deleted
-		return nil, AlreadyDeleted(c, "This certificate has already been deleted", "Check deleted certificate", deletedAt)
+		return AlreadyDeleted(c, "This certificate has already been deleted", "Check deleted certificate", deletedAt)
 	}
 
 	// return success
-	return certifDetail, OK(c, "Success get detail Certificate data", certifDetail)
+	return OK(c, "Berhasil mendapatkan detail sertifikat.", certifDetail)
 }
 
 // Function for soft delete admin account
@@ -304,20 +285,45 @@ func DeleteCertificate(c *fiber.Ctx) error {
 }
 
 func DownloadCertificate(c *fiber.Ctx) error {
-	data, err := getOneCertificate(c, primitive.M{"data_id": c.Params("id")})
-	if err != nil {
+	certifType := c.Params("type")
+	if !(certifType == "a" || certifType == "b") {
+		return BadRequest(c, "Tipe sertifikat tidak diketahui.", "query type isn't a or b")
+	}
+
+	log.Println(c.Path())
+
+	// search certif data, checking if data exists
+	if err := c.Next(); err != nil {
 		return NotFound(c, "Sertifikat dengan id "+c.Params("id", "yang dicari")+" tidak ditemukan.", err.Error())
 	}
 
-	if err := c.Download("./assets/certificate/"+data["data_id"].(string)+"-a.pdf", "Sertifikat BTW Edutech a - "+data["data"].(primitive.M)["nama_peserta"].(string)); err != nil {
-		log.Println(os.ReadDir("assets/certificate/"))
-		return InternalServerError(c, "error (errHandler not implemented yet)", err.Error())
+	var resp fiber.Map
+	var pdf model.PDF
+	bodyres := c.Response().Body()
+	if err := json.Unmarshal(bodyres, &resp); err != nil {
+		return InternalServerError(c, "eror", err.Error())
 	}
-	if err := c.Download("./assets/certificate/"+data["data_id"].(string)+"-b.pdf", "Sertifikat BTW Edutech b - "+data["data"].(primitive.M)["nama_peserta"].(string)); err != nil {
-		log.Println(os.ReadDir("assets/certificate/"))
-		return InternalServerError(c, "error (errHandler not implemented yet)", err.Error())
+	if pdfBytes, err := json.Marshal(resp["data"]); err != nil {
+		return InternalServerError(c, "eror", err.Error())
+	} else {
+		if err := json.Unmarshal(pdfBytes, &pdf); err != nil {
+			return InternalServerError(c, "eror", err.Error())
+		}
 	}
-	return OK(c, "Sertifikat berhasil diunduh.", nil)
+	data := pdf.Data
+
+	filepath := "./assets/certificate/" + data.DataID + "-" + certifType + ".pdf"
+	if _, err := os.Stat(filepath); err != nil {
+		if os.IsNotExist(err) {
+			if err = generator.CreatePDF(c, &data); err != nil {
+				return InternalServerError(c, "can't create pdf file", err.Error())
+			}
+		} else {
+			return InternalServerError(c, "eror", err.Error())
+		}
+	}
+	c.Response().Header.Add("Content-Type", "application/pdf")
+	return c.Download("./assets/certificate/"+data.DataID+"-"+certifType+".pdf", "Sertifikat BTW Edutech "+certifType+" - "+data.NamaPeserta)
 }
 
 // {
