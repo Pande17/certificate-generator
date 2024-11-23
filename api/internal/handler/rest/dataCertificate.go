@@ -285,8 +285,8 @@ func DownloadCertificate(c *fiber.Ctx) error {
 	log.Println(c.Path())
 
 	// search certif data, checking if data exists
-	if err := c.Next(); err != nil {
-		return NotFound(c, "Sertifikat dengan id "+c.Params("id", "yang dicari")+" tidak ditemukan.", err.Error())
+	if c.Next(); c.Response().StatusCode()/100 != 2 {
+		return NotFound(c, "Sertifikat dengan id "+c.Params("id", "yang dicari")+" tidak ditemukan.", "use certif that exists in db")
 	}
 
 	var resp fiber.Map
