@@ -2,12 +2,29 @@ package rest
 
 import (
 	"bytes"
+	"certificate-generator/internal/generator"
+	"certificate-generator/model"
 	"fmt"
 	"html/template"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/gofiber/fiber/v2"
 )
+
+func CheckPDF(c *fiber.Ctx) error {
+	var pdfReq struct {
+		Data model.CertificateData `json:"data" bson:"data"`
+		Type string                `json:"type"`
+	}
+	if err := c.BodyParser(&pdfReq); err != nil {
+		return BadRequest(c, "Invalid body request", err.Error())
+	}
+	if !(pdfReq.Type == "a" || pdfReq.Type == "b") {
+		return BadRequest(c, "Tipe sertifikat tidak diketahui.", "query type isn't a or b")
+	}
+	generator.CreatePDF(c, &pdfReq.Data, pdfReq.Type)
+	return c.SendFile("assets/certificate/" + pdfReq.Data.DataID + "-" + pdfReq.Type + ".pdf")
+}
 
 func HandleBuildPdf(c *fiber.Ctx) error {
 	tmpl, err := template.ParseFiles("assets/index.html")
