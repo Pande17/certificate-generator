@@ -303,9 +303,8 @@ func DownloadCertificate(c *fiber.Ctx) error {
 	filepath := "./assets/certificate/" + data.DataID + "-" + certifType + ".pdf"
 	if _, err := os.Stat(filepath); err != nil {
 		if os.IsNotExist(err) {
-			isCreating := generator.CreatingPDF[data.DataID+"-"+certifType]
-			if isCreating {
-				for isCreating {
+			if _, creating := generator.CreatingPDF[data.DataID+"-"+certifType]; creating {
+				for _, creating := generator.CreatingPDF[data.DataID+"-"+certifType]; creating; {
 					time.Sleep(time.Second)
 				}
 			} else {

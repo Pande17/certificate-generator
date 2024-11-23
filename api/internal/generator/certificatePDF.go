@@ -19,7 +19,7 @@ import (
 
 var pdfg *wkhtmltopdf.PDFGenerator
 var mtx sync.Mutex
-var CreatingPDF map[string]bool
+var CreatingPDF = map[string]bool{}
 
 // functions for rendering html certificate
 var funcs = template.FuncMap{
@@ -45,7 +45,7 @@ var funcs = template.FuncMap{
 		if txtWidth > 120 {
 			scale = 120 / float64(txtWidth)
 		}
-		return int(math.Floor(scale * 48))
+		return int(math.Floor(scale * 64))
 	},
 	"parity": func(i int) int {
 		return i % 2
