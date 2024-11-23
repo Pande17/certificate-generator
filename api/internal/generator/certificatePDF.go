@@ -6,7 +6,6 @@ import (
 	"log"
 	"math"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
@@ -14,7 +13,6 @@ import (
 )
 
 var pdfg *wkhtmltopdf.PDFGenerator
-var zoom float64
 
 // functions for rendering html certificate
 var funcs = template.FuncMap{
@@ -95,12 +93,6 @@ func init() {
 	pdfg.MarginLeft.Set(0)
 	pdfg.Dpi.Set(300)
 	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
-
-	zoom, err = strconv.ParseFloat(os.Getenv("PDF_ZOOM"), 64)
-	if err != nil {
-		log.Println(err, "\nenv PDF_ZOOM error, using default value 1")
-		zoom = 1
-	}
 }
 
 func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData) error {
@@ -147,9 +139,11 @@ func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData) error {
 }
 
 func makePage(c *fiber.Ctx, dataReq *model.CertificateData, pageName string) (*wkhtmltopdf.Page, error) {
-	if t, err := template.New(pageName).Funcs(funcs).ParseFiles("assets/" + pageName + ".html"); err != nil {
+	t, err := template.New("").Funcs(funcs).ParseFiles("assets/"+pageName+".html", "assets/style.html")
+	if err != nil {
 		return nil, err
-	} else if err := t.Execute(c.Response().BodyWriter(), *dataReq); err != nil {
+	}
+	if err := t.ExecuteTemplate(c.Response().BodyWriter(), pageName, *dataReq); err != nil {
 		return nil, err
 	}
 
@@ -168,7 +162,6 @@ func makePage(c *fiber.Ctx, dataReq *model.CertificateData, pageName string) (*w
 	c.Response().Reset()
 
 	page := wkhtmltopdf.NewPage(fileName)
-	page.Zoom.Set(zoom)
 	return page, nil
 }
 
