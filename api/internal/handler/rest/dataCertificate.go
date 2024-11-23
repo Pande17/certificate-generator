@@ -45,13 +45,6 @@ func CreateCertificate(c *fiber.Ctx) error {
 		return InternalServerError(c, "Failed to generate Data ID", "Server failed generate Data ID")
 	}
 
-	// generate qrcode
-	link := fmt.Sprintf("%s://%s/assets/certificate/", c.Protocol(), c.Hostname())
-	encstr, err := generator.GenerateQRCode(link, newDataID)
-	if err != nil {
-		return InternalServerError(c, "Failed to generate QRCode Img", "Server failed generate qrcode img")
-	}
-
 	// generate referral ID
 	nextReferralID, err := generator.GenerateReferralID(counterCollection, time.Now())
 	if err != nil {
@@ -98,7 +91,6 @@ func CreateCertificate(c *fiber.Ctx) error {
 		KompetenBidang: pdfReq.Data.KompetenBidang,
 		Kompetensi:     pdfReq.Data.Kompetensi,
 		Validation:     pdfReq.Data.Validation,
-		QRCode:         encstr,
 		DataID:         newDataID,
 		TotalJP:        totalHSJP + totalSSJP,
 		TotalMeet:      pdfReq.Data.TotalMeet,

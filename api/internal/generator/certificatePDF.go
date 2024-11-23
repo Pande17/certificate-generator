@@ -2,6 +2,7 @@ package generator
 
 import (
 	"certificate-generator/model"
+	"fmt"
 	"html/template"
 	"log"
 	"math"
@@ -96,6 +97,14 @@ func init() {
 }
 
 func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData) error {
+	// generate qrcode
+	link := fmt.Sprintf("%s://%s/assets/certificate/", c.Protocol(), c.Hostname())
+	encstr, err := GenerateQRCode(link, dataReq.DataID)
+	if err != nil {
+		return err
+	}
+	dataReq.QRCode = encstr
+
 	page1, err := makePage(c, dataReq, "page1")
 	if err != nil {
 		return err
