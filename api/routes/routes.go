@@ -58,6 +58,13 @@ func RouteSetup(r *fiber.App) {
 	api.Delete("/certificate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.DeleteCertificate)
 
 	r.Get("/assets/certificate/:id/:type", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.DownloadCertificate, rest.GetCertificateByID)
+
+	// define routes for management signature configuration
+	api.Post("/signature", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.CreateSignature)
+	api.Get("/signature", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.GetSignature)
+	api.Get("/signature/:id", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.GetSignature)
+	api.Put("/signature/:id", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.EditSignature)
+	api.Delete("/signature/:id", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.DeleteSignature)
 }
 
 func TEMPlate(c *fiber.Ctx) error {
