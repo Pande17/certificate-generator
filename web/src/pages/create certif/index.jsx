@@ -10,7 +10,7 @@ import {
   message,
 } from "antd";
 import MainLayout from "../MainLayout/Layout";
-import { Sertifikat, Kompetensi } from "../api middleware";
+import axios from "axios";
 
 function MyForm() {
   const [data, setData] = useState([]);

@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func AuditMiddleware(action, entity string) fiber.Handler {
+func AuditMiddleware(entity string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Call the next handler (perform the main action like GET, POST, etc.)
 		err := c.Next()
@@ -48,7 +48,7 @@ func AuditMiddleware(action, entity string) fiber.Handler {
 			auditLog := model.AuditLog{
 				ID:        primitive.NewObjectID(),
 				AdminID:   adminID,
-				Action:    action,
+				Action:    c.Method(),
 				Entity:    entity,
 				EntityID:  c.Params("id", ""),
 				Timestamp: time.Now(),

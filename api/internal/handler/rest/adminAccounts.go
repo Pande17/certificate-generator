@@ -121,7 +121,7 @@ func Login(c *fiber.Ctx) error {
 	err := adminCollection.FindOne(context.TODO(), bson.M{"admin_name": adminReq.AdminName}).Decode(&admin)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return Unauthorized(c, "Invalid name or password", "Find admin name on login")
+			return Unauthorized(c, "Nama atau Password salah", "Find admin name on login")
 		}
 		return InternalServerError(c, "Database error", "Database find admin name on login")
 	}
@@ -129,13 +129,13 @@ func Login(c *fiber.Ctx) error {
 	// Check if DeletedAt field already has a value (account has been deleted)
 	if admin.DeletedAt != nil && !admin.DeletedAt.IsZero() {
 		// Return the deletion time if the account is already deleted
-		return AlreadyDeleted(c, "This account has already been deleted", "Check deleted admin acc", admin.DeletedAt)
+		return AlreadyDeleted(c, "Akun ini telah dihapus", "Check deleted admin acc", admin.DeletedAt)
 	}
 
 	// hashing the input password with bcrypt
 	err = bcrypt.CompareHashAndPassword([]byte(admin.AdminPassword), []byte(adminReq.AdminPassword))
 	if err != nil {
-		return Unauthorized(c, "Invalid name or password", "Failed hashing password on Login")
+		return Unauthorized(c, "Nama atau Password salah", "Failed hashing password on Login")
 	}
 
 	// generate token JWT
@@ -154,7 +154,7 @@ func Login(c *fiber.Ctx) error {
 	// use the secret key to sign the token
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
-		return BadRequest(c, "Failed to create Token", "Can not use SECRET key")
+		return BadRequest(c, "Login gagal!", "Can not use SECRET key")
 	}
 
 	// set a cookie for admin
@@ -168,7 +168,7 @@ func Login(c *fiber.Ctx) error {
 	})
 
 	// return success
-	return OK(c, "Login successful", admin)
+	return OK(c, "Berhasil Login", admin)
 }
 
 // Function to Validate checks if the user has a valid authentication cookie
@@ -178,11 +178,11 @@ func Validate(c *fiber.Ctx) error {
 
 	// Check if adminID is present (meaning the user is authenticated)
 	if adminID == nil {
-		return Unauthorized(c, "Unauthorized, please login", "Can not validate user")
+		return Unauthorized(c, "Mohon Login terlebih dahulu!", "Can not validate user")
 	}
 
 	// Return a success message along with the admin ID
-	return OK(c, "User is authenticated", adminID)
+	return OK(c, "User terverifikasi!", adminID)
 }
 
 // Function to logout
@@ -194,7 +194,7 @@ func Logout(c *fiber.Ctx) error {
 		HTTPOnly: true,
 	})
 	// return success
-	return OK(c, "Logout Successful", nil)
+	return OK(c, "Berhasil Logout", nil)
 }
 
 // Function to edit data account
@@ -205,7 +205,7 @@ func EditAdminAccount(c *fiber.Ctx) error {
 	// converts acc_id to integer data type
 	accID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		return BadRequest(c, "Invalid ID format", "Can not convert params on Edit Admin")
+		return BadRequest(c, "Akun dengan username ini tidak ada!", "Can not convert params on Edit Admin")
 	}
 
 	// setup collection mongoDB
@@ -220,55 +220,55 @@ func EditAdminAccount(c *fiber.Ctx) error {
 	// Search for the account based on incremental ID
 	if err := adminCollection.FindOne(c.Context(), filter).Decode(&acc); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "Account not found", "Failed find account")
+			return NotFound(c, "Akun tidak ditemukan", "Failed find account")
 		}
-		return InternalServerError(c, "Failed to fetch account", "Can not find account")
+		return InternalServerError(c, "Gagal mendapatkan akun", "Can not find account")
 	}
 
 	// Check if DeletedAt field already has a value
-	if deletedAt, ok := acc["model"].(bson.M)["deleted_at"]; ok && deletedAt != nil {
+	if deletedAt, ok := acc["deleted_at"]; ok && deletedAt != nil {
 		// Return the deletion time if the account is already deleted
-		return AlreadyDeleted(c, "This account has already been deleted", "Check deleted admin acc", deletedAt)
+		return AlreadyDeleted(c, "Akun ini sudah dihapus", "Check deleted admin acc", deletedAt)
 	}
 
 	// Parsing req body to get new data
 	var input struct {
-		AdminName     string `json:"admin_name" bson:"admin_name"`
-		AdminPassword string `json:"admin_password" bson:"admin_password"`
+		AdminName     string `json:"admin_name" valid:"required~Nama tidak boleh kosong!, stringlength(1|30)~Nama harus antara 1 hingga 30 karakter!"`
+		AdminPassword string `json:"admin_password" valid:"required~Password tidak boleh kosong!"`
 	}
 
 	// handler if request body is invalid
 	if err := c.BodyParser(&input); err != nil {
-		return BadRequest(c, "Invalid request body", "Check req body")
+		return BadRequest(c, "Data yang dimasukkan tidak valid", "Check req body")
 	}
-	// handler if admin password empty
-	if input.AdminPassword == "" {
-		return BadRequest(c, "Password cannot be empty", "Check empty password")
-	}
+	// // handler if admin password empty
+	// if input.AdminPassword == "" {
+	// 	return BadRequest(c, "Password cannot be empty", "Check empty password")
+	// }
 
 	// hashing the input password with bcrypt
 	hash, err := bcrypt.GenerateFromPassword([]byte(input.AdminPassword), bcrypt.DefaultCost)
 	if err != nil {
-		return BadRequest(c, "Failed to hash password", "")
+		return BadRequest(c, "Gagal memasukkan password baru", "")
 	}
 
 	// update fields in the database
 	update := bson.M{
 		"$set": bson.M{
-			"admin_name":       input.AdminName,
-			"admin_password":   string(hash),
-			"model.updated_at": time.Now(),
+			"admin_name":     input.AdminName,
+			"admin_password": string(hash),
+			"updated_at":     time.Now(),
 		},
 	}
 
 	// update data in collection based on their "acc_id"
 	_, err = adminCollection.UpdateOne(c.Context(), filter, update)
 	if err != nil {
-		return InternalServerError(c, "Failed to update account", "Can not Update admin acc")
+		return InternalServerError(c, "Gagal memperbarui akun admin!", "Can not Update admin acc")
 	}
 
 	// return success
-	return OK(c, "Successfully updated account", update)
+	return OK(c, "Berhasil memperbarui akun admin!", update)
 }
 
 // Function for soft delete admin account
@@ -279,7 +279,7 @@ func DeleteAdminAccount(c *fiber.Ctx) error {
 	// Converts acc_id to integer data type
 	accID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		return BadRequest(c, "Invalid ID format", "Can not convert params")
+		return BadRequest(c, "Akun dengan username ini tidak ada!", "Can not convert params")
 	}
 
 	// connect to collection in mongoDB
