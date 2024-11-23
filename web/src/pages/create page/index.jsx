@@ -1,16 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
-import {
-  Form,
-  Input,
-  DatePicker,
-  Button,
-  InputNumber,
-  Select,
-  message,
-} from "antd";
-import MainLayout from "../MainLayout/Layout";
-import axios from "axios";
+import React, { useEffect, useState } from 'react';
+import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { Form, Input, DatePicker, Button, InputNumber, Select, message } from 'antd';
+import MainLayout from '../MainLayout/Layout';
+import axios from 'axios';
 
 function MyForm() {
   const [data, setData] = useState([]);

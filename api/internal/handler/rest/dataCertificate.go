@@ -7,7 +7,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math"
+	"os"
 	"strings"
 	"time"
 
@@ -127,7 +129,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 		},
 	}
 
-	if err = generator.CreatePDF(c, &mappedData, pdfReq.Zoom, pdfReq.PageName); err != nil {
+	if err = generator.CreatePDF(c, &mappedData); err != nil {
 		return InternalServerError(c, "can't create pdf file", err.Error())
 	}
 
@@ -143,14 +145,12 @@ func CreateCertificate(c *fiber.Ctx) error {
 	return OK(c, "Success create new certificate", certificate)
 }
 
-// Function to se all Admin Account
+// function to get all kompetensi data
 func GetAllCertificates(c *fiber.Ctx) error {
 	var results []bson.M
 
-	certificateCollection := database.GetCollection("certificate")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	collection := database.GetCollection("certificate")
+	ctx := c.Context()
 
 	// set the projection to return the required fields
 	projection := bson.M{
@@ -160,33 +160,36 @@ func GetAllCertificates(c *fiber.Ctx) error {
 		"created_at":  1,
 		"updated_at":  1,
 		"deleted_at":  1,
-		// "data":        1,
 	}
 
 	// find the projection
-	cursor, err := certificateCollection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "No Documents Found", "No certificates found")
+			return NotFound(c, "No certificate found", err.Error())
 		}
-		return InternalServerError(c, "Failed to fetch data", "mongodb error can't find data")
+		return InternalServerError(c, "Failed to fetch data", err.Error())
 	}
 	defer cursor.Close(ctx)
 
 	// decode each document and append it to results
 	for cursor.Next(ctx) {
-		var certificate bson.M
-		if err := cursor.Decode(&certificate); err != nil {
-			return InternalServerError(c, "Failed to decode data", "Cannot decode data")
+		var certiticate bson.M
+		if err := cursor.Decode(&certiticate); err != nil {
+			return InternalServerError(c, "Failed to decode data", err.Error())
 		}
-		results = append(results, certificate)
+		if deletedAt, ok := certiticate["deleted_at"]; ok && deletedAt != nil {
+			// skip deleted certificates
+			continue
+		}
+		results = append(results, certiticate)
 	}
 	if err := cursor.Err(); err != nil {
-		return InternalServerError(c, "Cursor error", "Cursor error")
+		return InternalServerError(c, "Cursor error", err.Error())
 	}
 
 	// return success
-	return OK(c, "Success get all data", results)
+	return OK(c, "Sucess get all Certificate data", results)
 }
 
 func GetCertificateByID(c *fiber.Ctx) error {
@@ -197,37 +200,36 @@ func GetCertificateByID(c *fiber.Ctx) error {
 	certifID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		fmt.Printf("error: %v\n", err.Error())
-		return BadRequest(c, "Invalid ID format", "Please provide a valid ObjectID")
+		return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
 	}
 
 	// connect to collection in mongoDB
-	certificateCollection := database.GetCollection("certificate")
+	collection := database.GetCollection("certificate")
 
 	// make filter to find document based on data_id (incremental id)
 	filter := bson.M{"_id": certifID}
 
-	// Variable to hold search results
+	// variable to hold search results
 	var certifDetail bson.M
 
-	// Find a single document that matches the filter
-	err = certificateCollection.FindOne(context.TODO(), filter).Decode(&certifDetail)
-	if err != nil {
-		// If not found, return a 404 status.
+	// find a single document that matches the filter
+	if err := collection.FindOne(c.Context(), filter).Decode(&certifDetail); err != nil {
+		// if not found, return a 404 status
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "Data not found", "Cannot find certificate")
+			return NotFound(c, "Data not found", "Find Detail Certificate")
 		}
-		// If in server error, return status 500
-		return InternalServerError(c, "Failed to retrieve data", "Server can't find certificate")
+		// if in server error, return status 500
+		return InternalServerError(c, "Failed to retrieve data", err.Error())
 	}
 
-	// check if document is already deleted
+	// Check if DeletedAt field already has a value
 	if deletedAt, ok := certifDetail["deleted_at"]; ok && deletedAt != nil {
-		// Return the deletion time if the account is already deleted
+		// Return the deletion time if the certificate is already deleted
 		return AlreadyDeleted(c, "This certificate has already been deleted", "Check deleted certificate", deletedAt)
 	}
 
 	// return success
-	return OK(c, "Success get certificate data", certifDetail)
+	return OK(c, "Berhasil mendapatkan detail sertifikat.", certifDetail)
 }
 
 // Function for soft delete admin account
@@ -238,7 +240,7 @@ func DeleteCertificate(c *fiber.Ctx) error {
 	// Convert idParam to ObjectID if needed
 	certifID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		return BadRequest(c, "Invalid ID format", "Please provide a valid ObjectID")
+		return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
 	}
 
 	// connect to collection in mongoDB
@@ -283,23 +285,45 @@ func DeleteCertificate(c *fiber.Ctx) error {
 }
 
 func DownloadCertificate(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-
-	if err := c.RedirectToRoute("/certificate", fiber.Map{
-		"queries": map[string]string{
-			"type": "id",
-			"s":    idParam,
-		},
-	}); err != nil {
-		return err
+	certifType := c.Params("type")
+	if !(certifType == "a" || certifType == "b") {
+		return BadRequest(c, "Tipe sertifikat tidak diketahui.", "query type isn't a or b")
 	}
 
-	var certifDetail model.PDF
-	if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
-		return InternalServerError(c, "can't unmarshal body", err.Error())
+	log.Println(c.Path())
+
+	// search certif data, checking if data exists
+	if err := c.Next(); err != nil {
+		return NotFound(c, "Sertifikat dengan id "+c.Params("id", "yang dicari")+" tidak ditemukan.", err.Error())
 	}
 
-	return c.Download("./temp/certificate/"+idParam+".pdf", "Sertifikat BTW Edutech - "+certifDetail.Data.NamaPeserta)
+	var resp fiber.Map
+	var pdf model.PDF
+	bodyres := c.Response().Body()
+	if err := json.Unmarshal(bodyres, &resp); err != nil {
+		return InternalServerError(c, "eror", err.Error())
+	}
+	if pdfBytes, err := json.Marshal(resp["data"]); err != nil {
+		return InternalServerError(c, "eror", err.Error())
+	} else {
+		if err := json.Unmarshal(pdfBytes, &pdf); err != nil {
+			return InternalServerError(c, "eror", err.Error())
+		}
+	}
+	data := pdf.Data
+
+	filepath := "./assets/certificate/" + data.DataID + "-" + certifType + ".pdf"
+	if _, err := os.Stat(filepath); err != nil {
+		if os.IsNotExist(err) {
+			if err = generator.CreatePDF(c, &data); err != nil {
+				return InternalServerError(c, "can't create pdf file", err.Error())
+			}
+		} else {
+			return InternalServerError(c, "eror", err.Error())
+		}
+	}
+	c.Response().Header.Add("Content-Type", "application/pdf")
+	return c.Download("./assets/certificate/"+data.DataID+"-"+certifType+".pdf", "Sertifikat BTW Edutech "+certifType+" - "+data.NamaPeserta)
 }
 
 // {
