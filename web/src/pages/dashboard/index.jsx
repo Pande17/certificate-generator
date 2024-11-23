@@ -57,9 +57,9 @@ const Dashboard = () => {
 		}
 	};
 
-	const handleSearch = (e) => {
-		setSearchText(e.target.value);
-	};
+ const handleSearch = (e) => {
+    setSearchText(e.target.value);
+  };
 
 	const showDeleteConfirm = (_id) => {
 		confirm({
