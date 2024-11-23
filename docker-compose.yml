@@ -30,7 +30,7 @@ services:
       context: ./web
       dockerfile: Dockerfile
     ports:
-      - '80:5173'
+      - '80:80'
     networks:
       - certif-network
 
