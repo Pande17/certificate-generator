@@ -46,13 +46,13 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	// generate referral ID
-	nextReferralID, err := generator.GenerateReferralID(counterCollection, time.Now())
+	currentTime := time.Now()
+	nextReferralID, err := generator.GenerateReferralID(counterCollection, currentTime)
 	if err != nil {
 		return InternalServerError(c, "Failed to generate Referral ID", "Server failed generate Referral ID")
 	}
 
 	// generate month roman and year
-	currentTime := time.Now()
 	year := currentTime.Year()
 	monthRoman := generator.MonthToRoman(int(currentTime.Month()))
 
@@ -63,8 +63,6 @@ func CreateCertificate(c *fiber.Ctx) error {
 	if err != nil {
 		return NotFound(c, "Competence Not Found", "Fetch Kompetepetensi by the given nama_kompetensi from the request")
 	}
-
-	// can calculate jp & score automatically, but needs to have the correct json body
 
 	totalHSJP, totalHSSkor := uint64(0), float64(0)
 	for _, hs := range pdfReq.Data.HardSkills.Skills {
@@ -82,20 +80,19 @@ func CreateCertificate(c *fiber.Ctx) error {
 		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
 		KodeReferral: model.KodeReferral{
 			ReferralID: nextReferralID,
-			Divisi:     pdfReq.Data.KodeReferral.Divisi,
+			Divisi:     kompetensi.Divisi,
 			BulanRilis: monthRoman,
 			TahunRilis: year,
 		},
-		NamaPeserta:    strings.TrimSpace(pdfReq.Data.NamaPeserta),
-		SKKNI:          pdfReq.Data.SKKNI,
-		KompetenBidang: pdfReq.Data.KompetenBidang,
-		Kompetensi:     pdfReq.Data.Kompetensi,
-		Validation:     pdfReq.Data.Validation,
-		DataID:         newDataID,
-		TotalJP:        totalHSJP + totalSSJP,
-		TotalMeet:      pdfReq.Data.TotalMeet,
-		MeetTime:       pdfReq.Data.MeetTime,
-		ValidDate:      pdfReq.Data.ValidDate,
+		NamaPeserta: strings.TrimSpace(pdfReq.Data.NamaPeserta),
+		SKKNI:       pdfReq.Data.SKKNI,
+		Kompetensi:  pdfReq.Data.Kompetensi,
+		Validation:  pdfReq.Data.Validation,
+		DataID:      newDataID,
+		TotalJP:     totalHSJP + totalSSJP,
+		TotalMeet:   pdfReq.Data.TotalMeet,
+		MeetTime:    pdfReq.Data.MeetTime,
+		ValidDate:   pdfReq.Data.ValidDate,
 		HardSkills: model.SkillPDF{
 			Skills:          pdfReq.Data.HardSkills.Skills,
 			TotalSkillJP:    totalHSJP,
@@ -121,9 +118,8 @@ func CreateCertificate(c *fiber.Ctx) error {
 		},
 	}
 
-	if err = generator.CreatePDF(c, &mappedData); err != nil {
-		return InternalServerError(c, "can't create pdf file", err.Error())
-	}
+	// make pdf creation concurrent to return handler faster
+	go generator.CreatePDF(c, &mappedData, "ab")
 
 	// insert data from struct "PDF" to collection "certificate" in database MongoDB
 	if pdfReq.SaveDB {
@@ -308,7 +304,7 @@ func DownloadCertificate(c *fiber.Ctx) error {
 	if _, err := os.Stat(filepath); err != nil {
 		if os.IsNotExist(err) {
 			if err = generator.CreatePDF(c, &data); err != nil {
-				return InternalServerError(c, "can't create pdf file", err.Error())
+					return InternalServerError(c, "can't create pdf file", err.Error())
 			}
 		} else {
 			return InternalServerError(c, "eror", err.Error())
