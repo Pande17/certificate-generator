@@ -1,5 +1,6 @@
 import { Table, Button, Modal, message, Row, Col } from "antd";
 import axios from "axios";
+import { Sertifikat } from "../api middleware";
 import { useEffect, useState } from "react";
 import {
   DeleteOutlined,
@@ -21,7 +22,7 @@ const Dashboard = () => {
       setLoading(true);
 
       try {
-        const response = await axios.get(
+        const response = await Sertifikat.get(
           "http://127.0.0.1:3000/api/certificate"
         );
         let certificates = response.data.data || []; // Ensure certificates are initialized
@@ -55,7 +56,7 @@ const Dashboard = () => {
 
   const deleteCompetence = async (_id) => {
     try {
-      await axios.delete(`http://127.0.0.1:3000/api/certificate/${_id}`);
+      await Sertifikat.delete(`http://127.0.0.1:3000/api/certificate/${_id}`);
       setDta((prevDta) => prevDta.filter((item) => item._id !== _id));
       message.success("SERTIFIKAT berhasil dihapus!");
     } catch (error) {

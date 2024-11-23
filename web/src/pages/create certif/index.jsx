@@ -10,7 +10,7 @@ import {
   message,
 } from "antd";
 import MainLayout from "../MainLayout/Layout";
-import axios from "axios";
+import { Sertifikat, Kompetensi } from "../api middleware";
 
 function MyForm() {
   const [data, setData] = useState([]);
@@ -127,7 +127,7 @@ function MyForm() {
         },
       };
 
-      const response = await axios.post(
+      const response = await Sertifikat.post(
         "http://127.0.0.1:3000/api/certificate",
         formattedData
       );
@@ -149,7 +149,7 @@ function MyForm() {
   useEffect(() => {
     const fetchApi = async () => {
       try {
-        const response = await axios.get(
+        const response = await Kompetensi.get(
           "http://127.0.0.1:3000/api/competence"
         );
         setData(response.data.data);

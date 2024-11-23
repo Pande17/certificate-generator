@@ -2,12 +2,19 @@ import { useEffect, useState } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import axios from "axios";
 import { Form, Input, Button, Space, message, Select } from "antd";
-import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
+import { PlusOutlined, MinusCircleOutlined, RotateLeftOutlined, BackwardFilled } from "@ant-design/icons";
 import MainLayout from "../MainLayout/Layout";
+import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
 
 const Tool = () => {
+  const navigate = useNavigate();
+
+  const backHandle = () => {
+    navigate("/competence");
+  }
+
   const { control, handleSubmit, reset, watch } = useForm({
     defaultValues: {
       competenceName: "",
@@ -103,6 +110,15 @@ const Tool = () => {
 
   return (
     <MainLayout>
+
+
+      <div className="m-2" >
+      <Button 
+      style={{width:"50px", height:"50px"}}
+      icon={<BackwardFilled />}
+      onClick={backHandle}
+      />
+      </div>
       <Form
         layout="vertical"
         onFinish={handleSubmit(onSubmit)}
@@ -114,7 +130,7 @@ const Tool = () => {
           padding: "40px",
           borderRadius: "20px",
         }}
-      >
+        >
         <h3 className="text-center font-Poppins text-2xl font-bold p-6">
           Buat kompetensi{" "}
         </h3>
@@ -127,8 +143,8 @@ const Tool = () => {
                 placeholder="Masukkan nama kompetensi"
                 {...field}
                 style={{ width: "100%", height: "50px" }}
-              />
-            )}
+                />
+              )}
           />
         </Form.Item>
 
@@ -143,18 +159,18 @@ const Tool = () => {
                 control={control}
                 render={({ field }) => (
                   <Input
-                    placeholder="Masukkan nama hard skill"
-                    {...field}
-                    style={{ width: "100%", height: "50px" }}
+                  placeholder="Masukkan nama hard skill"
+                  {...field}
+                  style={{ width: "100%", height: "50px" }}
                   />
                 )}
-              />
+                />
               <Button
                 type="text"
                 danger
                 icon={<MinusCircleOutlined />}
                 onClick={() => removeHardSkill(index)}
-              >
+                >
                 Hapus
               </Button>
             </Form.Item>
@@ -167,12 +183,12 @@ const Tool = () => {
                       control={control}
                       render={({ field }) => (
                         <Input
-                          placeholder="Masukkan unit code"
-                          {...field}
-                          style={{ width: "100%", height: "50px" }}
+                        placeholder="Masukkan unit code"
+                        {...field}
+                        style={{ width: "100%", height: "50px" }}
                         />
                       )}
-                    />
+                      />
                   </Form.Item>
                   <Form.Item label="Unit Title">
                     <Controller
@@ -203,7 +219,7 @@ const Tool = () => {
           block
           icon={<PlusOutlined />}
           style={{ marginBottom: "20px" }}
-        >
+          >
           Tambah Hard Skill
         </Button>
 
@@ -218,18 +234,18 @@ const Tool = () => {
                 control={control}
                 render={({ field }) => (
                   <Input
-                    placeholder="Masukkan nama soft skill"
-                    {...field}
-                    style={{ width: "100%", height: "50px" }}
+                  placeholder="Masukkan nama soft skill"
+                  {...field}
+                  style={{ width: "100%", height: "50px" }}
                   />
                 )}
-              />
+                />
               <Button
                 type="text"
                 danger
                 icon={<MinusCircleOutlined />}
                 onClick={() => removeSoftSkill(index)}
-              >
+                >
                 Hapus
               </Button>
             </Form.Item>
@@ -245,9 +261,9 @@ const Tool = () => {
                           placeholder="Masukkan unit code"
                           {...field}
                           style={{ width: "100%", height: "50px" }}
+                          />
+                        )}
                         />
-                      )}
-                    />
                   </Form.Item>
                   <Form.Item label="Unit Title">
                     <Controller
@@ -255,12 +271,12 @@ const Tool = () => {
                       control={control}
                       render={({ field }) => (
                         <Input
-                          placeholder="Masukkan unit title"
-                          {...field}
-                          style={{ width: "100%", height: "50px" }}
+                        placeholder="Masukkan unit title"
+                        {...field}
+                        style={{ width: "100%", height: "50px" }}
                         />
                       )}
-                    />
+                      />
                   </Form.Item>
                 </div>
               ))}
@@ -278,7 +294,7 @@ const Tool = () => {
           block
           icon={<PlusOutlined />}
           style={{ marginBottom: "20px" }}
-        >
+          >
           Tambah Soft Skill
         </Button>
 
@@ -287,11 +303,12 @@ const Tool = () => {
             type="primary"
             htmlType="submit"
             style={{ width: "100%", height: "50px" }}
-          >
+            >
             Simpan
           </Button>
         </Form.Item>
       </Form>
+
     </MainLayout>
   );
 };
