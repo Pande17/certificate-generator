@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
-import axios from "axios";
 import { Form, Input, Button, Space, message, Select } from "antd";
 import { PlusOutlined, MinusCircleOutlined, RotateLeftOutlined, BackwardFilled } from "@ant-design/icons";
 import MainLayout from "../MainLayout/Layout";
