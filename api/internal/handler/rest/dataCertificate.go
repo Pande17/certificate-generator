@@ -39,14 +39,14 @@ func CreateCertificate(c *fiber.Ctx) error {
 	// generate DataID (random string with 8 letter)
 	newDataID, err := generator.GetUniqueRandomID(certificateCollection, 8)
 	if err != nil {
-		return InternalServerError(c, "Failed to generate Data ID", "Server failed generate Data ID")
+		return Conflict(c, "Failed to generate Data ID", "Server failed generate Data ID")
 	}
 
 	// generate referral ID
 	currentTime := time.Now()
 	nextReferralID, err := generator.GenerateReferralID(counterCollection, currentTime)
 	if err != nil {
-		return InternalServerError(c, "Failed to generate Referral ID", "Server failed generate Referral ID")
+		return Conflict(c, "Failed to generate Referral ID", "Server failed generate Referral ID")
 	}
 
 	// generate month roman and year
@@ -128,7 +128,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 	if pdfReq.SaveDB {
 		_, err = certificateCollection.InsertOne(context.TODO(), certificate)
 		if err != nil {
-			return InternalServerError(c, "Failed to create new certificate data", "Server failed create new certificate")
+			return Conflict(c, "Failed to create new certificate data", "Server failed create new certificate")
 		}
 	}
 
@@ -159,7 +159,7 @@ func GetAllCertificates(c *fiber.Ctx) error {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "No certificate found", err.Error())
 		}
-		return InternalServerError(c, "Failed to fetch data", err.Error())
+		return Conflict(c, "Failed to fetch data", err.Error())
 	}
 	defer cursor.Close(ctx)
 
@@ -167,7 +167,7 @@ func GetAllCertificates(c *fiber.Ctx) error {
 	for cursor.Next(ctx) {
 		var certiticate bson.M
 		if err := cursor.Decode(&certiticate); err != nil {
-			return InternalServerError(c, "Failed to decode data", err.Error())
+			return Conflict(c, "Failed to decode data", err.Error())
 		}
 		if deletedAt, ok := certiticate["deleted_at"]; ok && deletedAt != nil {
 			// skip deleted certificates
@@ -176,7 +176,7 @@ func GetAllCertificates(c *fiber.Ctx) error {
 		results = append(results, certiticate)
 	}
 	if err := cursor.Err(); err != nil {
-		return InternalServerError(c, "Cursor error", err.Error())
+		return Conflict(c, "Cursor error", err.Error())
 	}
 
 	// return success
@@ -221,7 +221,7 @@ func GetCertificateByID(c *fiber.Ctx) error {
 			return NotFound(c, "Data not found", "Find Detail Certificate")
 		}
 		// if in server error, return status 500
-		return InternalServerError(c, "Failed to retrieve data", err.Error())
+		return Conflict(c, "Failed to retrieve data", err.Error())
 	}
 
 	// Check if DeletedAt field already has a value
@@ -259,7 +259,7 @@ func DeleteCertificate(c *fiber.Ctx) error {
 			fmt.Printf("error: %v\n", err.Error())
 			return NotFound(c, "Certificate not found", "Cannot find certificate")
 		}
-		return InternalServerError(c, "Failed to fetch certificate", "server error cannot find certificate")
+		return Conflict(c, "Failed to fetch certificate", "server error cannot find certificate")
 	}
 
 	// Check if DeletedAt field already has a value
@@ -274,7 +274,7 @@ func DeleteCertificate(c *fiber.Ctx) error {
 	// update document in collection MongoDB
 	result, err := certificateCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		return InternalServerError(c, "Failed to delete certificate", "Delete certificate")
+		return Conflict(c, "Failed to delete certificate", "Delete certificate")
 	}
 
 	// Check if the document is found and updated
@@ -301,13 +301,13 @@ func DownloadCertificate(c *fiber.Ctx) error {
 	var pdf model.PDF
 	bodyres := c.Response().Body()
 	if err := json.Unmarshal(bodyres, &resp); err != nil {
-		return InternalServerError(c, "eror", err.Error())
+		return Conflict(c, "eror", err.Error())
 	}
 	if pdfBytes, err := json.Marshal(resp["data"]); err != nil {
-		return InternalServerError(c, "eror", err.Error())
+		return Conflict(c, "eror", err.Error())
 	} else {
 		if err := json.Unmarshal(pdfBytes, &pdf); err != nil {
-			return InternalServerError(c, "eror", err.Error())
+			return Conflict(c, "eror", err.Error())
 		}
 	}
 	data := pdf.Data
@@ -321,11 +321,11 @@ func DownloadCertificate(c *fiber.Ctx) error {
 				}
 			} else {
 				if err = generator.CreatePDF(c, &data, certifType); err != nil {
-					return InternalServerError(c, "can't create pdf file", err.Error())
+					return Conflict(c, "can't create pdf file", err.Error())
 				}
 			}
 		} else {
-			return InternalServerError(c, "eror", err.Error())
+			return Conflict(c, "eror", err.Error())
 		}
 	}
 	c.Response().Header.Add("Content-Type", "application/pdf")
