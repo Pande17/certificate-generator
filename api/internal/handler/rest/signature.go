@@ -188,6 +188,11 @@ func EditSignature(c *fiber.Ctx) error {
 		return BadRequest(c, "Data yang dimasukkan tidak valid! Silakan periksa kembali.", err.Error())
 	}
 
+	// Validate the input data
+	if _, err := govalidator.ValidateStruct(input); err != nil {
+		return BadRequest(c, "Data yang dimasukkan tidak valid! Silakan periksa kembali.", "Data tidak valid")
+	}
+
 	// Create update for the signature data
 	update := bson.M{
 		"$set": bson.M{
