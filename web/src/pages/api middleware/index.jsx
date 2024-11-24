@@ -43,4 +43,4 @@ applyAuthInterceptor(Sertifikat);
 applyAuthInterceptor(Login);
 
 // Ekspor semua instance untuk digunakan
-export { Kompetensi, Sertifikat, Login ,Signature};
+export { Kompetensi, Sertifikat, Login ,Signature      };

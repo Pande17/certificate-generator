@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import axios from "axios";
+import { Kompetensi } from "../api middleware";
 import{message, Table, Col , Row, Button, Modal} from "antd"
 import {
   DeleteOutlined,
@@ -22,7 +22,7 @@ const navigate = useNavigate()
     const fetchingData = async() => {
       setLoading(true)
       try{
-        const response = await axios.get(
+        const response = await Kompetensi.get(
           `http://127.0.0.1:3000/api/competence`
         );
         const datas = response.data.data
@@ -48,7 +48,7 @@ const navigate = useNavigate()
 
  const delHandle = async (_id) => {
    try {
-   await axios.delete(
+   await Kompetensi.delete(
        `http://127.0.0.1:3000/api/competence/${_id}`
      );
      setData((prevData) => prevData.filter((item) => item._id !== _id));

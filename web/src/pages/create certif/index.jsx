@@ -10,7 +10,7 @@ import {
   message,
 } from "antd";
 import MainLayout from "../MainLayout/Layout";
-import { Sertifikat, Kompetensi, Signature } from "../api middleware";
+import { Sertifikat,Kompetensi,Signature } from "../api middleware";
 
 function MyForm() {
   const [data, setData] = useState([]);
@@ -157,7 +157,7 @@ function MyForm() {
          const response = await Kompetensi.get(
            "http://127.0.0.1:3000/api/competence"
          );
-         setCompetenceData(response.data.data);
+        setData(response.data.data);
        } catch (error) {
          console.log("Error fetching competence data:", error);
        }
