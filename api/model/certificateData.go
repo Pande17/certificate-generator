@@ -16,6 +16,7 @@ type CertificateData struct {
 	FinalSkor    float64      `json:"final_skor" bson:"final_skor"`
 	HardSkills   SkillPDF     `json:"hard_skills" bson:"hard_skills"`
 	SoftSkills   SkillPDF     `json:"soft_skills" bson:"soft_skills"`
+	Signature    Signature    `json:"signature" bson:"signature"`
 }
 
 type KodeReferral struct {
