@@ -1,9 +1,9 @@
 package model
 
 type Signature struct {
-	Stamp     string `bson:"stamp" json:"stamp"`
-	Signature string `bson:"signature" json:"signature"`
-	Name      string `bson:"name" json:"name"`
-	Role      string `bson:"role" json:"role"`
+	Stamp     string `json:"stamp" bson:"stamp"`
+	Signature string `json:"signature" bson:"signature"`
+	Name      string `json:"name" bson:"name"`
+	Role      string `json:"role" bson:"role"`
 	Model     `bson:",inline"`
 }
