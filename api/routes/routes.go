@@ -59,6 +59,9 @@ func RouteSetup(r *fiber.App) {
 
 	r.Get("/assets/certificate/:id/:type", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.DownloadCertificate, rest.GetCertificateByID)
 
+	// temporary, remove later
+	api.Post("/checkpdf", rest.CheckPDF)
+
 	// define routes for management signature configuration
 	api.Post("/signature", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.CreateSignature)
 	api.Get("/signature", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.GetSignature)
