@@ -1,5 +1,9 @@
 import axios from "axios";
 
+const Signature = axios.create({
+  baseURL: "http://127.0.0.1:3000/api/signature",
+});
+
 // Instance untuk kompetensi
 const Kompetensi = axios.create({
   baseURL: "http://127.0.0.1:3000/api/competence",

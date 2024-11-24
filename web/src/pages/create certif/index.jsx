@@ -10,7 +10,7 @@ import {
   message,
 } from "antd";
 import MainLayout from "../MainLayout/Layout";
-import axios from "axios";
+import { Sertifikat, Kompetensi, Signature } from "../api middleware";
 
 function MyForm() {
   const [data, setData] = useState([]);
@@ -131,7 +131,7 @@ function MyForm() {
         },
       };
 
-      const response = await axios.post(
+      const response = await Sertifikat.post(
         "http://127.0.0.1:3000/api/certificate",
         formattedData
       );
@@ -154,7 +154,7 @@ function MyForm() {
      // Fetch competence data
      const fetchCompetence = async () => {
        try {
-         const response = await axios.get(
+         const response = await Kompetensi.get(
            "http://127.0.0.1:3000/api/competence"
          );
          setCompetenceData(response.data.data);
@@ -166,7 +166,7 @@ function MyForm() {
      // Fetch signature data
      const fetchSignature = async () => {
        try {
-         const response = await axios.get(
+         const response = await Signature.get(
            "http://127.0.0.1:3000/api/signature"
          );
          setSignatureData(response.data.data);
@@ -182,7 +182,7 @@ function MyForm() {
   const fetchCompetence = async (competenceId) => {
     const url = `http://127.0.0.1:3000/api/competence/${competenceId}`;
     try {
-      const response = await axios.get(url);
+      const response = await Kompetensi.get(url);
 
       const { hard_skills = [], soft_skills = [] } = response.data.data || {};
 
