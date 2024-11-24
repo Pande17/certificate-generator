@@ -36,9 +36,11 @@ const applyAuthInterceptor = (instance) => {
 };
 
 // Terapkan interceptor ke semua instance
+
+applyAuthInterceptor(Signature);
 applyAuthInterceptor(Kompetensi);
 applyAuthInterceptor(Sertifikat);
 applyAuthInterceptor(Login);
 
 // Ekspor semua instance untuk digunakan
-export { Kompetensi, Sertifikat, Login };
+export { Kompetensi, Sertifikat, Login ,Signature};
