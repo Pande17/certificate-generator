@@ -4,7 +4,6 @@ import (
 	"certificate-generator/database"
 	"certificate-generator/model"
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/asaskevich/govalidator"
@@ -20,8 +19,8 @@ var collectionSignature = database.GetCollection("signature")
 func CreateSignature(c *fiber.Ctx) error {
 	var signatureReq struct {
 		ConfigName string `json:"config_name" bson:"config_name" valid:"required~Stamp tidak boleh kosong!"`
-		Stamp      string `json:"stamp" valid:"required~Stamp tidak boleh kosong!"`
-		Signature  string `json:"signature" valid:"required~Signature tidak boleh kosong!"`
+		Stamp      string `json:"stamp" valid:"required~Stamp tidak boleh kosong!, url"`
+		Signature  string `json:"signature" valid:"required~Signature tidak boleh kosong!, url"`
 		Name       string `json:"name" valid:"required~Nama tidak boleh kosong!, stringlength(1|60)~Nama harus antara 1 hingga 60 karakter!"`
 		Role       string `json:"role" valid:"required~Role tidak boleh kosong!, stringlength(1|60)~Role harus antara 1 hingga 60 karakter!"`
 	}
@@ -31,8 +30,7 @@ func CreateSignature(c *fiber.Ctx) error {
 	}
 
 	if _, err := govalidator.ValidateStruct(signatureReq); err != nil {
-		fmt.Println(err)
-		return BadRequest(c, "Data yang dimasukkan tidak valid!", "")
+		return BadRequest(c, "Data yang dimasukkan tidak valid!", "Data tidak valid")
 	}
 
 	signature := model.Signature{
@@ -141,8 +139,8 @@ func EditSignature(c *fiber.Ctx) error {
 
 	var input struct {
 		ConfigName string `json:"config_name" bson:"config_name" valid:"required~Stamp tidak boleh kosong!"`
-		Stamp      string `json:"stamp" valid:"required~Stamp tidak boleh kosong!"`
-		Signature  string `json:"signature" valid:"required~Signature tidak boleh kosong!"`
+		Stamp      string `json:"stamp" valid:"required~Stamp tidak boleh kosong!, url"`
+		Signature  string `json:"signature" valid:"required~Signature tidak boleh kosong!, url"`
 		Name       string `json:"name" valid:"required~Nama tidak boleh kosong!, stringlength(1|60)~Nama harus antara 1 hingga 60 karakter!"`
 		Role       string `json:"role" valid:"required~Role tidak boleh kosong!, stringlength(1|60)~Role harus antara 1 hingga 60 karakter!"`
 	}
