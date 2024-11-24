@@ -127,7 +127,7 @@ function MyForm() {
         },
       };
 
-      const response = await Sertifikat.post(
+      const response = await axios.post(
         "http://127.0.0.1:3000/api/certificate",
         formattedData
       );
@@ -149,7 +149,7 @@ function MyForm() {
   useEffect(() => {
     const fetchApi = async () => {
       try {
-        const response = await Kompetensi.get(
+        const response = await axios.get(
           "http://127.0.0.1:3000/api/competence"
         );
         setData(response.data.data);

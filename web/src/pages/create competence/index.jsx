@@ -102,7 +102,7 @@ const Tool = () => {
         message.success("Kompetensi berhasil ditambahkan!");
       }
       reset();
-    } catch (error) {
+    } catch (error) {d
       console.error("Error saat menyimpan kompetensi:", error);
       message.error("Error saat menyimpan kompetensi!");
     }
