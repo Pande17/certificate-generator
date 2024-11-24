@@ -21,7 +21,7 @@ func RouteSetup(r *fiber.App) {
 		AllowOrigins:     "*",                               // Replace with your frontend URL
 		AllowMethods:     "GET,POST,PUT,DELETE",                                 // Allowed HTTP methods
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, Cookie", // Allowed headers
-		ExposeHeaders:    "Authorization, Cookie",
+		ExposeHeaders:    "Authorization, Cookie, authToken, Bearer",
 		AllowCredentials: true,
 	}))
 
@@ -29,10 +29,10 @@ func RouteSetup(r *fiber.App) {
 	api := r.Group("/api")
 
 	// Define routes for authentication
-	api.Post("/signup", rest.SignUp)                           // Route for signing up admin
-	api.Post("/login", rest.Login)                             // Route for admin login
-	api.Get("/validate", middleware.ValidateToken, rest.Validate)                                     // Route to check cookie from admin
-	api.Post("/logout", rest.Logout) // Route to logout from account
+	api.Post("/signup", rest.SignUp)                              // Route for signing up admin
+	api.Post("/login", rest.Login)                                // Route for admin login
+	api.Get("/validate", middleware.ValidateToken, rest.Validate) // Route to check cookie from admin
+	api.Post("/logout", rest.Logout)                              // Route to logout from account
 
 	// Define api routes
 	// Every request to a path with the group "api" always checks the cookie

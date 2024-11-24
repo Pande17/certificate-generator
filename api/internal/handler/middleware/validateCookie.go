@@ -13,7 +13,7 @@ import (
 
 // ValidateToken middleware
 func ValidateToken(c *fiber.Ctx) error {
-	// Retrieve the token from Authorization header or cookies
+	// Retrieve the token from authToken header or cookies
 	tokenString := strings.TrimPrefix(c.Get("Authorization"), "Bearer ")
 	if tokenString == "" {
 		tokenString = strings.TrimPrefix(c.Cookies("Authorization"), "Bearer ")

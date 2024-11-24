@@ -159,7 +159,7 @@ func Login(c *fiber.Ctx) error {
 
 	// set a cookie for admin
 	c.Cookie(&fiber.Cookie{
-		Name:     "Authorization",
+		Name:     "authToken",
 		Value:    tokenString,
 		Expires:  time.Now().Add(24 * time.Hour * 30),
 		HTTPOnly: true,
@@ -188,7 +188,7 @@ func Validate(c *fiber.Ctx) error {
 // Function to logout
 func Logout(c *fiber.Ctx) error {
 	c.Cookie(&fiber.Cookie{
-		Name:     "Authorization",
+		Name:     "authToken",
 		Value:    "",
 		Expires:  time.Now().Add(-time.Hour),
 		HTTPOnly: true,

@@ -104,6 +104,12 @@ func CreateCertificate(c *fiber.Ctx) error {
 			TotalSkillScore: float64(math.Round(totalSSSkor/float64(len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
 		},
 		FinalSkor: float64(math.Round((totalHSSkor+totalSSSkor)/float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
+		Signature: model.Signature{
+			Stamp:     pdfReq.Data.Signature.Stamp,
+			Signature: pdfReq.Data.Signature.Signature,
+			Name:      pdfReq.Data.Signature.Name,
+			Role:      pdfReq.Data.Signature.Role,
+		},
 	}
 
 	certificate := model.PDF{
