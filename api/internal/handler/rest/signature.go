@@ -19,10 +19,11 @@ var collectionSignature = database.GetCollection("signature")
 
 func CreateSignature(c *fiber.Ctx) error {
 	var signatureReq struct {
-		Stamp     string `json:"stamp" valid:"required~Stamp tidak boleh kosong!"`
-		Signature string `json:"signature" valid:"required~Signature tidak boleh kosong!"`
-		Name      string `json:"name" valid:"required~Nama tidak boleh kosong!, stringlength(1|60)~Nama harus antara 1 hingga 60 karakter!"`
-		Role      string `json:"role" valid:"required~Role tidak boleh kosong!, stringlength(1|60)~Role harus antara 1 hingga 60 karakter!"`
+		ConfigName string `json:"config_name" bson:"config_name" valid:"required~Stamp tidak boleh kosong!"`
+		Stamp      string `json:"stamp" valid:"required~Stamp tidak boleh kosong!"`
+		Signature  string `json:"signature" valid:"required~Signature tidak boleh kosong!"`
+		Name       string `json:"name" valid:"required~Nama tidak boleh kosong!, stringlength(1|60)~Nama harus antara 1 hingga 60 karakter!"`
+		Role       string `json:"role" valid:"required~Role tidak boleh kosong!, stringlength(1|60)~Role harus antara 1 hingga 60 karakter!"`
 	}
 
 	if err := c.BodyParser(&signatureReq); err != nil {
@@ -35,10 +36,11 @@ func CreateSignature(c *fiber.Ctx) error {
 	}
 
 	signature := model.Signature{
-		Stamp:     signatureReq.Stamp,
-		Signature: signatureReq.Signature,
-		Name:      signatureReq.Name,
-		Role:      signatureReq.Role,
+		ConfigName: signatureReq.ConfigName,
+		Stamp:      signatureReq.Stamp,
+		Signature:  signatureReq.Signature,
+		Name:       signatureReq.Name,
+		Role:       signatureReq.Role,
 		Model: model.Model{
 			ID:        primitive.NewObjectID(),
 			CreatedAt: time.Now(),
@@ -77,12 +79,11 @@ func getAllSignature(c *fiber.Ctx) error {
 	defer cancel()
 
 	projection := bson.M{
-		"_id":        1,
-		"name":       1,
-		"role":       1,
-		"created_at": 1,
-		"updated_at": 1,
-		"deleted_at": 1,
+		"_id":         1,
+		"config_name": 1,
+		"created_at":  1,
+		"updated_at":  1,
+		"deleted_at":  1,
 	}
 
 	cursor, err := collectionSignature.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
@@ -139,10 +140,11 @@ func EditSignature(c *fiber.Ctx) error {
 	filter := bson.M{"_id": signatureID}
 
 	var input struct {
-		Stamp     string `json:"stamp" valid:"required~Stamp tidak boleh kosong!"`
-		Signature string `json:"signature" valid:"required~Signature tidak boleh kosong!"`
-		Name      string `json:"name" valid:"required~Nama tidak boleh kosong!, stringlength(1|60)~Nama harus antara 1 hingga 60 karakter!"`
-		Role      string `json:"role" valid:"required~Role tidak boleh kosong!, stringlength(1|60)~Role harus antara 1 hingga 60 karakter!"`
+		ConfigName string `json:"config_name" bson:"config_name" valid:"required~Stamp tidak boleh kosong!"`
+		Stamp      string `json:"stamp" valid:"required~Stamp tidak boleh kosong!"`
+		Signature  string `json:"signature" valid:"required~Signature tidak boleh kosong!"`
+		Name       string `json:"name" valid:"required~Nama tidak boleh kosong!, stringlength(1|60)~Nama harus antara 1 hingga 60 karakter!"`
+		Role       string `json:"role" valid:"required~Role tidak boleh kosong!, stringlength(1|60)~Role harus antara 1 hingga 60 karakter!"`
 	}
 
 	var signatureData bson.M
@@ -164,11 +166,12 @@ func EditSignature(c *fiber.Ctx) error {
 
 	update := bson.M{
 		"$set": bson.M{
-			"stamp":      input.Stamp,
-			"signature":  input.Signature,
-			"name":       input.Name,
-			"role":       input.Role,
-			"updated_at": time.Now(),
+			"config_name": input.ConfigName,
+			"stamp":       input.Stamp,
+			"signature":   input.Signature,
+			"name":        input.Name,
+			"role":        input.Role,
+			"updated_at":  time.Now(),
 		},
 	}
 
