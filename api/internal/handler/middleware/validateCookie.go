@@ -13,11 +13,16 @@ import (
 
 // ValidateToken middleware
 func ValidateToken(c *fiber.Ctx) error {
-	// Retrieve the token from authToken header or cookies
+	// Retrieve the token from the Authorization header
 	tokenString := strings.TrimPrefix(c.Get("Authorization"), "Bearer ")
 	if tokenString == "" {
+		// If the token is not found in the header, check cookies
 		tokenString = c.Cookies("authToken") // Use a specific cookie name
 	}
+
+	// Debugging: Log the retrieved token
+	fmt.Println("Token from Authorization header:", tokenString)
+	fmt.Println("Token from cookies:", c.Cookies("authToken"))
 
 	// If token is missing, return unauthorized error
 	if tokenString == "" {
@@ -61,9 +66,6 @@ func ValidateToken(c *fiber.Ctx) error {
 
 	// Store the entire claims map in context for later use
 	c.Locals("admin", claims) // Store all claims in context
-
-	fmt.Println("Token from Authorization header:", tokenString)
-	fmt.Println("Token from cookies:", c.Cookies("authToken"))
 
 	// Proceed to the next middleware or handler
 	return c.Next()
