@@ -2,19 +2,24 @@ package generator
 
 import (
 	"certificate-generator/model"
+	"context"
+	"errors"
+	"fmt"
 	"html/template"
 	"log"
 	"math"
 	"os"
-	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/gofiber/fiber/v2"
 )
 
 var pdfg *wkhtmltopdf.PDFGenerator
-var zoom float64
+var mtx sync.Mutex
+var CreatingPDF = map[string]bool{}
 
 // functions for rendering html certificate
 var funcs = template.FuncMap{
@@ -40,7 +45,7 @@ var funcs = template.FuncMap{
 		if txtWidth > 120 {
 			scale = 120 / float64(txtWidth)
 		}
-		return int(math.Floor(scale * 48))
+		return int(math.Floor(scale * 64))
 	},
 	"parity": func(i int) int {
 		return i % 2
@@ -95,61 +100,106 @@ func init() {
 	pdfg.MarginLeft.Set(0)
 	pdfg.Dpi.Set(300)
 	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
-
-	zoom, err = strconv.ParseFloat(os.Getenv("PDF_ZOOM"), 64)
-	if err != nil {
-		log.Println(err, "\nenv PDF_ZOOM error, using default value 1")
-		zoom = 1
-	}
 }
 
-func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData) error {
+func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, certifType string) error {
+	ctx, cancel := context.WithTimeout(c.Context(), time.Minute)
+	defer cancel()
+	return createPDF(ctx, c, dataReq, certifType)
+}
+
+func createPDF(ctx context.Context, c *fiber.Ctx, dataReq *model.CertificateData, certifType string) error {
+	makeA := strings.Contains(certifType, "a")
+	makeB := strings.Contains(certifType, "b")
+	if !(makeA || makeB) {
+		return errors.New("CreatePDF: certifType isn't a or b")
+	}
+
+	// generate qrcode
+	link := fmt.Sprintf("%s://%s/assets/certificate/", c.Protocol(), c.Hostname())
+	encstr, err := GenerateQRCode(link, dataReq.DataID)
+	if err != nil {
+		return err
+	}
+	dataReq.QRCode = encstr
+
+	mtx.Lock()
+	CreatingPDF[dataReq.DataID+"-a"] = makeA
+	CreatingPDF[dataReq.DataID+"-b"] = makeB
+	defer func() {
+		CreatingPDF = map[string]bool{}
+	}()
+	defer mtx.Unlock()
+
+	select {
+	case <-ctx.Done():
+		return errors.New("CreatePDF: timeout exceeded")
+	default:
+		break
+	}
+
 	page1, err := makePage(c, dataReq, "page1")
 	if err != nil {
 		return err
 	} else {
 		defer removeFile(page1)
 	}
-	page2a, err := makePage(c, dataReq, "page2a")
+	page2a, err := func() (*wkhtmltopdf.Page, error) {
+		if !makeA {
+			return nil, nil
+		}
+		return makePage(c, dataReq, "page2a")
+	}()
 	if err != nil {
 		return err
-	} else {
+	} else if page2a != nil {
 		defer removeFile(page2a)
 	}
-	page2b, err := makePage(c, dataReq, "page2b")
+	page2b, err := func() (*wkhtmltopdf.Page, error) {
+		if !makeB {
+			return nil, nil
+		}
+		return makePage(c, dataReq, "page2b")
+	}()
 	if err != nil {
 		return err
-	} else {
+	} else if page2b != nil {
 		defer removeFile(page2b)
 	}
 
-	pdfg.ResetPages()
-	pdfg.AddPage(page1)
-	pdfg.AddPage(page2a)
-	if err := pdfg.Create(); err != nil {
-		return err
-	}
-	if err := pdfg.WriteFile("assets/certificate/" + dataReq.DataID + "-a.pdf"); err != nil {
-		return err
+	if makeA {
+		pdfg.ResetPages()
+		pdfg.AddPage(page1)
+		pdfg.AddPage(page2a)
+		if err := pdfg.Create(); err != nil {
+			return err
+		}
+		if err := pdfg.WriteFile("assets/certificate/" + dataReq.DataID + "-a.pdf"); err != nil {
+			return err
+		}
 	}
 
-	pdfg.ResetPages()
-	pdfg.AddPage(page1)
-	pdfg.AddPage(page2b)
-	if err := pdfg.Create(); err != nil {
-		return err
-	}
-	if err := pdfg.WriteFile("assets/certificate/" + dataReq.DataID + "-b.pdf"); err != nil {
-		return err
+	if makeB {
+		pdfg.ResetPages()
+		pdfg.AddPage(page1)
+		pdfg.AddPage(page2b)
+		if err := pdfg.Create(); err != nil {
+			return err
+		}
+		if err := pdfg.WriteFile("assets/certificate/" + dataReq.DataID + "-b.pdf"); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func makePage(c *fiber.Ctx, dataReq *model.CertificateData, pageName string) (*wkhtmltopdf.Page, error) {
-	if t, err := template.New(pageName).Funcs(funcs).ParseFiles("assets/" + pageName + ".html"); err != nil {
+	t, err := template.New("").Funcs(funcs).ParseFiles("assets/"+pageName+".html", "assets/style.html")
+	if err != nil {
 		return nil, err
-	} else if err := t.Execute(c.Response().BodyWriter(), *dataReq); err != nil {
+	}
+	if err := t.ExecuteTemplate(c.Response().BodyWriter(), pageName, *dataReq); err != nil {
 		return nil, err
 	}
 
@@ -168,7 +218,6 @@ func makePage(c *fiber.Ctx, dataReq *model.CertificateData, pageName string) (*w
 	c.Response().Reset()
 
 	page := wkhtmltopdf.NewPage(fileName)
-	page.Zoom.Set(zoom)
 	return page, nil
 }
 
