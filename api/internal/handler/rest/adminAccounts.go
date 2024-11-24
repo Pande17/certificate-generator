@@ -27,7 +27,7 @@ func SignUp(c *fiber.Ctx) error {
 
 	// Parse the request body
 	if err := c.BodyParser(&adminReq); err != nil {
-		return BadRequest(c, "Data yang dimasukkan tidak valid!", err.Error())
+		return BadRequest(c, "Data yang dimasukkan tidak valid! Mohon diperiksa kembali!", err.Error())
 	}
 
 	// Validate the input data using govalidator
