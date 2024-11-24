@@ -62,6 +62,9 @@ func ValidateToken(c *fiber.Ctx) error {
 	// Store the entire claims map in context for later use
 	c.Locals("admin", claims) // Store all claims in context
 
+	fmt.Println("Token from Authorization header:", tokenString)
+	fmt.Println("Token from cookies:", c.Cookies("authToken"))
+
 	// Proceed to the next middleware or handler
 	return c.Next()
 }
