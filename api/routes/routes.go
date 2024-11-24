@@ -18,7 +18,7 @@ func RouteSetup(r *fiber.App) {
 
 	// CORS Middleware setup
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:5173",                               // Replace with your frontend URL
+		AllowOrigins:     "*",                               // Replace with your frontend URL
 		AllowMethods:     "GET,POST,PUT,DELETE",                                 // Allowed HTTP methods
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, Cookie", // Allowed headers
 		ExposeHeaders:    "Authorization, Cookie",
@@ -57,17 +57,14 @@ func RouteSetup(r *fiber.App) {
 	api.Put("/certiticate/:id", TEMPlate)
 	api.Delete("/certificate/:id", rest.DeleteCertificate)
 
-	r.Get("/assets/certificate/:id/:type", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.DownloadCertificate, rest.GetCertificateByID)
-
-	// temporary, remove later
-	api.Post("/checkpdf", rest.CheckPDF)
-
 	// define routes for management signature configuration
-	api.Post("/signature", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.CreateSignature)
-	api.Get("/signature", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.GetSignature)
-	api.Get("/signature/:id", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.GetSignature)
-	api.Put("/signature/:id", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.EditSignature)
-	api.Delete("/signature/:id", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.DeleteSignature)
+	api.Post("/signature", rest.CreateSignature)
+	api.Get("/signature", rest.GetSignature)
+	api.Get("/signature/:id", rest.GetSignature)
+	api.Put("/signature/:id", rest.EditSignature)
+	api.Delete("/signature/:id", rest.DeleteSignature)
+
+	r.Get("/assets/certificate/:type/:id", rest.DownloadCertificate, rest.GetCertificateByID)
 }
 
 func TEMPlate(c *fiber.Ctx) error {
