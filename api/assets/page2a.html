@@ -8,324 +8,138 @@
 	<title>Sertifikat BTW Edutech{{if ne .NamaPeserta ""}} - {{.NamaPeserta}}{{end}}</title>
 </head>
 
-<style>
-	@font-face {
-		font-family: 'montecarlo';
-		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928092/aset%20pdf/font/benojrx8nj3xr65bdo6l.ttf);
-	}
-
-	@font-face {
-		font-family: 'gilroy-bold';
-		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928058/aset%20pdf/font/cfsykfkdicisorjoy7jj.ttf);
-	}
-
-	@font-face {
-		font-family: 'gilroy-medium';
-		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928018/aset%20pdf/font/ci72w1jhyllp3cmwpdo3.ttf);
-	}
-
-	@font-face {
-		font-family: 'vollkorn';
-		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928253/aset%20pdf/font/xlhzm5hxsqvdhsrpduzb.ttf);
-	}
-
-	* {
-		text-align: center;
-	}
-
-	body {
-		margin: 0;
-		padding: 0;
-		position: relative;
-	}
-
-	.pageW {
-		width: 17.5cm;
-	}
-
-	.pageH {
-		height: 27.2cm;
-	}
-
-	.certificate-wrapper {
-		display: block;
-		margin: 0 auto;
-		min-width: 21cm;
-		max-width: 21cm;
-		min-height: 29.7cm;
-		max-height: 29.7cm;
-		display: inline-block;
-		overflow: hidden;
-		margin: 0;
-		position: relative;
-		width: inherit;
-		height: inherit;
-		background-image: url(https://res.cloudinary.com/dektxbmmb/image/upload/v1727836212/aset%20pdf/w71uldhrqtl6v4rrqjht.png);
-		padding: 0.75cm;
-		box-sizing: border-box;
-	}
-
-	.certificate-wrapper::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-image: url(https://res.cloudinary.com/dektxbmmb/image/upload/v1727833020/aset%20pdf/soona09ynlokvggurfiu.png);
-		background-position: center;
-		background-repeat: no-repeat;
-		background-size: cover;
-		opacity: 1;
-		z-index: 1;
-	}
-
-	.pattern {
-		position: absolute;
-		left: 0;
-		width: 100%;
-		z-index: -1;
-	}
-
-	.top {
-		top: 0;
-	}
-
-	.bottom {
-		bottom: 0;
-	}
-
-	.certificate-card {
-		position: relative;
-		z-index: 100;
-		margin: 20px;
-		padding: 0.5cm 1cm;
-		min-width: 17.5cm;
-		max-width: 17.5cm;
-		min-height: 27.2cm;
-		max-height: 27.2cm;
-		margin: 0 auto;
-		background-color: white;
-		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-		text-align: center;
-		justify-content: center;
-		align-items: center;
-	}
-
-	.certificate-badge img {
-		width: 250px;
-		margin-top: 33px;
-		margin-bottom: -15px;
-	}
-
-	header {
-		width: 100%;
-		margin: 0 auto;
-		padding: 10px 0;
-		gap: 35px;
-	}
-
-	header img {
-		width: 70px;
-	}
-
-	header h1,
-	header h2 {
-		font-family: 'vollkorn';
-		color: rgb(17, 17, 211);
-	}
-
-	header p {
-		font-family: 'gilroy-medium';
-	}
-
-	.desk h2 {
-		max-width: 40vh;
-		text-align: center;
-		font-size: 13.2px;
-	}
-
-	.desk h1 {
-		text-align: center;
-		margin-top: -17px;
-		margin-bottom: -14px;
-		font-size: 21.5px;
-	}
-
-	.desk p {
-		font-family: 'gilroy-medium';
-		font-size: 10px;
-	}
-
-	.certificate-badge img {
-		width: 30px;
-	}
-
-	.certificate-badge h1 {
-		line-height: 37px;
-		font-size: 36px;
-		font-family: 'vollkorn';
-		color: rgb(17, 17, 211);
-	}
-
-	.certificate-badge h3 {
-		font-size: 16px;
-		color: rgb(17, 17, 211);
-		margin-top: -20px;
-		margin-bottom: 20px;
-		font-family: 'gilroy-medium';
-	}
-
-	.badge img {
-		width: 320px;
-		align-items: center;
-		justify-content: center;
-		z-index: inherit;
-	}
-
-	nama {
-		height: fit-content;
-		display: inline-block;
-	}
-
-	nama h1 {
-		font-family: 'montecarlo';
-		margin: 0 auto -0.3em;
-		font-weight: 100;
-	}
-
-	competence p {
-		font-family: 'gilroy-medium';
-		margin-bottom: 5px;
-	}
-
-	cdesk p {
-		margin: 2px;
-	}
-
-	competence h1 {
-		font-size: 24px;
-		color: rgb(17, 17, 211);
-		font-family: 'vollkorn';
-	}
-
-	expired {
-		font-size: small;
-		font-family: 'gilroy-medium';
-	}
-
-	.certificate-signature {
-		margin-top: 60px;
-	}
-
-	.certificate-signature img {
-		margin: 20px -40px 20px -60px;
-	}
-
-	.certificate-signature p {
-		font-family: 'gilroy-medium';
-		font-size: small;
-		margin: 5px 0;
-		color: #333;
-	}
-
-	.desk-sg p {
-		font-size: medium;
-		font-family: 'gilroy-bold';
-		color: rgb(255, 157, 0);
-	}
-
-	.role p {
-		font-family: 'gilroy-bold';
-	}
-
-	qr {
-		font-family: 'gilroy-bold';
-		font-size: 10px;
-		margin-top: -80px;
-	}
-
-	qr img {
-		width: 90px;
-	}
-
-	qr p {
-		margin-top: 5px;
-	}
-
-	.badge h1 {
-		font-size: 14px;
-	}
-</style>
+{{template "style"}}
 
 <style>
 	.certificate-card div {
 		margin-bottom: 10px;
 	}
 
-	.metadata-table, .sktable, .scaleTable, .finScorTable {
+	.metadata-table,
+	.sktable,
+	.scaleTable,
+	.finScorTable {
 		border-bottom: solid 1.5px #dedede;
 		border-spacing: 0;
+		font-family: 'gilroy-regular';
 	}
 
-	div .metadata-table, div .sktable, div .scaleTable, div .finScorTable {
-		margin-bottom: 12px;
+	div .metadata-table,
+	div .sktable {
+		margin-bottom: 16px;
 	}
 
-	.metadata-table th, .sktable th, .scaleTable th, .finScorTable th {
+	div .scaleTable,
+	div .finScorTable {
+		margin-bottom: 0;
+	}
+
+	.metadata-table th,
+	.sktable th,
+	.scaleTable th,
+	.finScorTable th {
 		background-color: #3939bc;
 		color: white;
-		padding: 5px;
+		padding: 5px 20px;
+		font-size: 24px;
+		font-weight: 100;
 	}
 
-	.metadata-table td, .sktable td, .scaleTable td, .finScorTable td {
+	.metadata-table td,
+	.sktable td {
 		border-left: solid 1.5px #dedede;
 		border-right: solid 1.5px #dedede;
 		padding: 10px;
-		font-size: 11px;
+		font-size: 16px;
+	}
+
+	.scaleTable td {
+		border-left: solid 1.5px #dedede;
+		border-right: solid 1.5px #dedede;
+		padding: 5px 20px;
+		font-size: 14px;
 	}
 
 	.titleheader th {
 		display: inline-block;
-		font-family: 'vollkorn';
+		font-family: 'vollkorn', serif;
 		color: #3939bc;
-		font-size: 36px;
-		margin: auto 6px;
+		font-size: 48px;
+		margin: auto 8px;
 	}
 
 	.descs {
 		width: 40%;
 		text-align: left;
-		font-size: 10px;
+		font-size: 14px;
 	}
 
 	.descs span {
-		padding-bottom: 3px;
+		padding-bottom: 4px;
 	}
 
-	/* bg for odd cells */
 	.cell0 {
 		background-color: white;
 	}
 
-	/* bg for even cells */
 	.cell1 {
 		background-color: #f1f3f4;
 	}
 
+	.label {
+		display: inline-block;
+		position: relative;
+		width: 150px;
+		padding: 2px;
+	}
+
+	.labellft {
+		width: 100px;
+		text-align: left;
+	}
+
+	.bg-red {
+		background-color: #941570;
+		color: white;
+	}
+
+	.bg-ylw {
+		background-color: #da9a1d;
+		color: white;
+	}
+
+	.bg-grn {
+		background-color: #15942a;
+		color: white;
+	}
+
+	.bg-blu {
+		background-color: #229ec5;
+		color: white;
+	}
+
 	.scaleTable,
 	.finScorTable {
+		width: 100%;
+	}
+
+	.scoreLbl {
 		display: inline-block;
+		width: 240px;
+		padding: 10px 0;
+		font-weight: 900;
 	}
 
-	.scaleTable tr th,
-	.scaleTable tr td {
-		width: 100%;
+	.footer {
+		position: absolute;
+		bottom: 20px;
+		font-size: 14px;
 	}
 
-	.finScorTable tr th,
-	.finScorTable tr td {
-		width: 100%;
+	.footer td {
+		display: inline-block;
+		margin-right: 1%;
+		vertical-align: top;
 	}
 </style>
 
@@ -342,7 +156,7 @@
 							src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833019/aset%20pdf/pnu45hydtyftsfxlqaxm.png"
 							alt="" width="50" />
 					</th>
-					<th style="margin-top: -5px;">
+					<th style="margin-top: -8px;">
 						Kompetensi Peserta
 					</th>
 				</tr>
@@ -351,13 +165,13 @@
 			<div>
 				<table class="metadata-table pageW">
 					<tr>
-						<th colspan="2">{{.Kompetensi}}</th>
-						<th>Kompeten</th>
+						<th style="width: 80%;" colspan="2">{{.Kompetensi}}</th>
+						<th style="width: 20%; font-weight: 900; background-color: #15942a;">Kompeten</th>
 					</tr>
 					<tr>
-						<td><b>Total {{.TotalJP}} JP</b></td>
-						<td><b>{{.TotalMeet}} Pertemuan</b></td>
-						<td><b>{{.MeetTime}}</b></td>
+						<td class="cell0" style="width: 30%; text-align: left;"><b>Total {{.TotalJP}} JP</b></td>
+						<td class="cell0" style="width: 50%; text-align: left;"><b>{{.TotalMeet}} Pertemuan</b></td>
+						<td class="cell0" style="width: 20%; text-align: left;"><b>{{.MeetTime}}</b></td>
 					</tr>
 				</table>
 			</div>
@@ -366,17 +180,17 @@
 			<div>
 				<table class="sktable pageW">
 					<tr>
-						<th colspan="2">Kompetensi Hard Skill</th>
-						<th style="width: 10%;">{{.TotalSkillJP}} JP</th>
-						<th style="width: 10%;">{{.TotalSkillScore}}</th>
+						<th colspan="2" style="text-align: left;">Kompetensi Hard Skill</th>
+						<th style="width: 10%; padding: 0;">{{.TotalSkillJP}} JP</th>
+						<th style="width: 10%; font-weight: 900;">{{.TotalSkillScore}}</th>
 					</tr>
 					{{range $i, $skill := .Skills}}
 					<tr class="cell{{parity $i}}">
-						<td style="width: 40%; text-align: left;">{{add $i 1}}. {{.SkillName}}</td>
-						<td class="descs">
+						<td style="width: 30%; text-align: left;">{{add $i 1}}. {{.SkillName}}</td>
+						<td class="descs" style="width: 50%; font-size: 14px;">
 							{{range .SkillDescs}}
 							<b>{{.UnitCode}} - </b>
-							{{.UnitTitle}} <br />
+							<span style="color: grey;">{{.UnitTitle}}</span> <br />
 							{{end}}
 						</td>
 						<td style="width: 10%;"><b>{{.SkillJP}} JP</b></td>
@@ -391,19 +205,19 @@
 			<div>
 				<table class="sktable pageW">
 					<tr>
-						<th colspan="2" style="width: 80%;">Kompetensi Soft Skill</th>
-						<th style="width: 10%;">{{.TotalSkillJP}} JP</th>
-						<th style="width: 10%;">{{.TotalSkillScore}}</th>
+						<th colspan="2" style="text-align: left;">Kompetensi Soft Skill</th>
+						<th style="width: 10%; padding: 0;">{{.TotalSkillJP}} JP</th>
+						<th style="width: 10%; font-weight: 900;">{{.TotalSkillScore}}</th>
 					</tr>
 					{{range $i, $skill := .Skills}}
 					<tr class="cell{{parity $i}}">
-						<td style="width: 40%; text-align: left;">{{add $i 1}}. {{.SkillName}}</td>
-						<td class="descs">
+						<td style="width: 30%; text-align: left;">{{add $i 1}}. {{.SkillName}}</td>
+						<td class="descs" style="width: 50%; font-size: 14px;">
 							{{range .SkillDescs}}
 							<span>
 								<b>{{.UnitCode}} - </b>
-								{{.UnitTitle}} </span> <br />
-							{{end}}
+								<span style="color: grey;">{{.UnitTitle}}</span> <br />
+								{{end}}
 						</td>
 						<td style="width: 10%;"><b>{{.SkillJP}} JP</b></td>
 						<td style="width: 10%;"><b>{{.SkillScore}}</b></td>
@@ -413,61 +227,89 @@
 			</div>
 			{{end}} {{end}}
 
-			<div class="pageW">
-				<div style="width: 37.5%;">
+			<div class="pageW" style="vertical-align: top;">
+				<div style="display: inline-block; width: 37.5%; vertical-align: top; margin-right: 4%;">
 					<table class="scaleTable">
 						<tr>
-							<th>Skala Nilai</th>
+							<th style="width: 100%;">Skala Nilai</th>
 						</tr>
-						<tr>
-							<td>
-								0 - 2.4
-								<span>Perlu Perbaikan</span>
+						<tr class="cell1">
+							<td style="width: 100%;">
+								<span class="label labellft">0 - 2.4</span>
+								<span class="label bg-red">Perlu Perbaikan</span>
 							</td>
 						</tr>
-						<tr>
-							<td>
-								2.5 - 3.5
-								<span>Cukup</span>
+						<tr class="cell0">
+							<td style="width: 100%;">
+								<span class="label labellft">2.5 - 3.5</span>
+								<span class="label bg-ylw">Cukup</span>
 							</td>
 						</tr>
-						<tr>
-							<td>
-								3.6 - 4.5
-								<span>Memuaskan</span>
+						<tr class="cell1">
+							<td style="width: 100%;">
+								<span class="label labellft">3.6 - 4.5</span>
+								<span class="label bg-grn">Memuaskan</span>
 							</td>
 						</tr>
-						<tr>
-							<td>
-								4.6 - 5
-								<span>Dengan Pujian</span>
+						<tr class="cell0">
+							<td style="width: 100%;">
+								<span class="label labellft">4.6 - 5</span>
+								<span class="label bg-blu">Dengan Pujian</span>
 							</td>
 						</tr>
 					</table>
 				</div>
 
-				<div style="width: 57.5%;">
+				<div style="display: inline-block; width: 57.5%; vertical-align: top;">
 					<table class="finScorTable">
 						<tr>
-							<th>Nilai Akhir Soft Skill & Hard Skill</th>
+							<th style="width: 100%;">Nilai Akhir Soft Skill & Hard Skill</th>
 						</tr>
 						<tr>
-							<th>
-								{{.FinalSkor}}
+							<th style="background-color: #5454d5; width: 100%; height: 80px;">
+								<span
+									style="font-family: 'gilroy-bold'; font-size: 48px; font-weight: 900; vertical-align: middle; margin-right:20px;">{{.FinalSkor}}</span>
 								{{if gt .FinalSkor 4.5}}
-								<span>Dengan Pujian</span>
+								<span class="scoreLbl bg-blu" style="vertical-align: middle;">Dengan Pujian</span>
 								{{else if gt .FinalSkor 3.5}}
-								<span>Memuaskan</span>
+								<span class="scoreLbl bg-grn" style="vertical-align: middle;">Memuaskan</span>
 								{{else if gt .FinalSkor 2.4}}
-								<span>Cukup</span>
+								<span class="scoreLbl bg-ylw" style="vertical-align: middle;">Cukup</span>
 								{{else}}
-								<span>Perlu Perbaikan</span>
+								<span class="scoreLbl bg-red" style="vertical-align: middle;">Perlu Perbaikan</span>
 								{{end}}
 							</th>
 						</tr>
 					</table>
 				</div>
 			</div>
+
+			<table class="footer pageW bottom">
+				<tr>
+					<td style="text-align: right; vertical-align: middle;">
+						<img
+							src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833019/aset%20pdf/pnu45hydtyftsfxlqaxm.png"
+							width="48px" />
+					</td>
+					<td style="text-align: left; width: 15%; vertical-align: middle;">
+						<span style="font-family: 'vollkorn', serif; font-weight: 700">LKP BINA TARUNA WIRATAMA</span>
+						<br />
+						<span style="font-family: 'gilroy-regular'"><b>NPSN</b>- K9998824</span>
+					</td>
+					<td style="text-align: right; width: 12%;">
+						<span><b>Alamat Kami:</b></span>
+					</td>
+					<td style="text-align: left; width: 35%;">
+						<span>Jl. Bypass Ngurah Rai No.176, Sanur Kaja, Denpasar Selatan, Kota Denpasar, Bali 80228</span>
+					</td>
+					<td style="text-align: right; width: 10%;">
+						<span><b>Website:</b></span>
+					</td>
+					<td style="text-align: left; width: 13%">
+						<span>www.lkpbtw.com</span>
+					</td>
+				</tr>
+			</table>
 
 			<img src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727850035/aset%20pdf/i28faklkktmzo3t4pcni.png"
 				alt="" class="pattern bottom" />

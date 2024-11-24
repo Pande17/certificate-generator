@@ -8,130 +8,35 @@
 	<title>Sertifikat BTW Edutech{{if ne .NamaPeserta ""}} - {{.NamaPeserta}}{{end}}</title>
 </head>
 
+{{template "style"}}
+
 <style>
-	@font-face {
-		font-family: 'montecarlo';
-		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928092/aset%20pdf/font/benojrx8nj3xr65bdo6l.ttf);
-	}
-
-	@font-face {
-		font-family: 'gilroy-bold';
-		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928058/aset%20pdf/font/cfsykfkdicisorjoy7jj.ttf);
-	}
-
-	@font-face {
-		font-family: 'gilroy-medium';
-		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928018/aset%20pdf/font/ci72w1jhyllp3cmwpdo3.ttf);
-	}
-
-	@font-face {
-		font-family: 'vollkorn';
-		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928253/aset%20pdf/font/xlhzm5hxsqvdhsrpduzb.ttf);
-	}
-
-	* {
-		text-align: center;
-	}
-
-	body {
-		margin: 0;
-		padding: 0;
-		position: relative;
-	}
-
-	.pageW {
-		width: 17.5cm;
-	}
-
-	.pageH {
-		height: 27.2cm;
-	}
-
-	.certificate-wrapper {
-		display: block;
-		margin: 0 auto;
-		min-width: 21cm;
-		max-width: 21cm;
-		min-height: 29.7cm;
-		max-height: 29.7cm;
-		display: inline-block;
-		overflow: hidden;
-		margin: 0;
-		position: relative;
-		width: inherit;
-		height: inherit;
-		background-image: url(https://res.cloudinary.com/dektxbmmb/image/upload/v1727836212/aset%20pdf/w71uldhrqtl6v4rrqjht.png);
-		padding: 0.75cm;
-		box-sizing: border-box;
-	}
-
-	.certificate-wrapper::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-image: url(https://res.cloudinary.com/dektxbmmb/image/upload/v1727833020/aset%20pdf/soona09ynlokvggurfiu.png);
-		background-position: center;
-		background-repeat: no-repeat;
-		background-size: cover;
-		opacity: 1;
-		z-index: 1;
-	}
-
-	.pattern {
-		position: absolute;
-		left: 0;
+	.headerTitle {
+		margin: -0.4em auto 0;
 		width: 100%;
-		z-index: -1;
-	}
-
-	.top {
-		top: 0;
-	}
-
-	.bottom {
-		bottom: 0;
-	}
-
-	.certificate-card {
-		position: relative;
-		z-index: 100;
-		margin: 20px;
-		padding: 0.5cm 1cm;
-		min-width: 17.5cm;
-		max-width: 17.5cm;
-		min-height: 27.2cm;
-		max-height: 27.2cm;
-		margin: 0 auto;
-		background-color: white;
-		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 		text-align: center;
-		justify-content: center;
-		align-items: center;
 	}
 
 	.certificate-badge img {
-		width: 250px;
-		margin-top: 33px;
-		margin-bottom: -15px;
+		width: 333.33px;
+		margin-top: 44px;
+		margin-bottom: -20px;
 	}
 
 	header {
 		width: 100%;
 		margin: 0 auto;
-		padding: 10px 0;
-		gap: 35px;
+		padding: 13.33px 0;
+		gap: 48px;
 	}
 
 	header img {
-		width: 70px;
+		width: 96px;
 	}
 
 	header h1,
 	header h2 {
-		font-family: 'vollkorn';
+		font-family: 'vollkorn', serif;
 		color: rgb(17, 17, 211);
 	}
 
@@ -142,42 +47,41 @@
 	.desk h2 {
 		max-width: 40vh;
 		text-align: center;
-		font-size: 13.2px;
+		font-size: 18px;
 	}
 
 	.desk h1 {
 		text-align: center;
-		margin-top: -17px;
-		margin-bottom: -14px;
-		font-size: 21.5px;
+		margin: -22px auto;
+		font-size: 28px;
 	}
 
 	.desk p {
 		font-family: 'gilroy-medium';
-		font-size: 10px;
+		font-size: 13px;
 	}
 
 	.certificate-badge img {
-		width: 30px;
+		width: 40px;
 	}
 
 	.certificate-badge h1 {
-		line-height: 37px;
-		font-size: 36px;
+		line-height: 48px;
+		font-size: 48px;
 		font-family: 'vollkorn';
 		color: rgb(17, 17, 211);
 	}
 
 	.certificate-badge h3 {
-		font-size: 16px;
+		font-size: 20px;
 		color: rgb(17, 17, 211);
-		margin-top: -20px;
-		margin-bottom: 20px;
+		margin-top: -26.66px;
+		margin-bottom: 26.66px;
 		font-family: 'gilroy-medium';
 	}
 
 	.badge img {
-		width: 320px;
+		width: 416.66px;
 		align-items: center;
 		justify-content: center;
 		z-index: inherit;
@@ -196,65 +100,62 @@
 
 	competence p {
 		font-family: 'gilroy-medium';
-		margin-bottom: 5px;
+		margin-bottom: 8px;
 	}
 
 	cdesk p {
-		margin: 2px;
+		margin: 4px;
 	}
 
 	competence h1 {
-		font-size: 24px;
+		font-size: 36px;
 		color: rgb(17, 17, 211);
-		font-family: 'vollkorn';
+		font-family: 'vollkorn', serif;
 	}
 
 	expired {
-		font-size: small;
 		font-family: 'gilroy-medium';
 	}
 
 	.certificate-signature {
-		margin-top: 60px;
-	}
-
-	.certificate-signature img {
-		margin: 20px -40px 20px -60px;
+		margin-top: 80px;
 	}
 
 	.certificate-signature p {
 		font-family: 'gilroy-medium';
-		font-size: small;
-		margin: 5px 0;
+		margin: 8px 0;
 		color: #333;
 	}
 
-	.desk-sg p {
-		font-size: medium;
-		font-family: 'gilroy-bold';
-		color: rgb(255, 157, 0);
+	.certificate-signature img {
+		margin: 27px -54px 27px -80px;
 	}
 
-	.role p {
+	.desk-wrapper {
 		font-family: 'gilroy-bold';
+		font-size: 24px;
 	}
 
 	qr {
 		font-family: 'gilroy-bold';
-		font-size: 10px;
-		margin-top: -80px;
+		font-size: 13px;
+		margin-top: -108px;
 	}
 
 	qr img {
-		width: 90px;
+		width: 120px;
 	}
 
 	qr p {
-		margin-top: 5px;
+		margin-top: 8px;
 	}
 
 	.badge h1 {
-		font-size: 14px;
+		font-size: 18px;
+	}
+
+	.qrNDesk {
+		font-size: 20px;
 	}
 </style>
 
@@ -272,14 +173,14 @@
 								alt="" width="80" />
 						</td>
 						<td style="width: 75%">
-							<h2 style="margin: -8px auto 0; font-weight: 900; width: 100%; text-align: center">
+							<h2 class="headerTitle" style="font-weight: 900;">
 								{{range splittxt "DIREKTORAT DAN PELATIHAN"}}<span
-									style="margin:auto 3px; font-size: 20px;">{{.}}</span>{{end}}
+									style="margin:auto 4px; font-size: 27px;">{{.}}</span>{{end}}
 							</h2>
-							<h1 style="margin: -16px auto 0; font-weight: 900; width: 100%; text-align: center">
+							<h1 class="headerTitle" style="font-weight: 900">
 								{{range splittxt "LKP BINA TARUNA WIRATAMA"}}<span
-									style="margin:auto 2px; font-size: 24px;">{{.}}</span>{{end}}</h1>
-							<p style="margin: -8px auto 0; font-size: 14px; width: 100%; text-align: center">
+									style="margin:auto 3px; font-size: 32px;">{{.}}</span>{{end}}</h1>
+							<p class="headerTitle" style="font-size: 18px">
 								SK. Ijin Operasi:570/IPS-PNF/0051/IX/DPMPTSP/2023 | NPSN: K9998824</p>
 						</td>
 						<td style="width: 12.5%">
@@ -298,17 +199,17 @@
 							alt="" />
 					</tr>
 					<tr>
-						<div class="testii pageW" style="margin-top: 40px; margin-bottom: 40px">
-							<h1 style="font-size: 40px; margin-bottom: 20px">
-								{{range splittxt "SERTIFIKAT"}}<span style="margin:auto 2px;">{{.}}</span>{{end}}
+						<div class="pageW" style="margin: 54px auto;">
+							<h1 style="font-size: 54px; margin-bottom: 27px">
+								{{range splittxt "SERTIFIKAT"}}<span style="margin:auto 3px;">{{.}}</span>{{end}}
 							</h1>
-							<h1 style="font-size: 40px; margin-bottom: 20px; text-transform: uppercase;">
-								{{range splittxt .SertifName}}<span style="margin:auto 2px;">{{.}}</span>{{end}}
+							<h1 style="font-size: 54px; margin-bottom: 27px; text-transform: uppercase;">
+								{{range splittxt .SertifName}}<span style="margin:auto 3px;">{{.}}</span>{{end}}
 							</h1>
 						</div>
 					</tr>
 					<tr>
-						<h3 style="font-size: 20px">
+						<h3 style="font-size: 27px">
 							S.{{.KodeReferral.ReferralID}}/{{.KodeReferral.Divisi}}/LKP-BTW/{{.KodeReferral.BulanRilis}}/{{.KodeReferral.TahunRilis}}
 						</h3>
 					</tr>
@@ -321,53 +222,49 @@
 			<nama>
 				<h1 style="font-size:{{rangecheck .NamaPeserta}}px">{{.NamaPeserta}}</h1>
 				<img src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833019/aset%20pdf/thqn0gphsby9trmhorvg.png"
-					alt="" width="600px" />
+					alt="" width="800px" />
 			</nama>
-			<competence>
-				<cdesk>
-					<p style="margin: 20px 0 0 0">
-						Telah Mengikuti Pelatihan Berbasis {{.SKKNI}},
-						<br />
-						untuk kompetensi:
-						<br />
-						<br />
+			<div style="font-size: 20px;">
+				<competence>
+					<cdesk>
+						<p style="margin: 0; margin-top: 27px;">
+							Telah Mengikuti Pelatihan Berbasis {{.SKKNI}},
+							<br />
+							untuk kompetensi:
+						</p>
+					</cdesk>
+					<h1>
+						{{.Kompetensi}}
+					</h1>
+				</competence>
+				<expired>
+					<p>
+						Sertifikat ini berlaku untuk <strong>{{.ValidDate.ValidTotal}}</strong> <br />
+						<strong>({{.ValidDate.ValidStart}} - {{.ValidDate.ValidEnd}})</strong>
 					</p>
-				</cdesk>
-				<h1>
-					{{.Kompetensi}}
-				</h1>
-			</competence>
-			<expired>
-				<p>
-					Sertifikat ini berlaku untuk <strong>{{.ValidDate.ValidTotal}}</strong> <br />
-					<strong>({{.ValidDate.ValidStart}} - {{.ValidDate.ValidEnd}})</strong>
-				</p>
-			</expired>
-			<div class="certificate-signature">
-				<p>{{.Validation}}</p>
-				<signature>
-					<img
-						src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833018/aset%20pdf/neyzwqnb4rr7iuzpcwd9.png"
-						alt="" style="position: relative; opacity: 60%; z-index: 1; width: 110px" />
-					<img
-						src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833019/aset%20pdf/ah6bumzro6zsysr2wcat.png"
-						alt="" style="position: relative; z-index: 2" />
-				</signature>
+				</expired>
+				<div class="certificate-signature">
+					<p>{{.Validation}}</p>
+					<div>
+						<img
+							src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833018/aset%20pdf/neyzwqnb4rr7iuzpcwd9.png"
+							alt="" style="position: relative; opacity: 75%; z-index: 3; height: 4cm;" />
+						<img
+							src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833019/aset%20pdf/ah6bumzro6zsysr2wcat.png"
+							alt="" style="position: relative; z-index: 2; height: 4cm;" />
+					</div>
+				</div>
 			</div>
 			<div class="qrNdesk">
-				<qr style="position: absolute; bottom: 20px; left: 30px">
+				<qr style="position: absolute; bottom: 0.66cm; left: 1.33cm">
 					<img src="data:image/png;base64, {{html .QRCode}} " alt="" />
-					<p>ID: {{.DataID}}</p>
+					<p style="font-family: 'Roboto Mono', monospace; font-size: 18px;">ID: {{.DataID}}</p>
 				</qr>
 				<div class="desk-wrapper">
-					<div class="desk-sg" style="margin-bottom: -11px">
-						<p>
-							<strong>Dr. Ir. Standly J. E. Suwandhi, A.TD., M.T., CI.</strong>
-						</p>
-					</div>
-					<div class="role" style="margin-bottom: 25px">
-						<p>Pimpinan LKP Bina Taruna Wiratama</p>
-					</div>
+					<p style="margin-bottom: -16px; color: rgb(255, 157, 0)">
+						<strong>Dr. Ir. Standly J. E. Suwandhi, A.TD., M.T., CI.</strong>
+					</p>
+					<p style="margin-bottom: -16px;">Pimpinan LKP Bina Taruna Wiratama</p>
 				</div>
 			</div>
 			<img src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727850035/aset%20pdf/i28faklkktmzo3t4pcni.png"
