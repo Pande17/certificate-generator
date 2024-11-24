@@ -30,7 +30,7 @@ func RouteSetup(r *fiber.App) {
 
 	// Define routes for authentication
 	api.Post("/signup", rest.SignUp)                              // Route for signing up admin
-	api.Post("/login", rest.Login)                                // Route for admin login
+	api.Post("/login", middleware.ValidateToken, middleware.AuditMiddleware("Account"), rest.Login)                                // Route for admin login
 	api.Get("/validate", middleware.ValidateToken, rest.Validate) // Route to check cookie from admin
 	api.Post("/logout", rest.Logout)                              // Route to logout from account
 
@@ -52,7 +52,7 @@ func RouteSetup(r *fiber.App) {
 
 	// define routes for management certificate data
 	api.Post("/certificate", rest.CreateCertificate)
-	api.Get("/certificate", rest.GetAllCertificates)
+	api.Get("/certificate", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.GetAllCertificates)
 	api.Get("/certificate/:id", rest.GetCertificateByID)
 	api.Put("/certiticate/:id", TEMPlate)
 	api.Delete("/certificate/:id", rest.DeleteCertificate)

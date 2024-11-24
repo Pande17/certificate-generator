@@ -181,7 +181,7 @@
         {/* Modal for Edit */}
         <Modal
           title="Edit Sertifikat"
-          open={isEditModalVisible}
+          open  ={isEditModalVisible}
           onCancel={() => setIsEditModalVisible(false)}
           footer={null}
         >

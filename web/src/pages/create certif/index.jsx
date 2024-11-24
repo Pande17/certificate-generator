@@ -117,7 +117,7 @@ function MyForm() {
             total_skill_score: totalSkillScore, // Replace with actual computation if necessary
           },
           signature: {
-            
+
           },
           total_jp:
             (formData.hardSkill?.reduce(
@@ -556,7 +556,7 @@ function MyForm() {
                 </Option>
                 {signatureData.map((signature) => (
                   <Option key={signature._id} value={signature._id}>
-                    {signature.name}
+                    {signature.config_signature}
                   </Option>
                 ))}
               </Select>
