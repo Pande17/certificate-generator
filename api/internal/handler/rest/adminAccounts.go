@@ -157,18 +157,22 @@ func Login(c *fiber.Ctx) error {
 		return BadRequest(c, "Login gagal!", "Can not use SECRET key")
 	}
 
+	// Debugging: Log the generated token
+	fmt.Println("Generated Token:", tokenString)
+
 	// set a cookie for admin
 	c.Cookie(&fiber.Cookie{
-		Name:     "Authorization",
+		Name:     "authToken",
 		Value:    tokenString,
 		Expires:  time.Now().Add(24 * time.Hour * 30),
 		HTTPOnly: true,
-		Secure:   false,
+		Secure:   true,
+		SameSite: "None",
 		Path:     "/",
 	})
 
 	// return success
-	return OK(c, "Berhasil Login", admin)
+	return OK(c, "Login berhasil!", tokenString)
 }
 
 // Function to Validate checks if the user has a valid authentication cookie
@@ -188,7 +192,7 @@ func Validate(c *fiber.Ctx) error {
 // Function to logout
 func Logout(c *fiber.Ctx) error {
 	c.Cookie(&fiber.Cookie{
-		Name:     "Authorization",
+		Name:     "authToken",
 		Value:    "",
 		Expires:  time.Now().Add(-time.Hour),
 		HTTPOnly: true,

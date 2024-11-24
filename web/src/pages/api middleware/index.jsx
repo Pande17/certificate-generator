@@ -1,5 +1,9 @@
 import axios from "axios";
 
+const Signature = axios.create({
+  baseURL: "http://127.0.0.1:3000/api/signature",
+});
+
 // Instance untuk kompetensi
 const Kompetensi = axios.create({
   baseURL: "http://127.0.0.1:3000/api/competence",
@@ -19,9 +23,9 @@ const Login = axios.create({
 const applyAuthInterceptor = (instance) => {
   instance.interceptors.request.use(
     (config) => {
-      const token = localStorage.getItem("token"); // Ambil token dari localStorage
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`; // Tambahkan Authorization header
+      const authToken = localStorage.getItem("authToken"); // Ambil token dari localStorage
+      if (authToken) {
+        config.headers.Authorization = `Bearer ${authToken}`; // Tambahkan authToken header
       }
       return config;
     },

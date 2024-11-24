@@ -5,6 +5,7 @@ import { Form, Input, Button, Space, message, Select } from "antd";
 import { PlusOutlined, MinusCircleOutlined, RotateLeftOutlined, BackwardFilled } from "@ant-design/icons";
 import MainLayout from "../MainLayout/Layout";
 import { useNavigate } from "react-router-dom";
+import { Kompetensi } from "../api middleware";
 
 const { Option } = Select;
 
@@ -47,7 +48,7 @@ const Tool = () => {
   useEffect(() => {
     const fetchCompetencies = async () => {
       try {
-        const response = await axios.get(
+        const response = await Kompetensi.get(
           "http://127.0.0.1:3000/api/competence"
         );
         if (response.data && Array.isArray(response.data.data)) {
@@ -89,20 +90,20 @@ const Tool = () => {
 
     try {
       if (data.selectedCompetenceId) {
-        await axios.put(
+        await Kompetensi.put(
           `http://127.0.0.1:3000/api/competence/${data.selectedCompetenceId}`,
           competenceData
         );
         message.success("Kompetensi berhasil diperbarui!");
       } else {
-        await axios.post(
+        await Kompetensi.post(
           "http://127.0.0.1:3000/api/competence",
           competenceData
         );
         message.success("Kompetensi berhasil ditambahkan!");
       }
       reset();
-    } catch (error) {
+    } catch (error) {d
       console.error("Error saat menyimpan kompetensi:", error);
       message.error("Error saat menyimpan kompetensi!");
     }

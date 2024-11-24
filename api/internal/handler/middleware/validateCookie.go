@@ -13,23 +13,26 @@ import (
 
 // ValidateToken middleware
 func ValidateToken(c *fiber.Ctx) error {
-	// Retrieve the token from Authorization header or cookies
+	// Retrieve the token from the Authorization header
 	tokenString := strings.TrimPrefix(c.Get("Authorization"), "Bearer ")
 	if tokenString == "" {
-		tokenString = strings.TrimPrefix(c.Cookies("Authorization"), "Bearer ")
+		// If the token is not found in the header, check cookies
+		tokenString = c.Cookies("authToken") // Use a specific cookie name
 	}
 
-	fmt.Println("Token:", tokenString)
+	// Debugging: Log the retrieved token
+	fmt.Println("Token from Authorization header:", tokenString)
+	fmt.Println("Token from cookies:", c.Cookies("authToken"))
 
 	// If token is missing, return unauthorized error
 	if tokenString == "" {
-		return rest.Unauthorized(c, "Mohon login terlebih dahulu", "Mohon login terlebih dahulu")
+		return rest.Unauthorized(c, "Mohon login terlebih dahulu", "Token tidak ditemukan")
 	}
 
 	// Retrieve secret key from environment variables
 	secretKey := os.Getenv("SECRET")
 	if secretKey == "" {
-		return rest.Conflict(c, "Server error", "Server error")
+		return rest.Conflict(c, "Server error", "Kunci rahasia tidak ditemukan")
 	}
 
 	// Initialize claims as MapClaims to store all claims
@@ -46,28 +49,20 @@ func ValidateToken(c *fiber.Ctx) error {
 
 	// Check for errors during parsing
 	if err != nil {
-		fmt.Println("Error parsing token:", err)
-		return rest.Unauthorized(c, "Invalid Token", "Invalid Token")
+		return rest.Unauthorized(c, "Invalid Token", "Token tidak valid")
 	}
-
-	// Log the type of token returned
-	fmt.Printf("Parsed token: %T\n", token) // Log the type of the token object
 
 	// Ensure the token is valid
 	if !token.Valid {
-		fmt.Println("Invalid token")
-		return rest.Unauthorized(c, "Invalid Token", "Invalid Token")
+		return rest.Unauthorized(c, "Invalid Token", "Token tidak valid")
 	}
 
 	// Check for expiration (if the exp claim exists)
 	if exp, ok := claims["exp"].(float64); ok {
 		if int64(exp) < time.Now().Unix() {
-			return rest.Unauthorized(c, "Expired Token", "Expired Token")
+			return rest.Unauthorized(c, "Expired Token", "Token telah kedaluwarsa")
 		}
 	}
-
-	// Log the claims for debugging purposes
-	fmt.Println("Token claims:", claims)
 
 	// Store the entire claims map in context for later use
 	c.Locals("admin", claims) // Store all claims in context

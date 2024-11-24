@@ -10,10 +10,11 @@ import {
   message,
 } from "antd";
 import MainLayout from "../MainLayout/Layout";
-import axios from "axios";
+import { Sertifikat, Kompetensi, Signature } from "../api middleware";
 
 function MyForm() {
   const [data, setData] = useState([]);
+   const [signatureData, setSignatureData] = useState([]);
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       hardSkill: [],
@@ -115,6 +116,9 @@ function MyForm() {
               ) || 0,
             total_skill_score: totalSkillScore, // Replace with actual computation if necessary
           },
+          signature: {
+
+          },
           total_jp:
             (formData.hardSkill?.reduce(
               (acc, skill) => acc + (skill.jp || 0),
@@ -146,23 +150,39 @@ function MyForm() {
 
   const { Option } = Select;
 
-  useEffect(() => {
-    const fetchApi = async () => {
-      try {
-        const response = await Kompetensi.get(
-          "http://127.0.0.1:3000/api/competence"
-        );
-        setData(response.data.data);
-      } catch (Error) {
-        console.log(Error);
-      }
-    };
-    fetchApi();
-  }, []);
+   useEffect(() => {
+     // Fetch competence data
+     const fetchCompetence = async () => {
+       try {
+         const response = await Kompetensi.get(
+           "http://127.0.0.1:3000/api/competence"
+         );
+         setCompetenceData(response.data.data);
+       } catch (error) {
+         console.log("Error fetching competence data:", error);
+       }
+     };
+
+     // Fetch signature data
+     const fetchSignature = async () => {
+       try {
+         const response = await Signature.get(
+           "http://127.0.0.1:3000/api/signature"
+         );
+         setSignatureData(response.data.data);
+       } catch (error) {
+         console.log("Error fetching signature data:", error);
+       }
+     };
+
+     fetchCompetence();
+     fetchSignature();
+   }, []);
+
   const fetchCompetence = async (competenceId) => {
-    const url = `http://127.0.0.1:3000/api/competence?type=id&s=${competenceId}`;
+    const url = `http://127.0.0.1:3000/api/competence/${competenceId}`;
     try {
-      const response = await axios.get(url);
+      const response = await Kompetensi.get(url);
 
       const { hard_skills = [], soft_skills = [] } = response.data.data || {};
 
@@ -304,7 +324,6 @@ function MyForm() {
           />
         </Form.Item>
 
-    
         <Form.Item label="Total Pertemuan" required>
           <Controller
             name="totalMeeting"
@@ -521,6 +540,29 @@ function MyForm() {
             ))}
           </div>
         )}
+
+        <Form.Item required>
+          <Controller
+            name="selectedSignatureId"
+            control={control}
+            render={({ field }) => (
+              <Select
+                placeholder="Pilih tanda tangan"
+                {...field}
+                style={{ width: "100%", height: "50px" }}
+              >
+                <Option value="" disabled>
+                  Pilih Tanda Tangan
+                </Option>
+                {signatureData.map((signature) => (
+                  <Option key={signature._id} value={signature._id}>
+                    {signature.config_signature}
+                  </Option>
+                ))}
+              </Select>
+            )}
+          />
+        </Form.Item>
 
         <Form.Item>
           <Button type="primary" htmlType="submit">

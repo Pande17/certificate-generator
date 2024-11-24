@@ -21,7 +21,7 @@ func RouteSetup(r *fiber.App) {
 		AllowOrigins:     "http://localhost:5173",                               // Replace with your frontend URL
 		AllowMethods:     "GET,POST,PUT,DELETE",                                 // Allowed HTTP methods
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, Cookie", // Allowed headers
-		ExposeHeaders:    "Authorization, Cookie",
+		ExposeHeaders:    "Authorization, Cookie, authToken, Bearer",
 		AllowCredentials: true,
 	}))
 
@@ -29,19 +29,20 @@ func RouteSetup(r *fiber.App) {
 	api := r.Group("/api")
 
 	// Define routes for authentication
-	api.Post("/signup", middleware.AuditMiddleware("account"), rest.SignUp)                           // Route for signing up admin
-	api.Post("/login", middleware.AuditMiddleware("account"), rest.Login)                             // Route for admin login
-	api.Get("/validate", middleware.ValidateToken, rest.Validate)                                     // Route to check cookie from admin
-	api.Post("/logout", middleware.ValidateToken, middleware.AuditMiddleware("account"), rest.Logout) // Route to logout from account
+
+	api.Post("/signup", rest.SignUp)                                      // Route for signing up admin
+	api.Post("/login", middleware.AuditMiddleware("Account"), rest.Login) // Route for admin login
+	api.Get("/validate", middleware.ValidateToken, rest.Validate)         // Route to check cookie from admin
+	api.Post("/logout", rest.Logout)
 
 	// Define api routes
 	// Every request to a path with the group "api" always checks the cookie
 	// protected := api.Use(middleware.ValidateCookie)
 
 	// Define routes for management admin accounts
-	api.Get("/accounts", middleware.ValidateToken, middleware.AuditMiddleware("account"), rest.GetAdminAccount)           // Route to see all admin accounts
-	api.Put("/accounts/:id", middleware.ValidateToken, middleware.AuditMiddleware("account"), rest.EditAdminAccount)      // Route to update password admin account by acc_id
-	api.Delete("/accounts/:id", middleware.ValidateToken, middleware.AuditMiddleware("account"), rest.DeleteAdminAccount) // Route to delete admin account by acc_id
+	api.Get("/accounts", middleware.ValidateToken, middleware.AuditMiddleware("Account"), rest.GetAdminAccount)           // Route to see all admin accounts
+	api.Put("/accounts/:id", middleware.ValidateToken, middleware.AuditMiddleware("Account"), rest.EditAdminAccount)      // Route to update password admin account by acc_id
+	api.Delete("/accounts/:id", middleware.ValidateToken, middleware.AuditMiddleware("Account"), rest.DeleteAdminAccount) // Route to delete admin account by acc_id
 
 	// define routes for management competence
 	api.Post("/competence", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.CreateKompetensi) // route to create competence data
@@ -58,17 +59,17 @@ func RouteSetup(r *fiber.App) {
 	api.Put("/certiticate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), TEMPlate)
 	api.Delete("/certificate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.DeleteCertificate)
 
-	r.Get("/assets/certificate/:id/:type", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.DownloadCertificate, rest.GetCertificateByID)
+	r.Get("/assets/certificate/:id/:type", rest.DownloadCertificate, rest.GetCertificateByID)
 
 	// temporary, remove later
 	api.Post("/checkpdf", rest.CheckPDF)
 
 	// define routes for management signature configuration
-	api.Post("/signature", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.CreateSignature)
-	api.Get("/signature", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.GetSignature)
-	api.Get("/signature/:id", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.GetSignature)
-	api.Put("/signature/:id", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.EditSignature)
-	api.Delete("/signature/:id", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.DeleteSignature)
+	api.Post("/signature", rest.CreateSignature)
+	api.Get("/signature", rest.GetSignature)
+	api.Get("/signature/:id", rest.GetSignature)
+	api.Put("/signature/:id", rest.EditSignature)
+	api.Delete("/signature/:id", rest.DeleteSignature)
 }
 
 func TEMPlate(c *fiber.Ctx) error {

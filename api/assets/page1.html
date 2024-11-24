@@ -247,10 +247,10 @@
 					<p>{{.Validation}}</p>
 					<div>
 						<img
-							src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833018/aset%20pdf/neyzwqnb4rr7iuzpcwd9.png"
+							src="{{.Signature.Stamp}}"
 							alt="" style="position: relative; opacity: 75%; z-index: 3; height: 4cm;" />
 						<img
-							src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833019/aset%20pdf/ah6bumzro6zsysr2wcat.png"
+							src="{{.Signature.Signature}}"
 							alt="" style="position: relative; z-index: 2; height: 4cm;" />
 					</div>
 				</div>
@@ -262,9 +262,9 @@
 				</qr>
 				<div class="desk-wrapper">
 					<p style="margin-bottom: -16px; color: rgb(255, 157, 0)">
-						<strong>Dr. Ir. Standly J. E. Suwandhi, A.TD., M.T., CI.</strong>
+						<strong>{{.Signature.Name}}</strong>
 					</p>
-					<p style="margin-bottom: -16px;">Pimpinan LKP Bina Taruna Wiratama</p>
+					<p style="margin-bottom: -16px;">{{.Signature.Role}}</p>
 				</div>
 			</div>
 			<img src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727850035/aset%20pdf/i28faklkktmzo3t4pcni.png"
