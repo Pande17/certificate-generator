@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math"
 	"os"
 	"strings"
@@ -23,10 +22,8 @@ import (
 func CreateCertificate(c *fiber.Ctx) error {
 	// add body request
 	var pdfReq struct {
-		Data     model.CertificateData `json:"data" bson:"data"`
-		Zoom     float64               `json:"zoom"`
-		SaveDB   bool                  `json:"savedb"`
-		PageName string                `json:"page_name"`
+		Data   model.CertificateData `json:"data" bson:"data"`
+		SaveDB bool                  `json:"savedb"`
 	}
 
 	// parse the body request
@@ -181,21 +178,32 @@ func GetAllCertificates(c *fiber.Ctx) error {
 }
 
 func GetCertificateByID(c *fiber.Ctx) error {
-	// Get acc_id from params
 	idParam := c.Params("id")
+	searchKey := c.Params("type")
+	if searchKey == "" { // from handler w/o type param, to not break api
+		searchKey = "oid"
+	} else if searchKey == "a" || searchKey == "b" { // from type of certificate
+		searchKey = "data_id"
+	}
+	var searchVal any
+	searchVal = idParam
 
-	// Convert idParam to ObjectID if needed
-	certifID, err := primitive.ObjectIDFromHex(idParam)
-	if err != nil {
-		fmt.Printf("error: %v\n", err.Error())
-		return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
+	// Convert to ObjectID if needed
+	if searchKey == "oid" {
+		searchKey = "_id"
+		certifID, err := primitive.ObjectIDFromHex(idParam)
+		if err != nil {
+			fmt.Printf("error: %v\n", err.Error())
+			return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
+		}
+		searchVal = certifID
 	}
 
 	// connect to collection in mongoDB
 	collection := database.GetCollection("certificate")
 
 	// make filter to find document based on data_id (incremental id)
-	filter := bson.M{"_id": certifID}
+	filter := bson.M{searchKey: searchVal}
 
 	// variable to hold search results
 	var certifDetail bson.M
@@ -277,8 +285,6 @@ func DownloadCertificate(c *fiber.Ctx) error {
 	if !(certifType == "a" || certifType == "b") {
 		return BadRequest(c, "Tipe sertifikat tidak diketahui.", "query type isn't a or b")
 	}
-
-	log.Println(c.Path())
 
 	// search certif data, checking if data exists
 	if c.Next(); c.Response().StatusCode()/100 != 2 {

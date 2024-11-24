@@ -54,6 +54,7 @@ func RouteSetup(r *fiber.App) {
 	api.Post("/certificate", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.CreateCertificate)
 	api.Get("/certificate", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.GetAllCertificates)
 	api.Get("/certificate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.GetCertificateByID)
+	api.Get("/certificate/:type/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.GetCertificateByID)
 	api.Put("/certiticate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), TEMPlate)
 	api.Delete("/certificate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.DeleteCertificate)
 
