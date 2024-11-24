@@ -168,7 +168,7 @@ func Login(c *fiber.Ctx) error {
 	})
 
 	// return success
-	return OK(c, "Berhasil Login", tokenString)
+	return LoginSuccess(c, "Login berhasil!", admin, tokenString)
 }
 
 // Function to Validate checks if the user has a valid authentication cookie
