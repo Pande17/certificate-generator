@@ -35,9 +35,9 @@
         console.log('Full response:', response); 
 
         if (response.status === 200) {
-          const authToken = response.data.authToken;
-          console.log('Token received:', authToken);
-          localStorage.setItem('authToken', authToken);
+          const tokenString = response.data.tokenString;
+          console.log('Token received:', tokenString);
+          localStorage.setItem('authToken', tokenString);
           navigate('/dashboard');
           setMsg('Selamat datang!');
         } else if (response.status === 401) {
