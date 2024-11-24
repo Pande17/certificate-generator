@@ -8,6 +8,7 @@ import (
 	"certificate-generator/model"
 	"time"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,21 +17,27 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// connect collection competence in database
+var collectionKompetensi = database.GetCollection("competence")
+
 // func for create new kompetensi
 func CreateKompetensi(c *fiber.Ctx) error {
 	// struct for the incoming request body
 	var kompetensiReq struct {
-		ID             primitive.ObjectID `bson:"_id,omitempty"`
-		AdminId        primitive.ObjectID `bson:"admin_id"`
-		KompetensiName string             `json:"nama_kompetensi"`
-		Divisi         string             `json:"divisi"`
-		HardSkills     []model.Skill      `json:"hard_skills"`
-		SoftSkills     []model.Skill      `json:"soft_skills"`
+		KompetensiName string        `json:"nama_kompetensi" valid:"required~Nama Kompetensi tidak boleh kosong!, stringLength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
+		Divisi         string        `json:"divisi" valid:"required~Divisi tidak boleh kosong!, stringLength(1|6)~Divisi harus antara 1-6 karakter"`
+		HardSkills     []model.Skill `json:"hard_skills"`
+		SoftSkills     []model.Skill `json:"soft_skills"`
 	}
 
 	// parse the request body
 	if err := c.BodyParser(&kompetensiReq); err != nil {
-		return BadRequest(c, "Data yang dimasukkan tidak valid!", "Data yang dimasukkan tidak valid!")
+		return BadRequest(c, "Data yang dimasukkan tidak valid! Mohon diperiksa kembali!", "Data yang dimasukkan tidak valid!")
+	}
+
+	// Validate the input data using govalidator
+	if _, err := govalidator.ValidateStruct(&kompetensiReq); err != nil {
+		return BadRequest(c, "Data yang dimasukkan tidak valid!", err.Error())
 	}
 
 	// Retrieve the user ID from the claims stored in context
@@ -47,9 +54,6 @@ func CreateKompetensi(c *fiber.Ctx) error {
 		return Unauthorized(c, "Format token admin tidak valid!", "Formaat token admin tidak valid!")
 	}
 
-	// connect collection competence in database
-	collectionKompetensi := database.GetCollection("competence")
-
 	// new variable to check the availability of the competence name
 	var existingKompetensi model.Kompetensi
 
@@ -61,7 +65,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	if err == nil {
 		return Conflict(c, "Kompetensi dengan nama ini sudah ada!", "Kompetensi dengan nama yang sama sudah ada!")
 	} else if err != mongo.ErrNoDocuments {
-		return InternalServerError(c, "Gagal dalam memeriksa Kompetensi yang ada", err.Error())
+		return Conflict(c, "Gagal dalam memeriksa Kompetensi yang ada", err.Error())
 	}
 
 	// append data from body request to struct Kompetensi
@@ -82,7 +86,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	// insert data from struct "Kompetensi" to collection "competence" in database MongoDB
 	_, err = collectionKompetensi.InsertOne(context.TODO(), kompetensi)
 	if err != nil {
-		return InternalServerError(c, "Gagal membuat data kompetensi yang baru!", "Failed input new competence")
+		return Conflict(c, "Gagal membuat data kompetensi yang baru!", "Failed input new competence")
 	}
 
 	// return success
@@ -113,7 +117,7 @@ func EditKompetensi(c *fiber.Ctx) error {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Kompetensi ini tidak dapat ditemukan!", "Find kompetensi_id based on params")
 		}
-		return InternalServerError(c, "Gagal mengambil data!", "Find kompetensi_id based on params")
+		return Conflict(c, "Gagal mengambil data!", "Find kompetensi_id based on params")
 	}
 
 	// Modified code for DeleteKompetensi
@@ -150,7 +154,7 @@ func EditKompetensi(c *fiber.Ctx) error {
 	// update data in collection based on their "kompetensi_id" or params
 	_, err = collectionKompetensi.UpdateOne(c.Context(), filter, update)
 	if err != nil {
-		return InternalServerError(c, "Gagal memperbarui Kompetensi!", "Update new data kompetensi")
+		return Conflict(c, "Gagal memperbarui Kompetensi!", "Update new data kompetensi")
 	}
 
 	// return success
@@ -180,7 +184,7 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Tidak dapat menemukan Kompetensi!", "Find Kompetensi")
 		}
-		return InternalServerError(c, "Gagal mengambil data!", "Find Kompetensi")
+		return Conflict(c, "Gagal mengambil data!", "Find Kompetensi")
 	}
 
 	// Modified code for DeleteKompetensi
@@ -196,7 +200,7 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 	// update document in collection MongoDB
 	result, err := collectionKompetensi.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		return InternalServerError(c, "Gagal menghapus Kompetensi!", "Delete Kompetensi")
+		return Conflict(c, "Gagal menghapus Kompetensi!", "Delete Kompetensi")
 	}
 
 	// check if the document is found and updated
@@ -251,7 +255,7 @@ func getAllKompetensi(c *fiber.Ctx) error {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Kompetensi tidak dapat ditemukan!", err.Error())
 		}
-		return InternalServerError(c, "Gagal mengambil data kompetensi!", err.Error())
+		return Conflict(c, "Gagal mengambil data kompetensi!", err.Error())
 	}
 	defer cursor.Close(ctx)
 
@@ -259,7 +263,7 @@ func getAllKompetensi(c *fiber.Ctx) error {
 	for cursor.Next(ctx) {
 		var competence bson.M
 		if err := cursor.Decode(&competence); err != nil {
-			return InternalServerError(c, "Gagal mengambil data", "Decode Kompetensi")
+			return Conflict(c, "Gagal mengambil data", "Decode Kompetensi")
 		}
 		if deletedAt, ok := competence["deleted_at"]; ok && deletedAt != nil {
 			// skip deleted certificates
@@ -268,7 +272,7 @@ func getAllKompetensi(c *fiber.Ctx) error {
 		results = append(results, competence)
 	}
 	if err := cursor.Err(); err != nil {
-		return InternalServerError(c, "Gagal menampilkan data!", "Append Kompetensi")
+		return Conflict(c, "Gagal menampilkan data!", "Append Kompetensi")
 	}
 
 	// return success
@@ -289,7 +293,7 @@ func getOneKompetensi(c *fiber.Ctx, filter bson.M) error {
 			return NotFound(c, "Kompetensi ini tidak dapat ditemukan!", "Find Detail Kompetensi")
 		}
 		// if in server error, return status 500
-		return InternalServerError(c, "Gagal mendapatkan data!", "Server Find Detail Kompetensi")
+		return Conflict(c, "Gagal mendapatkan data!", "Server Find Detail Kompetensi")
 	}
 
 	// Check if the competence has a "deleted_at" field
