@@ -29,11 +29,10 @@ func RouteSetup(r *fiber.App) {
 	api := r.Group("/api")
 
 	// Define routes for authentication
-
-	api.Post("/signup", rest.SignUp)                                      // Route for signing up admin
-	api.Post("/login", middleware.AuditMiddleware("Account"), rest.Login) // Route for admin login
+	api.Post("/signup", middleware.AuditMiddleware("SignUp"), rest.SignUp)                                      // Route for signing up admin
+	api.Post("/login", middleware.AuditMiddleware("Login"), rest.Login) // Route for admin login
 	api.Get("/validate", middleware.ValidateToken, rest.Validate)         // Route to check cookie from admin
-	api.Post("/logout", rest.Logout)
+	api.Post("/logout", middleware.AuditMiddleware("LogOut"), rest.Logout)
 
 	// Define api routes
 	// Every request to a path with the group "api" always checks the cookie
