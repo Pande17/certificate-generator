@@ -7,6 +7,7 @@ services:
       - mongo
     environment:
       APP_DEBUG: 'false'
+      CERTIF_GEN_FRONTEND: "http://localhost:5173/"
     env_file:
       - ./api/.env
     ports:
@@ -29,6 +30,8 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
+    environment:
+      CERTIF_GEN_BACKEND: "http://localhost:3000/"
     ports:
       - '80:80'
     networks:
