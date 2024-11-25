@@ -28,13 +28,12 @@ var counterCollection = database.GetCollection("counters")
 func CreateCertificate(c *fiber.Ctx) error {
 	// add body request
 	var pdfReq struct {
-		Data   model.CertificateData `json:"data" bson:"data"`
-		SaveDB bool                  `json:"savedb"`
+		Data model.CertificateData `json:"data" bson:"data"`
 	}
 
 	// parse the body request
 	if err := c.BodyParser(&pdfReq); err != nil {
-		return BadRequest(c, "Invalid body request", err.Error())
+		return BadRequest(c, "Data yang dimasukkan tidak valid! Mohon periksa kembali.", err.Error())
 	}
 
 	// Retrieve the admin ID from the claims stored in context
@@ -53,14 +52,14 @@ func CreateCertificate(c *fiber.Ctx) error {
 	// generate DataID (random string with 8 letter)
 	newDataID, err := generator.GetUniqueRandomID(certificateCollection, 8)
 	if err != nil {
-		return Conflict(c, "Failed to generate Data ID", "Server failed generate Data ID")
+		return Conflict(c, "Gagal membuat ID Sertifikat! Silahkan coba lagi.", "Server failed generate Data ID")
 	}
 
 	// generate referral ID
 	currentTime := time.Now()
 	nextReferralID, err := generator.GenerateReferralID(counterCollection, currentTime)
 	if err != nil {
-		return Conflict(c, "Failed to generate Referral ID", "Server failed generate Referral ID")
+		return Conflict(c, "Gagal membuat sertifikat! Silahkan coba lagi.", "Server failed generate Referral ID")
 	}
 
 	// generate month roman and year
@@ -72,7 +71,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 	filter := bson.M{"nama_kompetensi": pdfReq.Data.Kompetensi}
 	err = competenceCollection.FindOne(context.TODO(), filter).Decode(&kompetensi)
 	if err != nil {
-		return NotFound(c, "Competence Not Found", "Fetch Kompetepetensi by the given nama_kompetensi from the request")
+		return NotFound(c, "Gagal memeriksa kompetensi yang ada. Silakan coba lagi.", err.Error())
 	}
 
 	totalHSJP, totalHSSkor := uint64(0), float64(0)
@@ -143,18 +142,16 @@ func CreateCertificate(c *fiber.Ctx) error {
 	go generator.CreatePDF(c, &mappedData, "ab")
 
 	// insert data from struct "PDF" to collection "certificate" in database MongoDB
-	if pdfReq.SaveDB {
-		_, err = certificateCollection.InsertOne(context.TODO(), certificate)
-		if err != nil {
-			return Conflict(c, "Failed to create new certificate data", "Server failed create new certificate")
-		}
+	_, err = certificateCollection.InsertOne(context.TODO(), certificate)
+	if err != nil {
+		return Conflict(c, "Gagal membuat data sertifikat baru! Silakan coba lagi.", "Server failed create new certificate")
 	}
 
 	// return success
-	return OK(c, "Success create new certificate", certificate)
+	return OK(c, "Berhasil membuat sertifikat baru!", certificate)
 }
 
-// function to get all kompetensi data
+// function to get all certificate data
 func GetAllCertificates(c *fiber.Ctx) error {
 	var results []bson.M
 
@@ -193,30 +190,30 @@ func GetAllCertificates(c *fiber.Ctx) error {
 		},
 	}
 
-	// find the projection
+	// Find all documents that match
 	cursor, err := certificateCollection.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "No certificate found", err.Error())
+			return NotFound(c, "Sertifikat tidak dapat ditemukan!", err.Error())
 		}
-		return Conflict(c, "Failed to fetch data", err.Error())
+		return Conflict(c, "Gagal mengambil data kompetensi! Silakan coba lagi.", err.Error())
 	}
 	defer cursor.Close(ctx)
 
-	// decode each document and append it to results
+	// Decode each document and append it to results
 	for cursor.Next(ctx) {
 		var certiticate bson.M
 		if err := cursor.Decode(&certiticate); err != nil {
-			return Conflict(c, "Failed to decode data", err.Error())
+			return Conflict(c, "Gagal mengambil data! Silakan coba lagi.", err.Error())
 		}
 		results = append(results, certiticate)
 	}
 	if err := cursor.Err(); err != nil {
-		return Conflict(c, "Cursor error", err.Error())
+		return Conflict(c, "Gagal mengambil data! Silakan coba lagi.", err.Error())
 	}
 
 	// return success
-	return OK(c, "Sucess get all Certificate data", results)
+	return OK(c, "Berhasil menampilkan semua data Kompetensi!", results)
 }
 
 func GetCertificateByID(c *fiber.Ctx) error {
@@ -235,47 +232,44 @@ func GetCertificateByID(c *fiber.Ctx) error {
 		searchKey = "_id"
 		certifID, err := primitive.ObjectIDFromHex(idParam)
 		if err != nil {
-			fmt.Printf("error: %v\n", err.Error())
 			return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
 		}
 		searchVal = certifID
 	}
 
-	// make filter to find document based on data_id (incremental id)
+	// Make filter to find document based on search key & value
 	filter := bson.M{searchKey: searchVal}
 
-	// variable to hold search results
+	// Variable to hold search results
 	var certifDetail bson.M
 
 	// find a single document that matches the filter
 	if err := certificateCollection.FindOne(c.Context(), filter).Decode(&certifDetail); err != nil {
 		// if not found, return a 404 status
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "Data not found", "Find Detail Certificate")
+			return NotFound(c, "Sertifikat ini tidak dapat ditemukan! Silakan periksa ID yang dimasukkan.", "Find Detail Certificate")
 		}
-		// if in server error, return status 500
-		return Conflict(c, "Failed to retrieve data", err.Error())
+		return Conflict(c, "Gagal mendapatkan data! Silakan coba lagi.", err.Error())
 	}
 
-	// Check if DeletedAt field already has a value
-	if deletedAt, ok := certifDetail["deleted_at"]; ok && deletedAt != nil {
-		// Return the deletion time if the certificate is already deleted
-		return AlreadyDeleted(c, "This certificate has already been deleted", "Check deleted certificate", deletedAt)
+	// Check if the certificate has been deleted
+	if deletedAt, exists := certifDetail["deleted_at"]; exists && deletedAt != nil {
+		return AlreadyDeleted(c, "Sertifikat ini telah dihapus! Silakan hubungi admin.", "Check deleted certificate", deletedAt)
 	}
 
 	// return success
-	return OK(c, "Berhasil mendapatkan detail sertifikat.", certifDetail)
+	return OK(c, "Berhasil mendapatkan data sertifikat!", certifDetail)
 }
 
 // Function for soft delete admin account
 func DeleteCertificate(c *fiber.Ctx) error {
-	// Get dataid from params
+	// Get id param
 	idParam := c.Params("id")
 
-	// Convert idParam to ObjectID if needed
+	// Convert idParam to ObjectID
 	certifID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
+		return BadRequest(c, "Sertifikat ini tidak ada! Silakan periksa ID yang dimasukkan.", "Please provide a valid ObjectID")
 	}
 
 	// make filter to find document based on acc_id (incremental id)
@@ -287,33 +281,32 @@ func DeleteCertificate(c *fiber.Ctx) error {
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			fmt.Printf("error: %v\n", err.Error())
-			return NotFound(c, "Certificate not found", "Cannot find certificate")
+			return NotFound(c, "Tidak dapat menemukan sertifikat! Silakan periksa ID yang dimasukkan.", "Cannot find certificate")
 		}
-		return Conflict(c, "Failed to fetch certificate", "server error cannot find certificate")
+		return Conflict(c, "Gagal mengambil data! Silakan coba lagi.", "server error cannot find certificate")
 	}
 
-	// Check if DeletedAt field already has a value
+	// Check if the certificate has been deleted
 	if deletedAt, ok := certificate["deleted_at"]; ok && deletedAt != nil {
-		// Return the deletion time if the certificate is already deleted
-		return AlreadyDeleted(c, "This certificate has already been deleted", "Check deleted certificate", deletedAt)
+		return AlreadyDeleted(c, "Sertifikat ini telah dihapus! Silakan hubungi admin.", "Check deleted certificate", deletedAt)
 	}
 
-	// make update for input timestamp DeletedAt
+	// Update the deleted_at timestamp
 	update := bson.M{"$set": bson.M{"deleted_at": time.Now()}}
 
 	// update document in collection MongoDB
 	result, err := certificateCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		return Conflict(c, "Failed to delete certificate", "Delete certificate")
+		return Conflict(c, "Gagal menghapus sertifikat! Silakan coba lagi.", "Delete certificate")
 	}
 
-	// Check if the document is found and updated
+	// Check if the document was already deleted
 	if result.MatchedCount == 0 {
-		return NotFound(c, "Certificate not found", "Found certificate")
+		return NotFound(c, "Kompetensi ini tidak dapat ditemukan! Silakan periksa ID yang dimasukkan.", "Found certificate")
 	}
 
 	// Respons success
-	return OK(c, "Successfully deleted certificate", idParam)
+	return OK(c, "Berhasil menghapus sertifikat!", idParam)
 }
 
 func DownloadCertificate(c *fiber.Ctx) error {
@@ -331,13 +324,13 @@ func DownloadCertificate(c *fiber.Ctx) error {
 	var pdf model.PDF
 	bodyres := c.Response().Body()
 	if err := json.Unmarshal(bodyres, &resp); err != nil {
-		return Conflict(c, "eror", err.Error())
+		return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
 	}
 	if pdfBytes, err := json.Marshal(resp["data"]); err != nil {
-		return Conflict(c, "eror", err.Error())
+		return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
 	} else {
 		if err := json.Unmarshal(pdfBytes, &pdf); err != nil {
-			return Conflict(c, "eror", err.Error())
+			return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
 		}
 	}
 	data := pdf.Data
@@ -351,11 +344,11 @@ func DownloadCertificate(c *fiber.Ctx) error {
 				}
 			} else {
 				if err = generator.CreatePDF(c, &data, certifType); err != nil {
-					return Conflict(c, "can't create pdf file", err.Error())
+					return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
 				}
 			}
 		} else {
-			return Conflict(c, "eror", err.Error())
+			return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
 		}
 	}
 	c.Response().Header.Add("Content-Type", "application/pdf")

@@ -78,27 +78,10 @@ func CreateSignature(c *fiber.Ctx) error {
 	return OK(c, "Berhasil membuat signature baru!", signature)
 }
 
-// Function to get a signature by ID or all signatures
-func GetSignature(c *fiber.Ctx) error {
-	id := c.Params("id") // Get ID from the URL parameters
-	if id == "" {
-		// If no ID is provided, return all signatures
-		return getAllSignature(c)
-	}
-
-	// If ID is provided, proceed to get the specific signature
-	var value any
-	var err error
-	value, err = primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return BadRequest(c, "Gagal mendapatkan signature! Silakan periksa ID yang dimasukkan.", "")
-	}
-	return getOneSignature(c, bson.M{"_id": value})
-}
-
 // Function to get all signatures
-func getAllSignature(c *fiber.Ctx) error {
+func GetAllSignature(c *fiber.Ctx) error {
 	var results []bson.M // Slice to hold the results
+	ctx := c.Context()
 
 	// Retrieve the admin ID from the claims stored in context
 	claims := c.Locals("admin").(jwt.MapClaims)
@@ -107,14 +90,11 @@ func getAllSignature(c *fiber.Ctx) error {
 		return Unauthorized(c, "Token Admin tidak valid!", "Token Admin tidak valid!")
 	}
 
-	// Convert adminID (which is a string) to MongoDB ObjectID
+	// Convert adminID to ObjectID
 	objectID, err := primitive.ObjectIDFromHex(adminID)
 	if err != nil {
 		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel() // Cancel the context after the function completes
 
 	// Set the projection to return the required fields
 	projection := bson.M{
@@ -135,7 +115,7 @@ func getAllSignature(c *fiber.Ctx) error {
 		},
 	}
 
-	// Find all signatures in the collection
+	// Find all documents that match
 	cursor, err := collectionSignature.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -145,7 +125,7 @@ func getAllSignature(c *fiber.Ctx) error {
 	}
 	defer cursor.Close(ctx) // Close the cursor after use
 
-	// Iterate through each result in the cursor
+	// Decode each document and append it to results
 	for cursor.Next(ctx) {
 		var signature bson.M
 		if err := cursor.Decode(&signature); err != nil {
@@ -162,12 +142,35 @@ func getAllSignature(c *fiber.Ctx) error {
 }
 
 // Function to get a single signature
-func getOneSignature(c *fiber.Ctx, filter bson.M) error {
-	var signatureDetail bson.M // Variable to hold the signature details
+func GetSignatureByID(c *fiber.Ctx) error {
+	idParam := c.Params("id")
+	searchKey := c.Params("type")
+	if searchKey == "" { // from handler w/o type param, to not break api
+		searchKey = "oid"
+	}
+	var searchVal any
+	searchVal = idParam
+
+	// Convert to ObjectID if needed
+	if searchKey == "oid" {
+		searchKey = "_id"
+		certifID, err := primitive.ObjectIDFromHex(idParam)
+		if err != nil {
+			return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
+		}
+		searchVal = certifID
+	}
+
+	// Make filter to find document based on search key & value
+	filter := bson.M{searchKey: searchVal}
+
+	// Variable to hold the signature details
+	var signatureDetail bson.M
 
 	// Find a single document that matches the filter
 	if err := collectionSignature.FindOne(context.TODO(), filter).Decode(&signatureDetail); err != nil {
 		if err == mongo.ErrNoDocuments {
+			// If not found, return a 404 status
 			return NotFound(c, "Signature ini tidak dapat ditemukan! Silakan periksa ID yang dimasukkan.", err.Error())
 		}
 		return Conflict(c, "Gagal mendapatkan data! Silakan coba lagi.", "KONFLIK!")
