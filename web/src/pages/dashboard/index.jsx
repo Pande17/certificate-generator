@@ -305,7 +305,12 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error downloading PDF:", error);
     }
+  
   };
+
+   const createNav = () => {
+     navigate("/create-paraf");
+   };
 
   const columns = [
     {
@@ -360,7 +365,7 @@ const Dashboard = () => {
       <div className="flex flex-col items-center justify-center w-full lg:w-3/4 p-5">
         <div>
           <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl">
-            History list
+           List Sertifikat
           </p>
         </div>
         <input
@@ -370,6 +375,9 @@ const Dashboard = () => {
           onChange={handleSearch}
           className="mb-4 p-2 border border-gray-300 rounded w-full md:w-1/2"
         />
+        <Button onClick={createNav} className="m-3">
+          Buat Sertifikat
+        </Button>
         <Row style={{ width: "100%", overflowX: "auto" }}>
           <Col span={24}>
             <Table
