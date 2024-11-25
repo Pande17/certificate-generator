@@ -67,6 +67,9 @@ const filteredData = data.filter((item) =>
      });
    };   
 
+      const createNav = () => {
+        navigate("/create");
+      };
 
   const handleEdit = (record) => {
     message.info(`Edit triggered for ${record._id}`);
@@ -112,13 +115,21 @@ const filteredData = data.filter((item) =>
     <MainLayout>
       <div className="flex flex-col items-center  p-5">
         <div>
-          <Input
-            placeholder="Search signature"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className="mb-4 p-2 border rounded w-full md:w-1/2"
-          />
+          <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl">
+            List Paraf
+          </p>
         </div>
+
+        <Button onClick={createNav} className="m-3">
+          Buat Sertifikat
+        </Button>
+
+        <Input
+          placeholder="Search signature"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="mb-4 p-2 border rounded w-full md:w-1/2"
+        />
 
         <Row
           style={{
