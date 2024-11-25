@@ -131,7 +131,7 @@ const competence = () => {
    }
  };
 
-
+[]
   const delConfirm = (_id, nama_kompetensi) => {
     confirm({
       title:`apakah anda yakon ingin menghapus kompetensi ${nama_kompetensi}`,
