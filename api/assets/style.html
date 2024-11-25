@@ -1,4 +1,4 @@
-{{template "styleReg"}}
+{{define "style"}}
 <style>
 	@font-face {
 		font-family: 'montecarlo';
@@ -13,6 +13,11 @@
 	@font-face {
 		font-family: 'gilroy-medium';
 		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928018/aset%20pdf/font/ci72w1jhyllp3cmwpdo3.ttf);
+	}
+
+	@font-face {
+		font-family: 'gilroy-regular';
+		src: url(https://res.cloudinary.com/djgiroe5z/raw/upload/v1731395523/project/vmq110xixgw2sv4x91lq.ttf);
 	}
 
 	@font-face {
@@ -31,28 +36,26 @@
 	}
 
 	.pageW {
-		width: 17.5cm;
+		width: 23.33cm;
 	}
 
 	.pageH {
-		height: 27.2cm;
+		height: 36.33cm;
 	}
 
 	.certificate-wrapper {
 		display: block;
 		margin: 0 auto;
-		min-width: 21cm;
-		max-width: 21cm;
-		min-height: 29.7cm;
-		max-height: 29.7cm;
+		min-width: 28cm;
+		max-width: 28cm;
+		min-height: 39.6cm;
+		max-height: 39.6cm;
 		display: inline-block;
 		overflow: hidden;
-		margin: 0;
 		position: relative;
-		width: inherit;
-		height: inherit;
 		background-image: url(https://res.cloudinary.com/dektxbmmb/image/upload/v1727836212/aset%20pdf/w71uldhrqtl6v4rrqjht.png);
-		padding: 0.75cm;
+		background-size: cover;
+		padding: 1cm;
 		box-sizing: border-box;
 	}
 
@@ -61,14 +64,29 @@
 		position: absolute;
 		top: 0;
 		left: 0;
-		right: 0;
-		bottom: 0;
 		background-image: url(https://res.cloudinary.com/dektxbmmb/image/upload/v1727833020/aset%20pdf/soona09ynlokvggurfiu.png);
 		background-position: center;
 		background-repeat: no-repeat;
 		background-size: cover;
 		opacity: 1;
 		z-index: 1;
+	}
+
+	.certificate-card {
+		position: relative;
+		z-index: 100;
+		margin: 26.66px;
+		padding: 0.66cm 1.33cm;
+		min-width: 23.33cm;
+		max-width: 23.33cm;
+		min-height: 36.33cm;
+		max-height: 36.33cm;
+		margin: 0 auto;
+		background-color: white;
+		box-shadow: 0 5px 12.5px rgba(0, 0, 0, 0.1);
+		text-align: center;
+		justify-content: center;
+		align-items: center;
 	}
 
 	.pattern {
@@ -85,166 +103,5 @@
 	.bottom {
 		bottom: 0;
 	}
-
-	.certificate-card {
-		position: relative;
-		z-index: 100;
-		margin: 20px;
-		padding: 0.5cm 1cm;
-		min-width: 17.5cm;
-		max-width: 17.5cm;
-		min-height: 27.2cm;
-		max-height: 27.2cm;
-		margin: 0 auto;
-		background-color: white;
-		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-		text-align: center;
-		justify-content: center;
-		align-items: center;
-	}
-
-	.certificate-badge img {
-		width: 250px;
-		margin-top: 33px;
-		margin-bottom: -15px;
-	}
-
-	header {
-		width: 100%;
-		margin: 0 auto;
-		padding: 10px 0;
-		gap: 35px;
-	}
-
-	header img {
-		width: 70px;
-	}
-
-	header h1,
-	header h2 {
-		font-family: 'vollkorn';
-		color: rgb(17, 17, 211);
-	}
-
-	header p {
-		font-family: 'gilroy-medium';
-	}
-
-	.desk h2 {
-		max-width: 40vh;
-		text-align: center;
-		font-size: 13.2px;
-	}
-
-	.desk h1 {
-		text-align: center;
-		margin-top: -17px;
-		margin-bottom: -14px;
-		font-size: 21.5px;
-	}
-
-	.desk p {
-		font-family: 'gilroy-medium';
-		font-size: 10px;
-	}
-
-	.certificate-badge img {
-		width: 30px;
-	}
-
-	.certificate-badge h1 {
-		line-height: 37px;
-		font-size: 36px;
-		font-family: 'vollkorn';
-		color: rgb(17, 17, 211);
-	}
-
-	.certificate-badge h3 {
-		font-size: 16px;
-		color: rgb(17, 17, 211);
-		margin-top: -20px;
-		margin-bottom: 20px;
-		font-family: 'gilroy-medium';
-	}
-
-	.badge img {
-		width: 320px;
-		align-items: center;
-		justify-content: center;
-		z-index: inherit;
-	}
-
-	nama {
-		height: fit-content;
-		display: inline-block;
-	}
-
-	nama h1 {
-		font-family: 'montecarlo';
-		margin: 0 auto -0.3em;
-		font-weight: 100;
-	}
-
-	competence p {
-		font-family: 'gilroy-medium';
-		margin-bottom: 5px;
-	}
-
-	cdesk p {
-		margin: 2px;
-	}
-
-	competence h1 {
-		font-size: 24px;
-		color: rgb(17, 17, 211);
-		font-family: 'vollkorn';
-	}
-
-	expired {
-		font-size: small;
-		font-family: 'gilroy-medium';
-	}
-
-	.certificate-signature {
-		margin-top: 60px;
-	}
-
-	.certificate-signature img {
-		margin: 20px -40px 20px -60px;
-	}
-
-	.certificate-signature p {
-		font-family: 'gilroy-medium';
-		font-size: small;
-		margin: 5px 0;
-		color: #333;
-	}
-
-	.desk-sg p {
-		font-size: medium;
-		font-family: 'gilroy-bold';
-		color: rgb(255, 157, 0);
-	}
-
-	.role p {
-		font-family: 'gilroy-bold';
-	}
-
-	qr {
-		font-family: 'gilroy-bold';
-		font-size: 10px;
-		margin-top: -80px;
-	}
-
-	qr img {
-		width: 90px;
-	}
-
-	qr p {
-		margin-top: 5px;
-	}
-
-	.badge h1 {
-		font-size: 14px;
-	}
 </style>
+{{end}}

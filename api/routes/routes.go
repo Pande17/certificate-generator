@@ -29,11 +29,10 @@ func RouteSetup(r *fiber.App) {
 	api := r.Group("/api")
 
 	// Define routes for authentication
-
-	api.Post("/signup", rest.SignUp)                                      // Route for signing up admin
-	api.Post("/login", middleware.AuditMiddleware("Account"), rest.Login) // Route for admin login
+	api.Post("/signup", middleware.AuditMiddleware("SignUp"), rest.SignUp)                                      // Route for signing up admin
+	api.Post("/login", middleware.AuditMiddleware("Login"), rest.Login) // Route for admin login
 	api.Get("/validate", middleware.ValidateToken, rest.Validate)         // Route to check cookie from admin
-	api.Post("/logout", rest.Logout)
+	api.Post("/logout", middleware.AuditMiddleware("LogOut"), rest.Logout)
 
 	// Define api routes
 	// Every request to a path with the group "api" always checks the cookie
@@ -55,8 +54,14 @@ func RouteSetup(r *fiber.App) {
 	api.Post("/certificate", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.CreateCertificate)
 	api.Get("/certificate", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.GetAllCertificates)
 	api.Get("/certificate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.GetCertificateByID)
+	api.Get("/certificate/:type/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.GetCertificateByID)
 	api.Put("/certiticate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), TEMPlate)
 	api.Delete("/certificate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.DeleteCertificate)
+
+	r.Get("/assets/certificate/:id/:type", rest.DownloadCertificate, rest.GetCertificateByID)
+
+	// temporary, remove later
+	api.Post("/checkpdf", rest.CheckPDF)
 
 	// define routes for management signature configuration
 	api.Post("/signature", rest.CreateSignature)
@@ -64,8 +69,6 @@ func RouteSetup(r *fiber.App) {
 	api.Get("/signature/:id", rest.GetSignature)
 	api.Put("/signature/:id", rest.EditSignature)
 	api.Delete("/signature/:id", rest.DeleteSignature)
-
-	r.Get("/assets/certificate/:type/:id", rest.DownloadCertificate, rest.GetCertificateByID)
 }
 
 func TEMPlate(c *fiber.Ctx) error {

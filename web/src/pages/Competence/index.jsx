@@ -112,20 +112,23 @@ const competence = () => {
     setSearchText(e.target.value);
   };
 
-  const delHandle = async (_id) => {
-    try {
-      await Kompetensi.delete(`http://127.0.0.1:3000/api/competence/${_id}`);
-      setData((prevData) => prevData.filter((item) => item._id !== _id));
-      message.success("Data berhasil dihapus");
-    } catch (error) {
-      console.error("Error response:", error.response);
-      message.error(
-        `Gagal menghapus data: ${
-          error.response?.data?.message || error.message
-        }`
-      );
-    }
-  };
+
+ const delHandle = async (_id) => {
+   try {
+   await Kompetensi.delete(
+       `http://127.0.0.1:3000/api/competence/${_id}`
+     );
+     setData((prevData) => prevData.filter((item) => item._id !== _id));
+     message.success("Data berhasil dihapus");
+   } catch (error) {
+     console.error("Error response:", error.response);
+     message.error(
+       `Gagal menghapus data: ${error.response?.data?.message || error.message}`
+     );
+   }
+ };
+
+[]
 
   const delConfirm = (_id, nama_kompetensi) => {
     confirm({
@@ -142,7 +145,7 @@ const competence = () => {
       },
     });
   };   
-  
+
   const onSubmit = async (data) => {
     const competenceData = {
       nama_kompetensi: data.competenceName,
