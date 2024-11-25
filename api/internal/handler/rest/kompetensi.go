@@ -23,8 +23,8 @@ var collectionKompetensi = database.GetCollection("competence")
 func CreateKompetensi(c *fiber.Ctx) error {
 	// Struct for the incoming request body
 	var kompetensiReq struct {
-		KompetensiName string        `json:"nama_kompetensi" valid:"required~Nama Kompetensi tidak boleh kosong!, stringLength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
-		Divisi         string        `json:"divisi" valid:"required~Divisi tidak boleh kosong!, stringLength(1|6)~Divisi harus antara 1-6 karakter"`
+		KompetensiName string        `json:"nama_kompetensi" valid:"required~Nama Kompetensi tidak boleh kosong!, stringlength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
+		Divisi         string        `json:"divisi" valid:"required~Divisi tidak boleh kosong!, stringlength(1|6)~Divisi harus antara 1-6 karakter"`
 		HardSkills     []model.Skill `json:"hard_skills"`
 		SoftSkills     []model.Skill `json:"soft_skills"`
 	}
@@ -121,8 +121,8 @@ func EditKompetensi(c *fiber.Ctx) error {
 
 	// Parse request body to get new data
 	var input struct {
-		NamaKompetensi string        `json:"nama_kompetensi" valid:"required~Nama Kompetensi tidak boleh kosong!, stringLength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
-		Divisi         string        `json:"divisi" valid:"required~Divisi tidak boleh kosong!, stringLength(1|6)~Divisi harus antara 1-6 karakter"`
+		NamaKompetensi string        `json:"nama_kompetensi" valid:"required~Nama Kompetensi tidak boleh kosong!, stringlength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
+		Divisi         string        `json:"divisi" valid:"required~Divisi tidak boleh kosong!, stringlength(1|6)~Divisi harus antara 1-6 karakter"`
 		HardSkills     []model.Skill `json:"hard_skills"`
 		SoftSkills     []model.Skill `json:"soft_skills"`
 	}
