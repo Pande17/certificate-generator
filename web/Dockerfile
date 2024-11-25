@@ -1,9 +1,6 @@
 # stage 1 - build stage
 FROM node:18-alpine as build
 
-# stage 2 - serve stage
-FROM nginx:alpine
-
 # set working directory
 WORKDIR /app
 
@@ -18,11 +15,11 @@ COPY . ./
 # build the react app
 RUN npm run build
 
-# copy custom nginx configuration
-# COPY nginx.conf /etc/nginx/nginx.conf
+# stage 2 - serve stage
+FROM nginx:alpine
 
 # copy build from the previous stage
-COPY --from=build /app /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html
 
 # expose port
 EXPOSE 80
