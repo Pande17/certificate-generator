@@ -1,22 +1,25 @@
 import axios from "axios";
 
+ const api = process.env.REACT_APP_API_URL;
+
+
 const Signature = axios.create({
-  baseURL: "http://127.0.0.1:3000/api/signature",
+  baseURL: `${api}/api/signature`,
 });
 
 // Instance untuk kompetensi
 const Kompetensi = axios.create({
-  baseURL: "http://127.0.0.1:3000/api/competence",
+  baseURL: `${api}/api/competence`,
 });
 
 // Instance untuk sertifikat
 const Sertifikat = axios.create({
-  baseURL: "http://127.0.0.1:3000/api/certificate",
+  baseURL: `${api}/api/certificate`,
 });
 
 // Instance untuk login
 const Login = axios.create({
-  baseURL: "http://127.0.0.1:3000/api/login",
+  baseURL: `${api}/api/login`,
 });
 
 // Interceptor untuk menyisipkan token pada setiap request
