@@ -4,18 +4,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// struct for Kompetensi
+// Struct for Kompetensi
 type Kompetensi struct {
 	AdminId        primitive.ObjectID `json:"admin_id" bson:"admin_id"`
-	NamaKompetensi string             `json:"nama_kompetensi" bson:"nama_kompetensi"  valid:"required~Nama Kompetensi tidak boleh kosong!, stringLength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
-	Divisi         string             `json:"divisi" bson:"divisi" valid:"required~Divisi tidak boleh kosong!, stringLength(1|5)~Divisi harus antara 1-5 karakter"`
+	NamaKompetensi string             `json:"nama_kompetensi" bson:"nama_kompetensi"`
+	Divisi         string             `json:"divisi" bson:"divisi"`
 	HardSkills     []Skill            `json:"hard_skills" bson:"hard_skills"`
 	SoftSkills     []Skill            `json:"soft_skills" bson:"soft_skills"`
-	Model          `bson:",inline"`
+	Model          `bson:",inline"`   // Flatten the model fields
 }
 
-// `bson:",inline"`   // flatten the model fields
-
+// Struct for Skill
 type Skill struct {
 	SkillName  string        `json:"skill_name" bson:"skill_name"`
 	SkillDescs []Description `json:"description" bson:"description"`
@@ -23,26 +22,8 @@ type Skill struct {
 	SkillScore float64       `json:"skill_score" bson:"skill_score"`
 }
 
-// struct for Deskripsi Hard Skill and Soft Skill
+// Struct for Description of Hard Skill and Soft Skill
 type Description struct {
 	UnitCode  string `json:"unit_code" bson:"unit_code" valid:"required~Kode Unit tidak boleh kosong!"`
 	UnitTitle string `json:"unit_title" bson:"unit_title" valid:"required~Judul Unit tidak boleh kosong!"`
 }
-
-// struct for Hard Skills
-// type HardSkill struct {
-// 	// HardSkillName  string        `json:"hardSkill_name" bson:"hardSkill_name"`
-// 	// Descriptions   []Description `json:"description" bson:"description"`
-// 	// HardSkillJP    uint64        `json:"hardSkill_jp" bson:"hardSkill_jp"`
-// 	// HardSkillScore float64       `json:"hardSkill_score" bson:"hardSkill_score"`
-// 	Skill `json:"hard_skill" bson:"hard_skill"`
-// }
-
-// // struct for Soft Skills
-// type SoftSkill struct {
-// 	// SoftSkillName  string        `json:"softSkill_name" bson:"softSkill_name"`
-// 	// Descriptions   []Description `json:"description" bson:"description"`
-// 	// SoftSkillJP    uint64        `json:"softSkill_jp" bson:"softSkill_jp"`
-// 	// SoftSkillScore float64       `json:"softSkill_score" bson:"softSkill_score"`
-// 	Skill `json:"soft_skill" bson:"soft_skill"`
-// }

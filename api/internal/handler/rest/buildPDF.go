@@ -45,7 +45,7 @@ func HandleBuildPdf(c *fiber.Ctx) error {
 	err = buildPDF(parser, "output/test.pdf")
 	if err != nil {
 		fmt.Printf("Failed to build pdf file, err %s\n", err.Error())
-		return InternalServerError(c, "PDF Build Failed", err.Error())
+		return Conflict(c, "PDF Build Failed", err.Error())
 	}
 
 	return OK(c, "PDF Build Success", parser)

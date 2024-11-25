@@ -11,7 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-// ValidateToken middleware
+// ValidateToken middleware to check the validity of the JWT token
 func ValidateToken(c *fiber.Ctx) error {
 	// Retrieve the token from the Authorization header
 	tokenString := strings.TrimPrefix(c.Get("Authorization"), "Bearer ")
@@ -20,19 +20,15 @@ func ValidateToken(c *fiber.Ctx) error {
 		tokenString = c.Cookies("authToken") // Use a specific cookie name
 	}
 
-	// Debugging: Log the retrieved token
-	fmt.Println("Token from Authorization header:", tokenString)
-	fmt.Println("Token from cookies:", c.Cookies("authToken"))
-
 	// If token is missing, return unauthorized error
 	if tokenString == "" {
-		return rest.Unauthorized(c, "Mohon login terlebih dahulu", "Token tidak ditemukan")
+		return rest.Unauthorized(c, "Silakan login untuk mengakses fitur ini.", "Token tidak ditemukan.")
 	}
 
 	// Retrieve secret key from environment variables
 	secretKey := os.Getenv("SECRET")
 	if secretKey == "" {
-		return rest.Conflict(c, "Server error", "Kunci rahasia tidak ditemukan")
+		return rest.Conflict(c, "Terjadi kesalahan pada server. Kunci rahasia tidak ditemukan.", "Silakan hubungi admin.")
 	}
 
 	// Initialize claims as MapClaims to store all claims
@@ -49,18 +45,18 @@ func ValidateToken(c *fiber.Ctx) error {
 
 	// Check for errors during parsing
 	if err != nil {
-		return rest.Unauthorized(c, "Invalid Token", "Token tidak valid")
+		return rest.Unauthorized(c, "Token yang Anda masukkan tidak valid. Silakan coba lagi.", "Token tidak valid.")
 	}
 
 	// Ensure the token is valid
 	if !token.Valid {
-		return rest.Unauthorized(c, "Invalid Token", "Token tidak valid")
+		return rest.Unauthorized(c, "Token tidak valid. Pastikan Anda menggunakan token yang benar.", "Token tidak valid.")
 	}
 
 	// Check for expiration (if the exp claim exists)
 	if exp, ok := claims["exp"].(float64); ok {
 		if int64(exp) < time.Now().Unix() {
-			return rest.Unauthorized(c, "Expired Token", "Token telah kedaluwarsa")
+			return rest.Unauthorized(c, "Token Anda telah kedaluwarsa. Silakan login kembali.", "Token telah kedaluwarsa.")
 		}
 	}
 

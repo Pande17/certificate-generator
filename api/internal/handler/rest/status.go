@@ -32,30 +32,32 @@ func jsonResponse(c *fiber.Ctx, statusCode int, message string, errLocate string
 	return c.Status(statusCode).JSON(response)
 }
 
-func BadRequest(c *fiber.Ctx, message string, errLocate string) error {
-	return jsonResponse(c, fiber.StatusBadRequest, message, errLocate, nil, nil)
-}
-
-func Conflict(c *fiber.Ctx, message string, errLocate string) error {
-	return jsonResponse(c, fiber.StatusConflict, message, errLocate, nil, nil)
-}
-
-func InternalServerError(c *fiber.Ctx, message string, errLocate string) error {
-	return jsonResponse(c, fiber.StatusInternalServerError, message, errLocate, nil, nil)
-}
-
-func Unauthorized(c *fiber.Ctx, message string, errLocate string) error {
-	return jsonResponse(c, fiber.StatusUnauthorized, message, errLocate, nil, nil)
-}
-
+// code 200
 func OK(c *fiber.Ctx, message string, data any) error {
 	return jsonResponse(c, fiber.StatusOK, message, "", data, nil)
 }
 
+// code 400
+func BadRequest(c *fiber.Ctx, message string, errLocate string) error {
+	return jsonResponse(c, fiber.StatusBadRequest, message, errLocate, nil, nil)
+}
+
+// code 401
+func Unauthorized(c *fiber.Ctx, message string, errLocate string) error {
+	return jsonResponse(c, fiber.StatusUnauthorized, message, errLocate, nil, nil)
+}
+
+// code 404
 func NotFound(c *fiber.Ctx, message string, errLocate string) error {
 	return jsonResponse(c, fiber.StatusNotFound, message, errLocate, nil, nil)
 }
 
+// code 404 for deleted document
 func AlreadyDeleted(c *fiber.Ctx, message string, errLocate string, deletedAt any) error {
 	return jsonResponse(c, fiber.StatusNotFound, message, errLocate, nil, deletedAt)
+}
+
+// code 409
+func Conflict(c *fiber.Ctx, message string, errLocate string) error {
+	return jsonResponse(c, fiber.StatusConflict, message, errLocate, nil, nil)
 }
