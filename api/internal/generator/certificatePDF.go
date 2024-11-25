@@ -9,6 +9,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -20,6 +21,12 @@ import (
 var pdfg *wkhtmltopdf.PDFGenerator
 var mtx sync.Mutex
 var CreatingPDF = map[string]bool{}
+
+type UnitCompetence struct {
+	UnitCode  string
+	UnitTitle string
+	JP        int
+}
 
 // functions for rendering html certificate
 var funcs = template.FuncMap{
@@ -49,6 +56,35 @@ var funcs = template.FuncMap{
 	},
 	"parity": func(i int) int {
 		return i % 2
+	},
+	"splitunitcodes": func(d model.CertificateData) []UnitCompetence {
+		ucArr := []UnitCompetence{}
+		ucMap := map[string]UnitCompetence{}
+		for _, skill := range d.HardSkills.Skills {
+			for _, desc := range skill.SkillDescs {
+				ucMap[desc.UnitCode] = UnitCompetence{
+					UnitCode:  desc.UnitCode,
+					UnitTitle: desc.UnitTitle,
+					JP:        int(skill.SkillJP),
+				}
+			}
+		}
+		for _, skill := range d.SoftSkills.Skills {
+			for _, desc := range skill.SkillDescs {
+				ucMap[desc.UnitCode] = UnitCompetence{
+					UnitCode:  desc.UnitCode,
+					UnitTitle: desc.UnitTitle,
+					JP:        int(skill.SkillJP),
+				}
+			}
+		}
+		for _, skill := range ucMap {
+			ucArr = append(ucArr, skill)
+		}
+		slices.SortFunc(ucArr, func(a, b UnitCompetence) int {
+			return strings.Compare(a.UnitCode, b.UnitCode)
+		})
+		return ucArr
 	},
 }
 
