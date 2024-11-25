@@ -29,9 +29,9 @@ func RouteSetup(r *fiber.App) {
 	api := r.Group("/api")
 
 	// Define routes for authentication
-	api.Post("/signup", middleware.AuditMiddleware("SignUp"), rest.SignUp)                                      // Route for signing up admin
-	api.Post("/login", middleware.AuditMiddleware("Login"), rest.Login) // Route for admin login
-	api.Get("/validate", middleware.ValidateToken, rest.Validate)         // Route to check cookie from admin
+	api.Post("/signup", middleware.AuditMiddleware("SignUp"), rest.SignUp) // Route for signing up admin
+	api.Post("/login", middleware.AuditMiddleware("Login"), rest.Login)    // Route for admin login
+	api.Get("/validate", middleware.ValidateToken, rest.Validate)          // Route to check cookie from admin
 	api.Post("/logout", middleware.AuditMiddleware("LogOut"), rest.Logout)
 
 	// Define api routes
@@ -64,11 +64,11 @@ func RouteSetup(r *fiber.App) {
 	api.Post("/checkpdf", rest.CheckPDF)
 
 	// define routes for management signature configuration
-	api.Post("/signature", rest.CreateSignature)
-	api.Get("/signature", rest.GetSignature)
-	api.Get("/signature/:id", rest.GetSignature)
-	api.Put("/signature/:id", rest.EditSignature)
-	api.Delete("/signature/:id", rest.DeleteSignature)
+	api.Post("/signature", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.CreateSignature)
+	api.Get("/signature", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.GetSignature)
+	api.Get("/signature/:id", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.GetSignature)
+	api.Put("/signature/:id", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.EditSignature)
+	api.Delete("/signature/:id", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.DeleteSignature)
 }
 
 func TEMPlate(c *fiber.Ctx) error {

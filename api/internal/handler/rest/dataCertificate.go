@@ -13,11 +13,17 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// connect collection certificate in database
+var certificateCollection = database.GetCollection("certificate")
+var competenceCollection = database.GetCollection("competence")
+var counterCollection = database.GetCollection("counters")
 
 func CreateCertificate(c *fiber.Ctx) error {
 	// add body request
@@ -31,10 +37,18 @@ func CreateCertificate(c *fiber.Ctx) error {
 		return BadRequest(c, "Invalid body request", err.Error())
 	}
 
-	// connect collection certificate in database
-	certificateCollection := database.GetCollection("certificate")
-	competenceCollection := database.GetCollection("competence")
-	counterCollection := database.GetCollection("counters")
+	// Retrieve the admin ID from the claims stored in context
+	claims := c.Locals("admin").(jwt.MapClaims)
+	adminID, ok := claims["sub"].(string)
+	if !ok {
+		return Unauthorized(c, "Token Admin tidak valid!", "Token Admin tidak valid!")
+	}
+
+	// Convert adminID (which is a string) to MongoDB ObjectID
+	objectID, err := primitive.ObjectIDFromHex(adminID)
+	if err != nil {
+		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
+	}
 
 	// generate DataID (random string with 8 letter)
 	newDataID, err := generator.GetUniqueRandomID(certificateCollection, 8)
@@ -73,15 +87,17 @@ func CreateCertificate(c *fiber.Ctx) error {
 		totalSSSkor += ss.SkillScore
 	}
 
+	sertifName := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(strings.ToUpper(pdfReq.Data.SertifName)), "SERTIFIKAT"))
 	mappedData := model.CertificateData{
-		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
+		AdminId:    objectID,
+		SertifName: sertifName,
 		KodeReferral: model.KodeReferral{
 			ReferralID: nextReferralID,
 			Divisi:     kompetensi.Divisi,
 			BulanRilis: monthRoman,
 			TahunRilis: year,
 		},
-		NamaPeserta: strings.TrimSpace(pdfReq.Data.NamaPeserta),
+		NamaPeserta: pdfReq.Data.NamaPeserta,
 		SKKNI:       pdfReq.Data.SKKNI,
 		Kompetensi:  pdfReq.Data.Kompetensi,
 		Validation:  pdfReq.Data.Validation,
@@ -102,16 +118,18 @@ func CreateCertificate(c *fiber.Ctx) error {
 		},
 		FinalSkor: float64(math.Round((totalHSSkor+totalSSSkor)/float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
 		Signature: model.Signature{
-			Stamp:     pdfReq.Data.Signature.Stamp,
-			Signature: pdfReq.Data.Signature.Signature,
-			Name:      pdfReq.Data.Signature.Name,
-			Role:      pdfReq.Data.Signature.Role,
+			ConfigName: pdfReq.Data.Signature.ConfigName,
+			Stamp:      pdfReq.Data.Signature.Stamp,
+			Signature:  pdfReq.Data.Signature.Signature,
+			Name:       pdfReq.Data.Signature.Name,
+			Role:       pdfReq.Data.Signature.Role,
 		},
 	}
 
 	certificate := model.PDF{
+		AdminId:    objectID,
 		DataID:     newDataID,
-		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
+		SertifName: sertifName,
 		Data:       mappedData,
 		Model: model.Model{
 			ID:        primitive.NewObjectID(),
@@ -140,12 +158,25 @@ func CreateCertificate(c *fiber.Ctx) error {
 func GetAllCertificates(c *fiber.Ctx) error {
 	var results []bson.M
 
-	collection := database.GetCollection("certificate")
 	ctx := c.Context()
+
+	// Retrieve the admin ID from the claims stored in context
+	claims := c.Locals("admin").(jwt.MapClaims)
+	adminID, ok := claims["sub"].(string)
+	if !ok {
+		return Unauthorized(c, "Token Admin tidak valid!", "Token Admin tidak valid!")
+	}
+
+	// Convert adminID (which is a string) to MongoDB ObjectID
+	objectID, err := primitive.ObjectIDFromHex(adminID)
+	if err != nil {
+		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
+	}
 
 	// set the projection to return the required fields
 	projection := bson.M{
 		"_id":         1,
+		"admin_id":    1,
 		"data_id":     1,
 		"sertif_name": 1,
 		"created_at":  1,
@@ -153,8 +184,17 @@ func GetAllCertificates(c *fiber.Ctx) error {
 		"deleted_at":  1,
 	}
 
+	// Create the filter to include admin_id and handle deleted_at
+	filter := bson.M{
+		"admin_id": objectID,
+		"$or": []bson.M{
+			{"deleted_at": bson.M{"$exists": false}}, // DeletedAt field does not exist
+			{"deleted_at": bson.M{"$eq": nil}},       // DeletedAt field is nil
+		},
+	}
+
 	// find the projection
-	cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	cursor, err := certificateCollection.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "No certificate found", err.Error())
@@ -168,10 +208,6 @@ func GetAllCertificates(c *fiber.Ctx) error {
 		var certiticate bson.M
 		if err := cursor.Decode(&certiticate); err != nil {
 			return Conflict(c, "Failed to decode data", err.Error())
-		}
-		if deletedAt, ok := certiticate["deleted_at"]; ok && deletedAt != nil {
-			// skip deleted certificates
-			continue
 		}
 		results = append(results, certiticate)
 	}
@@ -205,9 +241,6 @@ func GetCertificateByID(c *fiber.Ctx) error {
 		searchVal = certifID
 	}
 
-	// connect to collection in mongoDB
-	collection := database.GetCollection("certificate")
-
 	// make filter to find document based on data_id (incremental id)
 	filter := bson.M{searchKey: searchVal}
 
@@ -215,7 +248,7 @@ func GetCertificateByID(c *fiber.Ctx) error {
 	var certifDetail bson.M
 
 	// find a single document that matches the filter
-	if err := collection.FindOne(c.Context(), filter).Decode(&certifDetail); err != nil {
+	if err := certificateCollection.FindOne(c.Context(), filter).Decode(&certifDetail); err != nil {
 		// if not found, return a 404 status
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Data not found", "Find Detail Certificate")
@@ -244,9 +277,6 @@ func DeleteCertificate(c *fiber.Ctx) error {
 	if err != nil {
 		return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
 	}
-
-	// connect to collection in mongoDB
-	certificateCollection := database.GetCollection("certificate")
 
 	// make filter to find document based on acc_id (incremental id)
 	filter := bson.M{"_id": certifID}
