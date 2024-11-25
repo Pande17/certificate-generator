@@ -19,6 +19,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// connect collection certificate in database
+var certificateCollection = database.GetCollection("certificate")
+var competenceCollection = database.GetCollection("competence")
+var counterCollection = database.GetCollection("counters")
+
 func CreateCertificate(c *fiber.Ctx) error {
 	// add body request
 	var pdfReq struct {
@@ -30,11 +35,6 @@ func CreateCertificate(c *fiber.Ctx) error {
 	if err := c.BodyParser(&pdfReq); err != nil {
 		return BadRequest(c, "Invalid body request", err.Error())
 	}
-
-	// connect collection certificate in database
-	certificateCollection := database.GetCollection("certificate")
-	competenceCollection := database.GetCollection("competence")
-	counterCollection := database.GetCollection("counters")
 
 	// generate DataID (random string with 8 letter)
 	newDataID, err := generator.GetUniqueRandomID(certificateCollection, 8)
@@ -73,15 +73,16 @@ func CreateCertificate(c *fiber.Ctx) error {
 		totalSSSkor += ss.SkillScore
 	}
 
+	sertifName := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(strings.ToUpper(pdfReq.Data.SertifName)), "SERTIFIKAT"))
 	mappedData := model.CertificateData{
-		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
+		SertifName: sertifName,
 		KodeReferral: model.KodeReferral{
 			ReferralID: nextReferralID,
 			Divisi:     kompetensi.Divisi,
 			BulanRilis: monthRoman,
 			TahunRilis: year,
 		},
-		NamaPeserta: strings.TrimSpace(pdfReq.Data.NamaPeserta),
+		NamaPeserta: pdfReq.Data.NamaPeserta,
 		SKKNI:       pdfReq.Data.SKKNI,
 		Kompetensi:  pdfReq.Data.Kompetensi,
 		Validation:  pdfReq.Data.Validation,
@@ -102,16 +103,17 @@ func CreateCertificate(c *fiber.Ctx) error {
 		},
 		FinalSkor: float64(math.Round((totalHSSkor+totalSSSkor)/float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
 		Signature: model.Signature{
-			Stamp:     pdfReq.Data.Signature.Stamp,
-			Signature: pdfReq.Data.Signature.Signature,
-			Name:      pdfReq.Data.Signature.Name,
-			Role:      pdfReq.Data.Signature.Role,
+			ConfigName: pdfReq.Data.Signature.ConfigName,
+			Stamp:      pdfReq.Data.Signature.Stamp,
+			Signature:  pdfReq.Data.Signature.Signature,
+			Name:       pdfReq.Data.Signature.Name,
+			Role:       pdfReq.Data.Signature.Role,
 		},
 	}
 
 	certificate := model.PDF{
 		DataID:     newDataID,
-		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
+		SertifName: sertifName,
 		Data:       mappedData,
 		Model: model.Model{
 			ID:        primitive.NewObjectID(),
@@ -140,7 +142,6 @@ func CreateCertificate(c *fiber.Ctx) error {
 func GetAllCertificates(c *fiber.Ctx) error {
 	var results []bson.M
 
-	collection := database.GetCollection("certificate")
 	ctx := c.Context()
 
 	// set the projection to return the required fields
@@ -154,7 +155,7 @@ func GetAllCertificates(c *fiber.Ctx) error {
 	}
 
 	// find the projection
-	cursor, err := collection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	cursor, err := certificateCollection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "No certificate found", err.Error())
@@ -205,9 +206,6 @@ func GetCertificateByID(c *fiber.Ctx) error {
 		searchVal = certifID
 	}
 
-	// connect to collection in mongoDB
-	collection := database.GetCollection("certificate")
-
 	// make filter to find document based on data_id (incremental id)
 	filter := bson.M{searchKey: searchVal}
 
@@ -215,7 +213,7 @@ func GetCertificateByID(c *fiber.Ctx) error {
 	var certifDetail bson.M
 
 	// find a single document that matches the filter
-	if err := collection.FindOne(c.Context(), filter).Decode(&certifDetail); err != nil {
+	if err := certificateCollection.FindOne(c.Context(), filter).Decode(&certifDetail); err != nil {
 		// if not found, return a 404 status
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Data not found", "Find Detail Certificate")
@@ -244,9 +242,6 @@ func DeleteCertificate(c *fiber.Ctx) error {
 	if err != nil {
 		return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
 	}
-
-	// connect to collection in mongoDB
-	certificateCollection := database.GetCollection("certificate")
 
 	// make filter to find document based on acc_id (incremental id)
 	filter := bson.M{"_id": certifID}
