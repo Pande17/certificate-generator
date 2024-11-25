@@ -8,6 +8,7 @@ import Layout from "./pages/MainLayout/Layout.jsx"
 import Side from "./pages/Side/index.jsx"
 import Tes from "./pages/tes/Index.jsx"
 import CreateKompetensi from "./pages/create competence/index.jsx"
+import QrPage from "./pages/qr page/index.jsx"
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
       <Route path="/layout" element={<Layout />} />
       <Route path="/side" element={<Side />} />
       <Route path="/Tes" element={<Tes />} />
+      <Route path="/qrPage" element={<QrPage/>}/>
     </Routes>
   );
 };

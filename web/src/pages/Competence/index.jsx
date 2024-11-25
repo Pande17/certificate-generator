@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 import { Kompetensi } from "../api middleware";
 import {
   message,
@@ -9,7 +9,6 @@ import {
   Modal,
   Form,
   Input,
-
   Space,
   Select,
 } from "antd";
@@ -19,39 +18,37 @@ import {
   MinusCircleOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import MainLayout from "../MainLayout/Layout"
+import MainLayout from "../MainLayout/Layout";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 
 const competence = () => {
-  const [loading, setLoading] = useState(false)
-  const [data, setData] = useState([])
-    const [searchText, setSearchText] = useState("");
-    const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-    const [currentRecord, setCurrentRecord] = useState(null);
-    const [competencies, setCompetencies] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [currentRecord, setCurrentRecord] = useState(null);
+  const [competencies, setCompetencies] = useState([]);
 
-    
-    const {confirm} = Modal
-    
-    useEffect(() => {
-      const fetchingData = async() => {
-        setLoading(true)
-        try{
+  const { confirm } = Modal;
+
+  useEffect(() => {
+    const fetchingData = async () => {
+      setLoading(true);
+      try {
         const response = await Kompetensi.get(
           `http://127.0.0.1:3000/api/competence`
         );
-        const datas = response.data.data
+        const datas = response.data.data;
         const filteredData = datas.filter((item) => !item.deleted_at);
         setData(filteredData);
-        
-      }catch(err){
-        console.error('error : ', err)
-        message.error('error : ', err)
-      }finally {
-        setLoading(false)
+      } catch (err) {
+        console.error("error : ", err);
+        message.error("error : ", err);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
     const fetchCompetencies = async () => {
       try {
         const response = await Kompetensi.get(
@@ -69,41 +66,40 @@ const competence = () => {
     };
     fetchCompetencies();
     fetchingData();
-  },[])
-  
+  }, []);
+
   const navigate = useNavigate();
-  
+
   const backHandle = () => {
     navigate("/competence");
   };
-  
-    const { control, handleSubmit, } = useForm({
-      defaultValues: {
-        competenceName: "",
-        hardSkills: [
-          { skill_name: "", description: [{ unit_code: "", unit_title: "" }] },
-        ],
-        softSkills: [
-          { skill_name: "", description: [{ unit_code: "", unit_title: "" }] },
-        ],
-        selectedCompetenceId: null,
-      },
-    });
 
-    const { Option } = Select;
-    const {
-      fields: hardSkillsFields,
-      append: addHardSkill,
-      remove: removeHardSkill,
-    } = useFieldArray({ control, name: "hardSkills" });
+  const { control, handleSubmit } = useForm({
+    defaultValues: {
+      competenceName: "",
+      hardSkills: [
+        { skill_name: "", description: [{ unit_code: "", unit_title: "" }] },
+      ],
+      softSkills: [
+        { skill_name: "", description: [{ unit_code: "", unit_title: "" }] },
+      ],
+      selectedCompetenceId: null,
+    },
+  });
 
-    const {
-      fields: softSkillsFields,
-      append: addSoftSkill,
-      remove: removeSoftSkill,
-    } = useFieldArray({ control, name: "softSkills" });
+  const { Option } = Select;
+  const {
+    fields: hardSkillsFields,
+    append: addHardSkill,
+    remove: removeHardSkill,
+  } = useFieldArray({ control, name: "hardSkills" });
 
-  
+  const {
+    fields: softSkillsFields,
+    append: addSoftSkill,
+    remove: removeSoftSkill,
+  } = useFieldArray({ control, name: "softSkills" });
+
   const handleEdit = (record) => {
     setCurrentRecord(record);
     setIsEditModalVisible(true);
@@ -116,66 +112,64 @@ const competence = () => {
     setSearchText(e.target.value);
   };
 
- const delHandle = async (_id) => {
-   try {
-   await Kompetensi.delete(
-       `http://127.0.0.1:3000/api/competence/${_id}`
-     );
-     setData((prevData) => prevData.filter((item) => item._id !== _id));
-     message.success("Data berhasil dihapus");
-   } catch (error) {
-     console.error("Error response:", error.response);
-     message.error(
-       `Gagal menghapus data: ${error.response?.data?.message || error.message}`
-     );
-   }
- };
-
+  const delHandle = async (_id) => {
+    try {
+      await Kompetensi.delete(`http://127.0.0.1:3000/api/competence/${_id}`);
+      setData((prevData) => prevData.filter((item) => item._id !== _id));
+      message.success("Data berhasil dihapus");
+    } catch (error) {
+      console.error("Error response:", error.response);
+      message.error(
+        `Gagal menghapus data: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+    }
+  };
 
   const delConfirm = (_id, nama_kompetensi) => {
     confirm({
-      title:`apakah anda yakon ingin menghapus kompetensi ${nama_kompetensi}`,
-      content:"data yang di hapus tidak dapat dikembalikan",
-      okType:"danger",
-      okText:"ya, Hapus",
-      cancelText:"Batal",
+      title: `apakah anda yakon ingin menghapus kompetensi ${nama_kompetensi}`,
+      content: "data yang di hapus tidak dapat dikembalikan",
+      okType: "danger",
+      okText: "ya, Hapus",
+      cancelText: "Batal",
       onOk() {
-        delHandle(_id)
+        delHandle(_id);
       },
       onCancel() {
-        console.log("penghapusan dibatalkan")
+        console.log("penghapusan dibatalkan");
+      },
+    });
+  };   
+  
+  const onSubmit = async (data) => {
+    const competenceData = {
+      nama_kompetensi: data.competenceName,
+      hard_skills: data.hardSkills,
+      soft_skills: data.softSkills,
+    };
+
+    try {
+      if (data.selectedCompetenceId) {
+        await Kompetensi.put(
+          `http://127.0.0.1:3000/api/competence/${data.selectedCompetenceId}`,
+          competenceData
+        );
+        message.success("Kompetensi berhasil diperbarui!");
+      } else {
+        await Kompetensi.post(
+          "http://127.0.0.1:3000/api/competence",
+          competenceData
+        );
+        message.success("Kompetensi berhasil ditambahkan!");
       }
-    })
-  }
- const onSubmit = async (data) => {
-   const competenceData = {
-     nama_kompetensi: data.competenceName,
-     hard_skills: data.hardSkills,
-     soft_skills: data.softSkills,
-   };
-
-   try {
-     if (data.selectedCompetenceId) {
-       await Kompetensi.put(
-         `http://127.0.0.1:3000/api/competence/${data.selectedCompetenceId}`,
-         competenceData
-       );
-       message.success("Kompetensi berhasil diperbarui!");
-     } else {
-       await Kompetensi.post(
-         "http://127.0.0.1:3000/api/competence",
-         competenceData
-       );
-       message.success("Kompetensi berhasil ditambahkan!");
-     }
-     reset();
-   } catch (error) {
-     d;
-     console.error("Error saat menyimpan kompetensi:", error);
-     message.error("Error saat menyimpan kompetensi!");
-   }
- };
-
+      reset();
+    } catch (error) {
+      console.error("Error saat menyimpan kompetensi:", error);
+      message.error("Error saat menyimpan kompetensi!");
+    }
+  };
 
   const column = [
     {
@@ -214,7 +208,7 @@ const competence = () => {
               icon={<EditOutlined />}
               type="primary"
               style={{ margin: 8 }}
-              onClick={() =>handleEdit(record)}
+              onClick={() => handleEdit(record)}
             />
           </div>
         );
@@ -222,10 +216,9 @@ const competence = () => {
     },
   ];
 
-
   const createNav = () => {
     navigate("/competence/create-competence");
-  }
+  };
   return (
     <MainLayout>
       <div className="flex flex-col items-center  p-5">
@@ -244,12 +237,13 @@ const competence = () => {
         <Button onClick={createNav} className="m-3">
           Create Competence
         </Button>
+
+        {/* Modal Edit Sertif */}
         <Modal
           title="Edit Sertifikat"
           open={isEditModalVisible}
           onCancel={() => setIsEditModalVisible(false)}
-          footer={null}
-        >
+          footer={null}>
           <Form
             layout="vertical"
             onFinish={handleSubmit(onSubmit)}
@@ -260,8 +254,7 @@ const competence = () => {
               backgroundColor: "white",
               padding: "40px",
               borderRadius: "20px",
-            }}
-          >
+            }}>
             <h3 className="text-center font-Poppins text-2xl font-bold p-6">
               Buat kompetensi{" "}
             </h3>
@@ -300,8 +293,7 @@ const competence = () => {
                     type="text"
                     danger
                     icon={<MinusCircleOutlined />}
-                    onClick={() => removeHardSkill(index)}
-                  >
+                    onClick={() => removeHardSkill(index)}>
                     Hapus
                   </Button>
                 </Form.Item>
@@ -349,8 +341,7 @@ const competence = () => {
               }
               block
               icon={<PlusOutlined />}
-              style={{ marginBottom: "20px" }}
-            >
+              style={{ marginBottom: "20px" }}>
               Tambah Hard Skill
             </Button>
 
@@ -375,8 +366,7 @@ const competence = () => {
                     type="text"
                     danger
                     icon={<MinusCircleOutlined />}
-                    onClick={() => removeSoftSkill(index)}
-                  >
+                    onClick={() => removeSoftSkill(index)}>
                     Hapus
                   </Button>
                 </Form.Item>
@@ -424,8 +414,7 @@ const competence = () => {
               }
               block
               icon={<PlusOutlined />}
-              style={{ marginBottom: "20px" }}
-            >
+              style={{ marginBottom: "20px" }}>
               Tambah Soft Skill
             </Button>
 
@@ -433,16 +422,19 @@ const competence = () => {
               <Button
                 type="primary"
                 htmlType="submit"
-                style={{ width: "100%", height: "50px" }}
-              >
+                style={{ width: "100%", height: "50px" }}>
                 Simpan
               </Button>
             </Form.Item>
           </Form>
         </Modal>
+        {/*  END */}
         <Row
-          style={{ justifyContent: "center", width: "100%", overflowX: "auto" }}
-        >
+          style={{
+            justifyContent: "center",
+            width: "100%",
+            overflowX: "auto",
+          }}>
           <Col>
             <Table
               dataSource={filteredData}
@@ -462,6 +454,6 @@ const competence = () => {
       </div>
     </MainLayout>
   );
-}
+};
 
-export default competence ; 
+export default competence;
