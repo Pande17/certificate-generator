@@ -14,14 +14,12 @@ const LoginPage = () => {
     setShowPassword(!showPassword);
   };
 
-  const api = process.env.REACT_APP_API_URL;
-
   const loginHandle = async (e) => {
     e.preventDefault();
     setMsg("");
     try {
       const response = await Login.post(
-        `${api}/api/login,`,
+        "http://127.0.0.1:3000/api/login",
         {
           admin_name,
           admin_password,
