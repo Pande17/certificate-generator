@@ -160,10 +160,10 @@ func EditKompetensi(c *fiber.Ctx) error {
 
 // Function to delete competence
 func DeleteKompetensi(c *fiber.Ctx) error {
-	// Get kompetensi_id from params
+	// Get id param
 	idParam := c.Params("id")
 
-	// Convert params to ObjectID
+	// Convert idParam to ObjectID
 	kompetensiID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		return BadRequest(c, "Kompetensi ini tidak ada! Silakan periksa ID yang dimasukkan.", "Gagal mengonversi ID")
@@ -193,42 +193,22 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 	// Update document in the collection
 	result, err := collectionKompetensi.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		return Conflict(c, "Gagal menghapus Kompetensi! Silakan coba lagi.", "Gagal menghapus kompetensi")
+		return Conflict(c, "Gagal menghapus kompetensi! Silakan coba lagi.", "Gagal menghapus kompetensi")
 	}
 
-	// Check if the document was found and updated
+	// Check if the document was already deleted
 	if result.MatchedCount == 0 {
 		return NotFound(c, "Kompetensi ini tidak dapat ditemukan! Silakan periksa ID yang dimasukkan.", "Gagal menemukan kompetensi")
 	}
 
 	// Return success
-	return OK(c, "Berhasil menghapus Kompetensi!", kompetensiID)
-}
-
-// Function to get all competence data
-func GetKompetensi(c *fiber.Ctx) error {
-	id := c.Params("id") // Get ID from the URL path
-	if id == "" {
-		// If ID is not provided, return all competence data
-		return getAllKompetensi(c)
-	}
-
-	// If ID is provided, proceed with getting specific competence
-	var value any
-	var err error
-	value, err = primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return BadRequest(c, "Gagal mendapatkan Kompetensi! Silakan periksa ID yang dimasukkan.", err.Error())
-	}
-	return getOneKompetensi(c, bson.M{"_id": value})
+	return OK(c, "Berhasil menghapus kompetensi!", kompetensiID)
 }
 
 // Function to get all competencies
-func getAllKompetensi(c *fiber.Ctx) error {
+func GetAllKompetensi(c *fiber.Ctx) error {
 	var results []bson.M
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	ctx := c.Context()
 
 	// Retrieve the admin ID from the claims stored in context
 	claims := c.Locals("admin").(jwt.MapClaims)
@@ -237,7 +217,7 @@ func getAllKompetensi(c *fiber.Ctx) error {
 		return Unauthorized(c, "Token Admin tidak valid!", "Token Admin tidak valid!")
 	}
 
-	// Convert adminID (which is a string) to MongoDB ObjectID
+	// Convert adminID to ObjectID
 	objectID, err := primitive.ObjectIDFromHex(adminID)
 	if err != nil {
 		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
@@ -263,7 +243,7 @@ func getAllKompetensi(c *fiber.Ctx) error {
 		},
 	}
 
-	// Find the projection
+	// Find all documents that match
 	cursor, err := collectionKompetensi.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -290,7 +270,28 @@ func getAllKompetensi(c *fiber.Ctx) error {
 }
 
 // Function to get one competence by filter
-func getOneKompetensi(c *fiber.Ctx, filter bson.M) error {
+func GetKompetensiByID(c *fiber.Ctx) error {
+	idParam := c.Params("id")
+	searchKey := c.Params("type")
+	if searchKey == "" { // from handler w/o type param, to not break api
+		searchKey = "oid"
+	}
+	var searchVal any
+	searchVal = idParam
+
+	// Convert to ObjectID if needed
+	if searchKey == "oid" {
+		searchKey = "_id"
+		certifID, err := primitive.ObjectIDFromHex(idParam)
+		if err != nil {
+			return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
+		}
+		searchVal = certifID
+	}
+
+	// Make filter to find document based on search key & value
+	filter := bson.M{searchKey: searchVal}
+
 	// Variable to hold search results
 	var kompetensiDetail bson.M
 
@@ -300,15 +301,14 @@ func getOneKompetensi(c *fiber.Ctx, filter bson.M) error {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Kompetensi ini tidak dapat ditemukan! Silakan periksa ID yang dimasukkan.", "Gagal menemukan detail kompetensi")
 		}
-		// If server error, return status 500
 		return Conflict(c, "Gagal mendapatkan data! Silakan coba lagi.", "Gagal menemukan detail kompetensi")
 	}
 
-	// Check if the competence has a "deleted_at" field
+	// Check if the competence has been deleted
 	if deletedAt, exists := kompetensiDetail["deleted_at"]; exists && deletedAt != nil {
 		return AlreadyDeleted(c, "Kompetensi ini telah dihapus! Silakan hubungi admin.", "Periksa kompetensi yang dihapus", deletedAt)
 	}
 
 	// Return success
-	return OK(c, "Berhasil menampilkan data Kompetensi!", kompetensiDetail)
+	return OK(c, "Berhasil menampilkan data kompetensi!", kompetensiDetail)
 }
