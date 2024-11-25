@@ -8,6 +8,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -38,8 +39,22 @@ func CreateSignature(c *fiber.Ctx) error {
 		return BadRequest(c, "Data yang dimasukkan tidak valid! Silakan periksa kembali.", "Data tidak valid")
 	}
 
+	// Retrieve the admin ID from the claims stored in context
+	claims := c.Locals("admin").(jwt.MapClaims)
+	adminID, ok := claims["sub"].(string)
+	if !ok {
+		return Unauthorized(c, "Token Admin tidak valid!", "Token Admin tidak valid!")
+	}
+
+	// Convert adminID (which is a string) to MongoDB ObjectID
+	objectID, err := primitive.ObjectIDFromHex(adminID)
+	if err != nil {
+		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
+	}
+
 	// Create a new signature object
 	signature := model.Signature{
+		AdminId:    objectID,
 		ConfigName: signatureReq.ConfigName,
 		Stamp:      signatureReq.Stamp,
 		Signature:  signatureReq.Signature,
@@ -54,9 +69,9 @@ func CreateSignature(c *fiber.Ctx) error {
 	}
 
 	// Insert the new signature into the database
-	_, err := collectionSignature.InsertOne(context.TODO(), signature)
+	_, err = collectionSignature.InsertOne(context.TODO(), signature)
 	if err != nil {
-		return Conflict(c, "Gagal membuat signature baru! Silakan coba lagi.", "")
+		return Conflict(c, "Gagal membuat signature baru! Silakan coba lagi.", "Gagal menambah")
 	}
 
 	// Return success response
@@ -85,20 +100,43 @@ func GetSignature(c *fiber.Ctx) error {
 func getAllSignature(c *fiber.Ctx) error {
 	var results []bson.M // Slice to hold the results
 
+	// Retrieve the admin ID from the claims stored in context
+	claims := c.Locals("admin").(jwt.MapClaims)
+	adminID, ok := claims["sub"].(string)
+	if !ok {
+		return Unauthorized(c, "Token Admin tidak valid!", "Token Admin tidak valid!")
+	}
+
+	// Convert adminID (which is a string) to MongoDB ObjectID
+	objectID, err := primitive.ObjectIDFromHex(adminID)
+	if err != nil {
+		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel() // Cancel the context after the function completes
 
 	// Set the projection to return the required fields
 	projection := bson.M{
 		"_id":         1,
+		"admin_id":    1,
 		"config_name": 1,
 		"created_at":  1,
 		"updated_at":  1,
 		"deleted_at":  1,
 	}
 
+	// Create the filter to include admin_id and handle deleted_at
+	filter := bson.M{
+		"admin_id": objectID,
+		"$or": []bson.M{
+			{"deleted_at": bson.M{"$exists": false}}, // DeletedAt field does not exist
+			{"deleted_at": bson.M{"$eq": nil}},       // DeletedAt field is nil
+		},
+	}
+
 	// Find all signatures in the collection
-	cursor, err := collectionSignature.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	cursor, err := collectionSignature.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Tidak ada signature yang ditemukan!", err.Error())
@@ -112,10 +150,6 @@ func getAllSignature(c *fiber.Ctx) error {
 		var signature bson.M
 		if err := cursor.Decode(&signature); err != nil {
 			return Conflict(c, "Gagal mengambil data signature! Silakan coba lagi.", "")
-		}
-		// Skip signatures that have been deleted
-		if deletedAt, ok := signature["deleted_at"]; ok && deletedAt != nil {
-			continue
 		}
 		results = append(results, signature) // Append the signature to results
 	}

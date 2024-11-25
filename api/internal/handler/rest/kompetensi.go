@@ -39,14 +39,14 @@ func CreateKompetensi(c *fiber.Ctx) error {
 		return BadRequest(c, "Data yang dimasukkan tidak valid!", err.Error())
 	}
 
-	// Retrieve the user ID from the claims stored in context
+	// Retrieve the admin ID from the claims stored in context
 	claims := c.Locals("admin").(jwt.MapClaims)
 	adminID, ok := claims["sub"].(string)
 	if !ok {
 		return Unauthorized(c, "Token Admin tidak valid!", "Token Admin tidak valid!")
 	}
 
-	// Convert userID (which is a string) to MongoDB ObjectID
+	// Convert adminID (which is a string) to MongoDB ObjectID
 	objectID, err := primitive.ObjectIDFromHex(adminID)
 	if err != nil {
 		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
@@ -230,6 +230,19 @@ func getAllKompetensi(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// Retrieve the admin ID from the claims stored in context
+	claims := c.Locals("admin").(jwt.MapClaims)
+	adminID, ok := claims["sub"].(string)
+	if !ok {
+		return Unauthorized(c, "Token Admin tidak valid!", "Token Admin tidak valid!")
+	}
+
+	// Convert adminID (which is a string) to MongoDB ObjectID
+	objectID, err := primitive.ObjectIDFromHex(adminID)
+	if err != nil {
+		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
+	}
+
 	// Set the projection to return the required fields
 	projection := bson.M{
 		"_id":             1,
@@ -241,8 +254,17 @@ func getAllKompetensi(c *fiber.Ctx) error {
 		"deleted_at":      1,
 	}
 
+	// Create the filter to include admin_id and handle deleted_at
+	filter := bson.M{
+		"admin_id": objectID,
+		"$or": []bson.M{
+			{"deleted_at": bson.M{"$exists": false}}, // DeletedAt field does not exist
+			{"deleted_at": bson.M{"$eq": nil}},       // DeletedAt field is nil
+		},
+	}
+
 	// Find the projection
-	cursor, err := collectionKompetensi.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	cursor, err := collectionKompetensi.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Kompetensi tidak dapat ditemukan!", err.Error())
@@ -256,10 +278,6 @@ func getAllKompetensi(c *fiber.Ctx) error {
 		var competence bson.M
 		if err := cursor.Decode(&competence); err != nil {
 			return Conflict(c, "Gagal mengambil data! Silakan coba lagi.", "Gagal mendekode kompetensi")
-		}
-		if deletedAt, ok := competence["deleted_at"]; ok && deletedAt != nil {
-			// Skip deleted competencies
-			continue
 		}
 		results = append(results, competence)
 	}
