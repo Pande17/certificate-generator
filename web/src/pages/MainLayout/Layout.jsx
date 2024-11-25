@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { HomeFilled, FileFilled, ToolFilled, MenuOutlined, ToolTwoTone, FileAddTwoTone, HomeTwoTone } from '@ant-design/icons';
+import { HomeFilled, FileFilled, ToolFilled, MenuOutlined, ToolTwoTone, FileAddTwoTone, HomeTwoTone, SignatureOutlined, SignatureFilled, ToolOutlined, HomeOutlined, FileAddOutlined } from '@ant-design/icons';
 import { Button, Drawer } from 'antd';
 import logo from '../assets/Logo1.svg';
 import backgroundImage from '../assets/Element.svg';
@@ -18,13 +18,16 @@ const Sidebar = ({ children }) => {
 	const renderMenu = () => (
 		<div className="flex flex-col gap-4">
 			<Link to="/dashboard" className="flex items-center gap-2  font-Poppins font-medium" onClick={closeDrawer}>
-				<HomeTwoTone /> Dashboard
+				<HomeOutlined /> Dashboard
 			</Link>
 			<Link to="/create" className="flex items-center gap-2  font-Poppins font-medium" onClick={closeDrawer}>
-				<FileAddTwoTone /> Create
+				<FileAddOutlined /> Create
 			</Link>
 			<Link to="/competence" className="flex items-center gap-2 font-Poppins font-medium" onClick={closeDrawer}>
-				<ToolTwoTone /> Competence
+				<ToolOutlined /> Competence
+			</Link>
+			<Link to="/signature" className="flex items-center gap-2 font-Poppins font-medium" onClick={closeDrawer}>
+				<SignatureOutlined  /> Signature
 			</Link>
 		</div>
 	);
