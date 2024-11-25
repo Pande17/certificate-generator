@@ -31,13 +31,9 @@ const LoginPage = () => {
           },
         }
       );
-
-      console.log("Full response:", response);
-
+      
       if (response.status === 200) {
         const tokenString = response.data.data; // Adjust this based on your API response
-        console.log("Token received:", tokenString);
-
         if (tokenString) {
           localStorage.setItem("authToken", tokenString);
           navigate("/dashboard");
