@@ -19,6 +19,7 @@ const filteredData = data.filter((item) =>
 );
 
 
+
   useEffect(() => {
     const fetchSignature = async () => {
       setLoading(true);
@@ -67,6 +68,9 @@ const filteredData = data.filter((item) =>
      });
    };   
 
+      const createNav = () => {
+        navigate("/createParaf");
+      };
 
   const handleEdit = (record) => {
     message.info(`Edit triggered for ${record._id}`);
@@ -78,15 +82,20 @@ const filteredData = data.filter((item) =>
       title: "Id",
       align: "center",
       width: 100,
+      responsive: ["xs", "sm", "md", "lg"],
       render: (text, record, index) => index + 1,
     },
     {
+      responsive: ["xs", "sm", "md", "lg"],
       title: "Signature",
       align: "center",
       dataIndex: "config_name",
       key: "config",
+      width: 100,
     },
     {
+      width: 100,
+      responsive: ["xs", "sm", "md", "lg"],
       title: "Aksi",
       align: "center",
       render: (text, record) => (
@@ -94,16 +103,17 @@ const filteredData = data.filter((item) =>
           <Button
             icon={<DeleteOutlined />}
             type="primary"
+            style={{ margin: 8 }}
             danger
-            onClick={() =>delConfirm(record._id , record.config_name)}
+            onClick={() => delConfirm(record._id, record.config_name)}
           />
           <Button
             icon={<EditOutlined />}
             type="primary"
             onClick={() => handleEdit(record)}
-            style={{ marginLeft: 8 }}
+            style={{ margin: 8 }}
           />
-        </>
+        </>   
       ),
     },
   ];
@@ -112,18 +122,26 @@ const filteredData = data.filter((item) =>
     <MainLayout>
       <div className="flex flex-col items-center  p-5">
         <div>
-          <Input
-            placeholder="Search signature"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className="mb-4 p-2 border rounded w-full md:w-1/2"
-          />
+          <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl">
+            List Paraf
+          </p>
         </div>
+
+        <Button onClick={createNav} className="m-3">
+          Buat Sertifikat
+        </Button>
+
+        <Input
+          placeholder="Search signature"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="mb-4 p-2 border rounded md:w-1/2"
+        />
 
         <Row
           style={{
             justifyContent: "center",
-            width: "100%",
+            width: "90%",
             overflowX: "auto",
           }}
         >

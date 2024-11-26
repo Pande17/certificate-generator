@@ -1,46 +1,41 @@
 import axios from "axios";
 
+// Use fallback if REACT_APP_API_URL is undefined
+const api = import.meta.env.REACT_APP_API_URL || "http://localhost:3000";
+
 const Signature = axios.create({
-  baseURL: "http://127.0.0.1:3000/api/signature",
+  baseURL: `${api}/api/signature`,
 });
 
-// Instance untuk kompetensi
 const Kompetensi = axios.create({
-  baseURL: "http://127.0.0.1:3000/api/competence",
+  baseURL: `${api}/api/competence`,
 });
 
-// Instance untuk sertifikat
 const Sertifikat = axios.create({
-  baseURL: "http://127.0.0.1:3000/api/certificate",
+  baseURL: `${api}/api/certificate`,
 });
 
-// Instance untuk login
 const Login = axios.create({
-  baseURL: "http://127.0.0.1:3000/api/login",
+  baseURL: `${api}/api/login`,
 });
 
-// Interceptor untuk menyisipkan token pada setiap request
+// Interceptor for adding token
 const applyAuthInterceptor = (instance) => {
   instance.interceptors.request.use(
     (config) => {
-      const authToken = localStorage.getItem("authToken"); // Ambil token dari localStorage
+      const authToken = localStorage.getItem("authToken");
       if (authToken) {
-        config.headers.Authorization = `Bearer ${authToken}`; // Tambahkan authToken header
+        config.headers.Authorization = `Bearer ${authToken}`;
       }
       return config;
     },
-    (error) => {
-      return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
   );
 };
-
-// Terapkan interceptor ke semua instance
 
 applyAuthInterceptor(Signature);
 applyAuthInterceptor(Kompetensi);
 applyAuthInterceptor(Sertifikat);
 applyAuthInterceptor(Login);
 
-// Ekspor semua instance untuk digunakan
-export { Kompetensi, Sertifikat, Login ,Signature      };
+export { Kompetensi, Sertifikat, Login, Signature };

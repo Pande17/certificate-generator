@@ -25,6 +25,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	var kompetensiReq struct {
 		KompetensiName string        `json:"nama_kompetensi" valid:"required~Nama Kompetensi tidak boleh kosong!, stringlength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
 		Divisi         string        `json:"divisi" valid:"required~Divisi tidak boleh kosong!, stringlength(1|6)~Divisi harus antara 1-6 karakter"`
+		SKKNI          string        `json:"skkni" valid:"required~SKKNI tidak boleh kosong!"`
 		HardSkills     []model.Skill `json:"hard_skills"`
 		SoftSkills     []model.Skill `json:"soft_skills"`
 	}
@@ -69,6 +70,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 		AdminId:        objectID,
 		NamaKompetensi: kompetensiReq.KompetensiName,
 		Divisi:         kompetensiReq.Divisi,
+		SKKNI:          kompetensiReq.SKKNI,
 		HardSkills:     kompetensiReq.HardSkills,
 		SoftSkills:     kompetensiReq.SoftSkills,
 		Model: model.Model{
@@ -123,6 +125,7 @@ func EditKompetensi(c *fiber.Ctx) error {
 	var input struct {
 		NamaKompetensi string        `json:"nama_kompetensi" valid:"required~Nama Kompetensi tidak boleh kosong!, stringlength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
 		Divisi         string        `json:"divisi" valid:"required~Divisi tidak boleh kosong!, stringlength(1|6)~Divisi harus antara 1-6 karakter"`
+		SKKNI          string        `json:"skkni" valid:"required~SKKNI tidak boleh kosong!"`
 		HardSkills     []model.Skill `json:"hard_skills"`
 		SoftSkills     []model.Skill `json:"soft_skills"`
 	}
@@ -142,6 +145,7 @@ func EditKompetensi(c *fiber.Ctx) error {
 		"$set": bson.M{
 			"nama_kompetensi": input.NamaKompetensi,
 			"divisi":          input.Divisi,
+			"skkni":           input.SKKNI,
 			"hard_skills":     input.HardSkills,
 			"soft_skills":     input.SoftSkills,
 			"updated_at":      time.Now(),
@@ -229,6 +233,7 @@ func GetAllKompetensi(c *fiber.Ctx) error {
 		"admin_id":        1,
 		"nama_kompetensi": 1,
 		"divisi":          1,
+		"skkni":           1,
 		"created_at":      1,
 		"updated_at":      1,
 		"deleted_at":      1,

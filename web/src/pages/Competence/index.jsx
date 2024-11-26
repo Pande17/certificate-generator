@@ -37,7 +37,7 @@ const competence = () => {
       setLoading(true);
       try {
         const response = await Kompetensi.get(
-          `http://127.0.0.1:3000/api/competence`
+          `/`
         );
         const datas = response.data.data;
         const filteredData = datas.filter((item) => !item.deleted_at);
@@ -116,7 +116,7 @@ const competence = () => {
  const delHandle = async (_id) => {
    try {
    await Kompetensi.delete(
-       `http://127.0.0.1:3000/api/competence/${_id}`
+       `/${_id}`
      );
      setData((prevData) => prevData.filter((item) => item._id !== _id));
      message.success("Data berhasil dihapus");
@@ -156,13 +156,13 @@ const competence = () => {
     try {
       if (data.selectedCompetenceId) {
         await Kompetensi.put(
-          `http://127.0.0.1:3000/api/competence/${data.selectedCompetenceId}`,
+          `/${data.selectedCompetenceId}`,
           competenceData
         );
         message.success("Kompetensi berhasil diperbarui!");
       } else {
         await Kompetensi.post(
-          "http://127.0.0.1:3000/api/competence",
+          "/",
           competenceData
         );
         message.success("Kompetensi berhasil ditambahkan!");
@@ -230,6 +230,9 @@ const competence = () => {
             List Kompetensi
           </p>
         </div>
+        <Button onClick={createNav} className="m-3">
+          Buat Kompetensi
+        </Button>
         <input
           type="text"
           placeholder="Search"
@@ -237,16 +240,14 @@ const competence = () => {
           onChange={handleSearch}
           className="mb-4 p-2 border border-gray-300 rounded w-full md:w-1/2"
         />
-        <Button onClick={createNav} className="m-3">
-          Create Competence
-        </Button>
 
         {/* Modal Edit Sertif */}
         <Modal
           title="Edit Sertifikat"
           open={isEditModalVisible}
           onCancel={() => setIsEditModalVisible(false)}
-          footer={null}>
+          footer={null}
+        >
           <Form
             layout="vertical"
             onFinish={handleSubmit(onSubmit)}
@@ -257,7 +258,8 @@ const competence = () => {
               backgroundColor: "white",
               padding: "40px",
               borderRadius: "20px",
-            }}>
+            }}
+          >
             <h3 className="text-center font-Poppins text-2xl font-bold p-6">
               Buat kompetensi{" "}
             </h3>
@@ -296,7 +298,8 @@ const competence = () => {
                     type="text"
                     danger
                     icon={<MinusCircleOutlined />}
-                    onClick={() => removeHardSkill(index)}>
+                    onClick={() => removeHardSkill(index)}
+                  >
                     Hapus
                   </Button>
                 </Form.Item>
@@ -344,7 +347,8 @@ const competence = () => {
               }
               block
               icon={<PlusOutlined />}
-              style={{ marginBottom: "20px" }}>
+              style={{ marginBottom: "20px" }}
+            >
               Tambah Hard Skill
             </Button>
 
@@ -369,7 +373,8 @@ const competence = () => {
                     type="text"
                     danger
                     icon={<MinusCircleOutlined />}
-                    onClick={() => removeSoftSkill(index)}>
+                    onClick={() => removeSoftSkill(index)}
+                  >
                     Hapus
                   </Button>
                 </Form.Item>
@@ -417,7 +422,8 @@ const competence = () => {
               }
               block
               icon={<PlusOutlined />}
-              style={{ marginBottom: "20px" }}>
+              style={{ marginBottom: "20px" }}
+            >
               Tambah Soft Skill
             </Button>
 
@@ -425,7 +431,8 @@ const competence = () => {
               <Button
                 type="primary"
                 htmlType="submit"
-                style={{ width: "100%", height: "50px" }}>
+                style={{ width: "100%", height: "50px" }}
+              >
                 Simpan
               </Button>
             </Form.Item>
@@ -437,7 +444,8 @@ const competence = () => {
             justifyContent: "center",
             width: "100%",
             overflowX: "auto",
-          }}>
+          }}
+        >
           <Col>
             <Table
               dataSource={filteredData}

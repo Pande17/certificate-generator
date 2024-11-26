@@ -19,10 +19,10 @@ import {
   EditOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import MainLayout from "../MainLayout/Layout";
 
 const { confirm } = Modal;
-
 const Dashboard = () => {
   const [dta, setDta] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -38,13 +38,14 @@ const Dashboard = () => {
       selectedCompetenceId: "",
     },
   });
-
+  
+  const navigate = useNavigate();
   // Fetch data dari API
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await Sertifikat.get(
-          "http://127.0.0.1:3000/api/certificate"
+          "/"
         );
         const certificates = response.data.data || [];
         const filteredData = certificates.filter((item) => !item.deleted_at);
@@ -57,7 +58,7 @@ const Dashboard = () => {
     const fetchSignature = async () => {
       try {
         const response = await Signature.get(
-          "http://127.0.0.1:3000/api/signature"
+          "/"
         );
         setSignatureData(response.data.data);
       } catch (error) {
@@ -67,7 +68,7 @@ const Dashboard = () => {
     const fetchCompetence = async () => {
       try {
         const response = await Kompetensi.get(
-          "http://127.0.0.1:3000/api/competence"
+          "/"
         );
         setKompetensiData(response.data.data);
       } catch (error) {
@@ -187,7 +188,7 @@ const Dashboard = () => {
       };
 
       const response = await Sertifikat.put(
-        "http://127.0.0.1:3000/api/certificate",
+        "/",
         formattedData
       );
 
@@ -207,7 +208,7 @@ const Dashboard = () => {
 
   const deleteCompetence = async (_id) => {
     try {
-      await Sertifikat.delete(`http://127.0.0.1:3000/api/certificate/${_id}`);
+      await Sertifikat.delete(`/${_id}`);
       setDta((prevDta) => prevDta.filter((item) => item._id !== _id));
       message.success("SERTIFIKAT berhasil dihapus!");
     } catch (error) {
@@ -241,7 +242,7 @@ const Dashboard = () => {
   };
 
   const fetchCompetence = async (competenceId) => {
-    const url = `http://127.0.0.1:3000/api/competence/${competenceId}`;
+    const url = `/${competenceId}`;
     try {
       const response = await Kompetensi.get(url);
 
@@ -285,7 +286,7 @@ const Dashboard = () => {
   const downloadPDF = async (_id) => {
     try {
       const response = await Sertifikat.get(
-        `http://127.0.0.1:3000/assets/certificate/${_id}/b`,
+        `/${_id}/b`,
         {
           headers: {
             "Content-Type": "application/pdf",
@@ -305,7 +306,12 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error downloading PDF:", error);
     }
+  
   };
+
+   const createNav = () => {
+     navigate("/create");
+   };
 
   const columns = [
     {
@@ -360,7 +366,7 @@ const Dashboard = () => {
       <div className="flex flex-col items-center justify-center w-full lg:w-3/4 p-5">
         <div>
           <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl">
-            History list
+            List Sertifikat
           </p>
         </div>
         <input
@@ -370,6 +376,9 @@ const Dashboard = () => {
           onChange={handleSearch}
           className="mb-4 p-2 border border-gray-300 rounded w-full md:w-1/2"
         />
+        <Button onClick={createNav} className="m-3">
+          Buat Sertifikat
+        </Button>
         <Row style={{ width: "100%", overflowX: "auto" }}>
           <Col span={24}>
             <Table
@@ -413,6 +422,7 @@ const Dashboard = () => {
             <Form.Item label="Nama sertifikat" required>
               <Controller
                 name="sertifikat"
+                defaultValue={currentRecord?.sertif_name}
                 control={control}
                 rules={{ required: "Nama is required" }}
                 render={({ field }) => (
@@ -428,6 +438,7 @@ const Dashboard = () => {
               <Controller
                 name="nama"
                 control={control}
+                defaultValue={currentRecord?.nama_peserta}
                 rules={{ required: "Nama is required" }}
                 render={({ field }) => (
                   <Input
@@ -443,6 +454,7 @@ const Dashboard = () => {
               <Controller
                 name="fieldOfStudy"
                 control={control}
+                defaultValue={currentRecord?.nama_peserta}
                 rules={{ required: "Field of Study is required" }}
                 render={({ field }) => (
                   <Input
