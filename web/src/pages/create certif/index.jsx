@@ -46,8 +46,6 @@ function MyForm() {
   };
 
   const onSubmit = async (formData) => {
-    console.log(formData); // Periksa formData yang diterima
-
     const totalSkillScore = calculateTotalSkillScore(
       formData.hardSkill, // Pastikan ini adalah array
       formData.softSkill // Pastikan ini adalah array
@@ -207,15 +205,17 @@ function MyForm() {
     }
   };
 
-  const handleCompetenceChange = (value) => {
-    // Reset and update hard and soft skills upon competence change
-    reset({
-      selectedCompetenceId: value,
-      hardSkill: [],
-      softSkill: [],
-    });
-    fetchCompetence(value);
-  };
+ const handleCompetenceChange = (value) => {
+   // Hanya reset field terkait
+   reset((prevValues) => ({
+     ...prevValues, // Pertahankan nilai sebelumnya
+     selectedCompetenceId: value,
+     hardSkill: [],
+     softSkill: [],
+   }));
+   fetchCompetence(value);
+ };
+
 
   return (
     <MainLayout>
@@ -278,6 +278,7 @@ function MyForm() {
             )}
           />
         </Form.Item>
+
 
         <Form.Item label="Total tahun" required>
           <Controller
@@ -346,6 +347,21 @@ function MyForm() {
             rules={{ required: "Meeting Time is required" }}
             render={({ field }) => (
               <InputNumber
+                {...field}
+                placeholder="contoh: 13"
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
+
+        <Form.Item label="Link logo Perusahaan" required>
+          <Controller
+            name="linkLogo"
+            control={control}
+            rules={{ required: "Meeting Time is required" }}
+            render={({ field }) => (
+              <Input
                 {...field}
                 placeholder="contoh: 13"
                 style={{ width: "100%", height: "50px" }}
@@ -556,7 +572,7 @@ function MyForm() {
                 </Option>
                 {signatureData.map((signature) => (
                   <Option key={signature._id} value={signature._id}>
-                    {signature.config_signature}
+                    {signature.config_name}
                   </Option>
                 ))}
               </Select>

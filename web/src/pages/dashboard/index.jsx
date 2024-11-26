@@ -19,10 +19,10 @@ import {
   EditOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import MainLayout from "../MainLayout/Layout";
 
 const { confirm } = Modal;
-
 const Dashboard = () => {
   const [dta, setDta] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -38,7 +38,8 @@ const Dashboard = () => {
       selectedCompetenceId: "",
     },
   });
-
+  
+  const navigate = useNavigate();
   // Fetch data dari API
   useEffect(() => {
     const fetchData = async () => {
@@ -309,7 +310,7 @@ const Dashboard = () => {
   };
 
    const createNav = () => {
-     navigate("/create-paraf");
+     navigate("/create");
    };
 
   const columns = [
@@ -365,7 +366,7 @@ const Dashboard = () => {
       <div className="flex flex-col items-center justify-center w-full lg:w-3/4 p-5">
         <div>
           <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl">
-           List Sertifikat
+            List Sertifikat
           </p>
         </div>
         <input
@@ -421,6 +422,7 @@ const Dashboard = () => {
             <Form.Item label="Nama sertifikat" required>
               <Controller
                 name="sertifikat"
+                defaultValue={currentRecord?.sertif_name}
                 control={control}
                 rules={{ required: "Nama is required" }}
                 render={({ field }) => (
@@ -436,6 +438,7 @@ const Dashboard = () => {
               <Controller
                 name="nama"
                 control={control}
+                defaultValue={currentRecord?.nama_peserta}
                 rules={{ required: "Nama is required" }}
                 render={({ field }) => (
                   <Input
@@ -451,6 +454,7 @@ const Dashboard = () => {
               <Controller
                 name="fieldOfStudy"
                 control={control}
+                defaultValue={currentRecord?.nama_peserta}
                 rules={{ required: "Field of Study is required" }}
                 render={({ field }) => (
                   <Input
