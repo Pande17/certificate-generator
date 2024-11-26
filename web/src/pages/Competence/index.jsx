@@ -37,7 +37,7 @@ const competence = () => {
       setLoading(true);
       try {
         const response = await Kompetensi.get(
-          `http://127.0.0.1:3000/api/competence`
+          `/`
         );
         const datas = response.data.data;
         const filteredData = datas.filter((item) => !item.deleted_at);
@@ -116,7 +116,7 @@ const competence = () => {
  const delHandle = async (_id) => {
    try {
    await Kompetensi.delete(
-       `http://127.0.0.1:3000/api/competence/${_id}`
+       `/${_id}`
      );
      setData((prevData) => prevData.filter((item) => item._id !== _id));
      message.success("Data berhasil dihapus");
@@ -156,13 +156,13 @@ const competence = () => {
     try {
       if (data.selectedCompetenceId) {
         await Kompetensi.put(
-          `http://127.0.0.1:3000/api/competence/${data.selectedCompetenceId}`,
+          `/${data.selectedCompetenceId}`,
           competenceData
         );
         message.success("Kompetensi berhasil diperbarui!");
       } else {
         await Kompetensi.post(
-          "http://127.0.0.1:3000/api/competence",
+          "/",
           competenceData
         );
         message.success("Kompetensi berhasil ditambahkan!");

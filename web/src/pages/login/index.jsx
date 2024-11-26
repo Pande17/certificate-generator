@@ -19,7 +19,7 @@ const LoginPage = () => {
     setMsg("");
     try {
       const response = await Login.post(
-        "http://127.0.0.1:3000/api/login",
+        "/",
         {
           admin_name,
           admin_password,
