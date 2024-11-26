@@ -98,6 +98,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 			TahunRilis: year,
 		},
 		NamaPeserta:    pdfReq.Data.NamaPeserta,
+		SKKNI:          pdfReq.Data.SKKNI,
 		KompetenBidang: pdfReq.Data.KompetenBidang,
 		Kompetensi:     pdfReq.Data.Kompetensi,
 		Validation:     pdfReq.Data.Validation,

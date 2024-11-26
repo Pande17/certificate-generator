@@ -8,6 +8,7 @@ type CertificateData struct {
 	Logo           string             `json:"logo" bson:"logo"`
 	KodeReferral   KodeReferral       `json:"kode_referral" bson:"kode_referral"`
 	NamaPeserta    string             `json:"nama_peserta" bson:"nama_peserta"`
+	SKKNI          string             `json:"skkni" bson:"skkni"`
 	KompetenBidang string             `json:"kompeten_bidang" bson:"kompeten_bidang"`
 	Kompetensi     string             `json:"kompetensi" bson:"kompetensi"`
 	Validation     string             `json:"validation" bson:"validation"`
