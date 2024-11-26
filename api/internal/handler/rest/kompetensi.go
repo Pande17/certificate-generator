@@ -23,8 +23,9 @@ var collectionKompetensi = database.GetCollection("competence")
 func CreateKompetensi(c *fiber.Ctx) error {
 	// Struct for the incoming request body
 	var kompetensiReq struct {
-		KompetensiName string        `json:"nama_kompetensi" valid:"required~Nama Kompetensi tidak boleh kosong!, stringLength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
-		Divisi         string        `json:"divisi" valid:"required~Divisi tidak boleh kosong!, stringLength(1|6)~Divisi harus antara 1-6 karakter"`
+		KompetensiName string        `json:"nama_kompetensi" valid:"required~Nama Kompetensi tidak boleh kosong!, stringlength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
+		Divisi         string        `json:"divisi" valid:"required~Divisi tidak boleh kosong!, stringlength(1|6)~Divisi harus antara 1-6 karakter"`
+		SKKNI          string        `json:"skkni" valid:"required~SKKNI tidak boleh kosong!"`
 		HardSkills     []model.Skill `json:"hard_skills"`
 		SoftSkills     []model.Skill `json:"soft_skills"`
 	}
@@ -39,14 +40,14 @@ func CreateKompetensi(c *fiber.Ctx) error {
 		return BadRequest(c, "Data yang dimasukkan tidak valid!", err.Error())
 	}
 
-	// Retrieve the user ID from the claims stored in context
+	// Retrieve the admin ID from the claims stored in context
 	claims := c.Locals("admin").(jwt.MapClaims)
 	adminID, ok := claims["sub"].(string)
 	if !ok {
 		return Unauthorized(c, "Token Admin tidak valid!", "Token Admin tidak valid!")
 	}
 
-	// Convert userID (which is a string) to MongoDB ObjectID
+	// Convert adminID (which is a string) to MongoDB ObjectID
 	objectID, err := primitive.ObjectIDFromHex(adminID)
 	if err != nil {
 		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
@@ -69,6 +70,7 @@ func CreateKompetensi(c *fiber.Ctx) error {
 		AdminId:        objectID,
 		NamaKompetensi: kompetensiReq.KompetensiName,
 		Divisi:         kompetensiReq.Divisi,
+		SKKNI:          kompetensiReq.SKKNI,
 		HardSkills:     kompetensiReq.HardSkills,
 		SoftSkills:     kompetensiReq.SoftSkills,
 		Model: model.Model{
@@ -121,8 +123,9 @@ func EditKompetensi(c *fiber.Ctx) error {
 
 	// Parse request body to get new data
 	var input struct {
-		NamaKompetensi string        `json:"nama_kompetensi" valid:"required~Nama Kompetensi tidak boleh kosong!, stringLength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
-		Divisi         string        `json:"divisi" valid:"required~Divisi tidak boleh kosong!, stringLength(1|6)~Divisi harus antara 1-6 karakter"`
+		NamaKompetensi string        `json:"nama_kompetensi" valid:"required~Nama Kompetensi tidak boleh kosong!, stringlength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
+		Divisi         string        `json:"divisi" valid:"required~Divisi tidak boleh kosong!, stringlength(1|6)~Divisi harus antara 1-6 karakter"`
+		SKKNI          string        `json:"skkni" valid:"required~SKKNI tidak boleh kosong!"`
 		HardSkills     []model.Skill `json:"hard_skills"`
 		SoftSkills     []model.Skill `json:"soft_skills"`
 	}
@@ -142,6 +145,7 @@ func EditKompetensi(c *fiber.Ctx) error {
 		"$set": bson.M{
 			"nama_kompetensi": input.NamaKompetensi,
 			"divisi":          input.Divisi,
+			"skkni":           input.SKKNI,
 			"hard_skills":     input.HardSkills,
 			"soft_skills":     input.SoftSkills,
 			"updated_at":      time.Now(),
@@ -160,10 +164,10 @@ func EditKompetensi(c *fiber.Ctx) error {
 
 // Function to delete competence
 func DeleteKompetensi(c *fiber.Ctx) error {
-	// Get kompetensi_id from params
+	// Get id param
 	idParam := c.Params("id")
 
-	// Convert params to ObjectID
+	// Convert idParam to ObjectID
 	kompetensiID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		return BadRequest(c, "Kompetensi ini tidak ada! Silakan periksa ID yang dimasukkan.", "Gagal mengonversi ID")
@@ -193,42 +197,35 @@ func DeleteKompetensi(c *fiber.Ctx) error {
 	// Update document in the collection
 	result, err := collectionKompetensi.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		return Conflict(c, "Gagal menghapus Kompetensi! Silakan coba lagi.", "Gagal menghapus kompetensi")
+		return Conflict(c, "Gagal menghapus kompetensi! Silakan coba lagi.", "Gagal menghapus kompetensi")
 	}
 
-	// Check if the document was found and updated
+	// Check if the document was already deleted
 	if result.MatchedCount == 0 {
 		return NotFound(c, "Kompetensi ini tidak dapat ditemukan! Silakan periksa ID yang dimasukkan.", "Gagal menemukan kompetensi")
 	}
 
 	// Return success
-	return OK(c, "Berhasil menghapus Kompetensi!", kompetensiID)
-}
-
-// Function to get all competence data
-func GetKompetensi(c *fiber.Ctx) error {
-	id := c.Params("id") // Get ID from the URL path
-	if id == "" {
-		// If ID is not provided, return all competence data
-		return getAllKompetensi(c)
-	}
-
-	// If ID is provided, proceed with getting specific competence
-	var value any
-	var err error
-	value, err = primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return BadRequest(c, "Gagal mendapatkan Kompetensi! Silakan periksa ID yang dimasukkan.", err.Error())
-	}
-	return getOneKompetensi(c, bson.M{"_id": value})
+	return OK(c, "Berhasil menghapus kompetensi!", kompetensiID)
 }
 
 // Function to get all competencies
-func getAllKompetensi(c *fiber.Ctx) error {
+func GetAllKompetensi(c *fiber.Ctx) error {
 	var results []bson.M
+	ctx := c.Context()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	// Retrieve the admin ID from the claims stored in context
+	claims := c.Locals("admin").(jwt.MapClaims)
+	adminID, ok := claims["sub"].(string)
+	if !ok {
+		return Unauthorized(c, "Token Admin tidak valid!", "Token Admin tidak valid!")
+	}
+
+	// Convert adminID to ObjectID
+	objectID, err := primitive.ObjectIDFromHex(adminID)
+	if err != nil {
+		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
+	}
 
 	// Set the projection to return the required fields
 	projection := bson.M{
@@ -236,13 +233,23 @@ func getAllKompetensi(c *fiber.Ctx) error {
 		"admin_id":        1,
 		"nama_kompetensi": 1,
 		"divisi":          1,
+		"skkni":           1,
 		"created_at":      1,
 		"updated_at":      1,
 		"deleted_at":      1,
 	}
 
-	// Find the projection
-	cursor, err := collectionKompetensi.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	// Create the filter to include admin_id and handle deleted_at
+	filter := bson.M{
+		"admin_id": objectID,
+		"$or": []bson.M{
+			{"deleted_at": bson.M{"$exists": false}}, // DeletedAt field does not exist
+			{"deleted_at": bson.M{"$eq": nil}},       // DeletedAt field is nil
+		},
+	}
+
+	// Find all documents that match
+	cursor, err := collectionKompetensi.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Kompetensi tidak dapat ditemukan!", err.Error())
@@ -257,10 +264,6 @@ func getAllKompetensi(c *fiber.Ctx) error {
 		if err := cursor.Decode(&competence); err != nil {
 			return Conflict(c, "Gagal mengambil data! Silakan coba lagi.", "Gagal mendekode kompetensi")
 		}
-		if deletedAt, ok := competence["deleted_at"]; ok && deletedAt != nil {
-			// Skip deleted competencies
-			continue
-		}
 		results = append(results, competence)
 	}
 	if err := cursor.Err(); err != nil {
@@ -272,7 +275,28 @@ func getAllKompetensi(c *fiber.Ctx) error {
 }
 
 // Function to get one competence by filter
-func getOneKompetensi(c *fiber.Ctx, filter bson.M) error {
+func GetKompetensiByID(c *fiber.Ctx) error {
+	idParam := c.Params("id")
+	searchKey := c.Params("type")
+	if searchKey == "" { // from handler w/o type param, to not break api
+		searchKey = "oid"
+	}
+	var searchVal any
+	searchVal = idParam
+
+	// Convert to ObjectID if needed
+	if searchKey == "oid" {
+		searchKey = "_id"
+		certifID, err := primitive.ObjectIDFromHex(idParam)
+		if err != nil {
+			return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
+		}
+		searchVal = certifID
+	}
+
+	// Make filter to find document based on search key & value
+	filter := bson.M{searchKey: searchVal}
+
 	// Variable to hold search results
 	var kompetensiDetail bson.M
 
@@ -282,15 +306,14 @@ func getOneKompetensi(c *fiber.Ctx, filter bson.M) error {
 		if err == mongo.ErrNoDocuments {
 			return NotFound(c, "Kompetensi ini tidak dapat ditemukan! Silakan periksa ID yang dimasukkan.", "Gagal menemukan detail kompetensi")
 		}
-		// If server error, return status 500
 		return Conflict(c, "Gagal mendapatkan data! Silakan coba lagi.", "Gagal menemukan detail kompetensi")
 	}
 
-	// Check if the competence has a "deleted_at" field
+	// Check if the competence has been deleted
 	if deletedAt, exists := kompetensiDetail["deleted_at"]; exists && deletedAt != nil {
 		return AlreadyDeleted(c, "Kompetensi ini telah dihapus! Silakan hubungi admin.", "Periksa kompetensi yang dihapus", deletedAt)
 	}
 
 	// Return success
-	return OK(c, "Berhasil menampilkan data Kompetensi!", kompetensiDetail)
+	return OK(c, "Berhasil menampilkan data kompetensi!", kompetensiDetail)
 }

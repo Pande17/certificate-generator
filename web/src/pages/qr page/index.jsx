@@ -141,3 +141,4 @@ const CertificateTable = () => {
 };
 
 export default CertificateTable;
+

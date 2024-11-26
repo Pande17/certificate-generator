@@ -48,7 +48,7 @@ const Tool = () => {
     const fetchCompetencies = async () => {
       try {
         const response = await Kompetensi.get(
-          "http://127.0.0.1:3000/api/competence"
+          "/"
         );
         if (response.data && Array.isArray(response.data.data)) {
           setCompetencies(response.data.data);
@@ -90,13 +90,13 @@ const Tool = () => {
     try {
       if (data.selectedCompetenceId) {
         await Kompetensi.put(
-          `http://127.0.0.1:3000/api/competence/${data.selectedCompetenceId}`,
+          `/${data.selectedCompetenceId}`,
           competenceData
         );
         message.success("Kompetensi berhasil diperbarui!");
       } else {
         await Kompetensi.post(
-          "http://127.0.0.1:3000/api/competence",
+          "/",
           competenceData
         );
         message.success("Kompetensi berhasil ditambahkan!");
