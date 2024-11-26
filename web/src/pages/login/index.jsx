@@ -19,7 +19,7 @@ const LoginPage = () => {
     setMsg("");
     try {
       const response = await Login.post(
-        `${import.meta.env.VITE_BACKEND}/api/login`,
+        `/`,
         {
           admin_name,
           admin_password,
@@ -31,7 +31,7 @@ const LoginPage = () => {
           },
         }
       );
-      
+
       if (response.status === 200) {
         const tokenString = response.data.data; // Adjust this based on your API response
         if (tokenString) {

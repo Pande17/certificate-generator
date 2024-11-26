@@ -186,7 +186,7 @@ const competence = () => {
     {
       title: "Kompetensi",
       align: "center",
-      width: 100,
+      
       responsive: ["xs", "sm", "md", "lg"],
       key: "nama_kompetensi",
       dataIndex: "nama_kompetensi",
@@ -252,7 +252,7 @@ const competence = () => {
             layout="vertical"
             onFinish={handleSubmit(onSubmit)}
             style={{
-              width: "95%",
+              width: "90%",
               maxHeight: "100vh",
               overflowY: "scroll",
               backgroundColor: "white",
@@ -442,7 +442,7 @@ const competence = () => {
         <Row
           style={{
             justifyContent: "center",
-            width: "100%",
+            width: "90%",
             overflowX: "auto",
           }}
         >
