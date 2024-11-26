@@ -44,7 +44,7 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         const response = await Sertifikat.get(
-          "http://127.0.0.1:3000/api/certificate"
+          "/"
         );
         const certificates = response.data.data || [];
         const filteredData = certificates.filter((item) => !item.deleted_at);
@@ -57,7 +57,7 @@ const Dashboard = () => {
     const fetchSignature = async () => {
       try {
         const response = await Signature.get(
-          "http://127.0.0.1:3000/api/signature"
+          "/"
         );
         setSignatureData(response.data.data);
       } catch (error) {
@@ -67,7 +67,7 @@ const Dashboard = () => {
     const fetchCompetence = async () => {
       try {
         const response = await Kompetensi.get(
-          "http://127.0.0.1:3000/api/competence"
+          "/"
         );
         setKompetensiData(response.data.data);
       } catch (error) {
@@ -187,7 +187,7 @@ const Dashboard = () => {
       };
 
       const response = await Sertifikat.put(
-        "http://127.0.0.1:3000/api/certificate",
+        "/",
         formattedData
       );
 
@@ -207,7 +207,7 @@ const Dashboard = () => {
 
   const deleteCompetence = async (_id) => {
     try {
-      await Sertifikat.delete(`http://127.0.0.1:3000/api/certificate/${_id}`);
+      await Sertifikat.delete(`/${_id}`);
       setDta((prevDta) => prevDta.filter((item) => item._id !== _id));
       message.success("SERTIFIKAT berhasil dihapus!");
     } catch (error) {
@@ -241,7 +241,7 @@ const Dashboard = () => {
   };
 
   const fetchCompetence = async (competenceId) => {
-    const url = `http://127.0.0.1:3000/api/competence/${competenceId}`;
+    const url = `/${competenceId}`;
     try {
       const response = await Kompetensi.get(url);
 
@@ -285,7 +285,7 @@ const Dashboard = () => {
   const downloadPDF = async (_id) => {
     try {
       const response = await Sertifikat.get(
-        `http://127.0.0.1:3000/assets/certificate/${_id}/b`,
+        `/${_id}/b`,
         {
           headers: {
             "Content-Type": "application/pdf",

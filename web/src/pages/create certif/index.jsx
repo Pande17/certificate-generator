@@ -132,7 +132,7 @@ function MyForm() {
       };
 
       const response = await Sertifikat.post(
-        "http://127.0.0.1:3000/api/certificate",
+        "/",
         formattedData
       );
 
@@ -155,7 +155,7 @@ function MyForm() {
      const fetchCompetence = async () => {
        try {
          const response = await Kompetensi.get(
-           "http://127.0.0.1:3000/api/competence"
+           "/"
          );
         setData(response.data.data);
        } catch (error) {
@@ -167,7 +167,7 @@ function MyForm() {
      const fetchSignature = async () => {
        try {
          const response = await Signature.get(
-           "http://127.0.0.1:3000/api/signature"
+           "/"
          );
          setSignatureData(response.data.data);
        } catch (error) {
@@ -180,7 +180,7 @@ function MyForm() {
    }, []);
 
   const fetchCompetence = async (competenceId) => {
-    const url = `http://127.0.0.1:3000/api/competence/${competenceId}`;
+    const url = `/${competenceId}`;
     try {
       const response = await Kompetensi.get(url);
 
