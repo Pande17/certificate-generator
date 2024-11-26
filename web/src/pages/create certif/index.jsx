@@ -207,15 +207,17 @@ function MyForm() {
     }
   };
 
-  const handleCompetenceChange = (value) => {
-    // Reset and update hard and soft skills upon competence change
-    reset({
-      selectedCompetenceId: value,
-      hardSkill: [],
-      softSkill: [],
-    });
-    fetchCompetence(value);
-  };
+ const handleCompetenceChange = (value) => {
+   // Hanya reset field terkait
+   reset((prevValues) => ({
+     ...prevValues, // Pertahankan nilai sebelumnya
+     selectedCompetenceId: value,
+     hardSkill: [],
+     softSkill: [],
+   }));
+   fetchCompetence(value);
+ };
+
 
   return (
     <MainLayout>
