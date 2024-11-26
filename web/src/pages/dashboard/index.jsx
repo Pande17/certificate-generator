@@ -19,10 +19,10 @@ import {
   EditOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import MainLayout from "../MainLayout/Layout";
 
 const { confirm } = Modal;
-
 const Dashboard = () => {
   const [dta, setDta] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -38,7 +38,8 @@ const Dashboard = () => {
       selectedCompetenceId: "",
     },
   });
-
+  
+  const navigate = useNavigate();
   // Fetch data dari API
   useEffect(() => {
     const fetchData = async () => {
@@ -309,7 +310,7 @@ const Dashboard = () => {
   };
 
    const createNav = () => {
-     navigate("/create-paraf");
+     navigate("/create");
    };
 
   const columns = [
