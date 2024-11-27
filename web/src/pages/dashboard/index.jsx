@@ -14,6 +14,7 @@ import {
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { Sertifikat, Kompetensi, Signature } from "../api middleware";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   DeleteOutlined,
   EditOutlined,
@@ -39,10 +40,8 @@ const Dashboard = () => {
     },
   });
 
-<<<<<<< HEAD
   const navigate = useNavigate();
-=======
->>>>>>> parent of da22287 (update page)
+
   // Fetch data dari API
   useEffect(() => {
     const fetchData = async () => {
@@ -299,15 +298,10 @@ const Dashboard = () => {
     }
   };
 
-<<<<<<< HEAD
+
   const createNav = () => {
     navigate("/create");
   };
-=======
-   const createNav = () => {
-     navigate("/create-paraf");
-   };
->>>>>>> parent of da22287 (update page)
 
   const columns = [
     {

@@ -5,7 +5,6 @@ import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-
 const SignaturePage = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -13,12 +12,10 @@ const SignaturePage = () => {
 
   const navigate = useNavigate();
   const { confirm } = Modal;
-  
-const filteredData = data.filter((item) =>
-  item.config_name?.toLowerCase().includes(searchText.toLowerCase())
-);
 
-
+  const filteredData = data.filter((item) =>
+    item.config_name?.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   useEffect(() => {
     const fetchSignature = async () => {
@@ -28,7 +25,7 @@ const filteredData = data.filter((item) =>
           `http://127.0.0.1:3000/api/signature`
         );
         const datas = respons.data.data;
-     const filterData = datas.filter((item) => !item.deleted_at);
+        const filterData = datas.filter((item) => !item.deleted_at);
         setData(filterData);
       } catch (error) {
         console.log("error", error);
@@ -39,38 +36,40 @@ const filteredData = data.filter((item) =>
     fetchSignature();
   }, []);
 
- const delHandle = async (_id) => {
-   try {
-     await Kompetensi.delete(`http://127.0.0.1:3000/api/signature/${_id}`);
-     setData((prevData) => prevData.filter((item) => item._id !== _id));
-     message.success("Data berhasil dihapus");
-   } catch (error) {
-     console.error("Error response:", error.response);
-     message.error(
-       `Gagal menghapus data: ${error.response?.data?.message || error.message}`
-     );
-   }
- };
+  const delHandle = async (_id) => {
+    try {
+      await Kompetensi.delete(`/${_id}`);
+      setData((prevData) => prevData.filter((item) => item._id !== _id));
+      message.success("Data berhasil dihapus");
+    } catch (error) {
+      console.error("Error response:", error.response);
+      message.error(
+        `Gagal menghapus data: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+    }
+  };
 
-   const delConfirm = (_id, config_name) => {
-     confirm({
-       title: `apakah anda yakon ingin menghapus kompetensi ${config_name}`,
-       content: "data yang di hapus tidak dapat dikembalikan",
-       okType: "danger",
-       okText: "ya, Hapus",
-       cancelText: "Batal",
-       onOk() {
-         delHandle(_id);
-       },
-       onCancel() {
-         console.log("penghapusan dibatalkan");
-       },
-     });
-   };   
+  const delConfirm = (_id, config_name) => {
+    confirm({
+      title: `apakah anda yakon ingin menghapus kompetensi ${config_name}`,
+      content: "data yang di hapus tidak dapat dikembalikan",
+      okType: "danger",
+      okText: "ya, Hapus",
+      cancelText: "Batal",
+      onOk() {
+        delHandle(_id);
+      },
+      onCancel() {
+        console.log("penghapusan dibatalkan");
+      },
+    });
+  };
 
-      const createNav = () => {
-        navigate("/create");
-      };
+  const createNav = () => {
+    navigate("/createParaf");
+  };
 
   const handleEdit = (record) => {
     message.info(`Edit triggered for ${record._id}`);
@@ -113,7 +112,7 @@ const filteredData = data.filter((item) =>
             onClick={() => handleEdit(record)}
             style={{ margin: 8 }}
           />
-        </>   
+        </>
       ),
     },
   ];
