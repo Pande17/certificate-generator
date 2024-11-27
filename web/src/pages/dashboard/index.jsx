@@ -32,6 +32,8 @@ const Dashboard = () => {
   const [currentRecord, setCurrentRecord] = useState(null);
   const [signatureData, setSignatureData] = useState([]);
   const [kompetensiData, setKompetensiData] = useState([]);
+   const [skkni, setSkkni] = useState("");
+   const [divisi, setDivisi] = useState("");
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       hardSkill: [],
@@ -50,6 +52,7 @@ const Dashboard = () => {
         const certificates = response.data.data || [];
         const filteredData = certificates.filter((item) => !item.deleted_at);
         setDta(filteredData);
+    
       } catch (err) {
         console.error("Error fetching data:", err);
         message.error("Gagal memuat data.");
@@ -183,6 +186,7 @@ const Dashboard = () => {
         },
       };
 
+
       const response = await Sertifikat.put("/", formattedData);
 
       if (response.status === 200) {
@@ -229,38 +233,79 @@ const Dashboard = () => {
     });
   };
 
-  const handleEdit = (record) => {
-    setCurrentRecord(record);
-    setIsEditModalVisible(true);
-  };
+const handleEdit = async (record) => {
+  setCurrentRecord(record);
+  setIsEditModalVisible(true); // Menampilkan modal edit
 
-  const fetchCompetence = async (competenceId) => {
-    const url = `/${competenceId}`;
-    try {
-      const response = await Kompetensi.get(url);
+  try {
+    const response = await Sertifikat.get(`/certificate/${record._id}`); // Ganti dengan endpoint yang benar
+    const certificateData = response.data.data;
+         console.log("Data yang diambil dari API:", certificateData.data);
+    // Setel data form ke state atau form
+    reset({
+      sertifikat: certificateData.sertif_name,
+      nama: certificateData.nama_peserta,
+      fieldOfStudy: certificateData.kompeten_bidang,
+      selectedCompetenceId: certificateData.kompetensi,
+      meetingTime: certificateData.meet_time,
+      skkni: certificateData.skkni,
+      expiredTimeStard: moment(certificateData.valid_date?.valid_start),
+      expiredTimeEnd: moment(certificateData.valid_date?.valid_end),
+      validtime: certificateData.valid_date?.valid_total,
+      totalMeeting: certificateData.total_meet,
+      codeReferralOrder: certificateData.kode_referral?.referral_id,
+      codeReferralFieldOfStudy: certificateData.kode_referral?.divisi,
+      codeReferralMonth: certificateData.kode_referral?.bulan_rilis,
+      codeReferralYear: certificateData.kode_referral?.tahun_rilis,
+      hardSkill: certificateData.hard_skills?.skills || [],
+      softSkill: certificateData.soft_skills?.skills || [],
+    });
 
-      const { hard_skills = [], soft_skills = [] } = response.data.data || {};
+    // Jika perlu, Anda bisa menambahkan logika untuk memuat data lainnya (seperti signature, kompetensi, dll.)
+  } catch (error) {
+    console.error("Error fetching certificate details:", error);
+    message.error("Gagal mengambil data sertifikat.");
+  }
+};
 
-      const newHardSkills = hard_skills.map((hardSkill) => ({
-        skill_name: hardSkill.skill_name || "",
-        combined_units: hardSkill.description
-          .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
-          .join("\n"),
-      }));
 
-      const newSoftSkills = soft_skills.map((softSkill) => ({
-        skill_name: softSkill.skill_name || "",
-        combined_units: softSkill.description
-          .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
-          .join("\n"),
-      }));
+ const fetchCompetence = async (competenceId) => {
+   const url = `/${competenceId}`;
+   try {
+     const response = await Kompetensi.get(url);
+     
 
-      replaceHardSkill(newHardSkills);
-      replaceSoftSkill(newSoftSkills);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+     const {
+       hard_skills = [],
+       soft_skills = [],
+       skkni = "",
+       divisi = "",
+     } = response.data.data || {};
+
+     const newHardSkills = hard_skills.map((hardSkill) => ({
+       skill_name: hardSkill.skill_name || "",
+       combined_units: hardSkill.description
+         .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
+         .join("\n"),
+     }));
+
+     const newSoftSkills = soft_skills.map((softSkill) => ({
+       skill_name: softSkill.skill_name || "",
+       combined_units: softSkill.description
+         .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
+         .join("\n"),
+     }));
+
+     replaceHardSkill(newHardSkills);
+     replaceSoftSkill(newSoftSkills);
+
+     // Simpan skkni dan divisi ke state
+     setSkkni(skkni);
+     setDivisi(divisi);
+   } catch (err) {
+     console.log(err);
+   }
+ };
 
   const handleCompetenceChange = (value) => {
     // Reset and update hard and soft skills upon competence change
@@ -354,7 +399,6 @@ const Dashboard = () => {
   return (
     <MainLayout>
       <div className="flex flex-col items-center justify-center w-full lg:w-3/4 p-5">
-
         <div>
           <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl">
             List Sertifikat
@@ -413,31 +457,34 @@ const Dashboard = () => {
             <div className="text-center font-Poppins font-bold text-xl">
               Buat Sertifikat
             </div>
-            <Form.Item label="Nama sertifikat" required>
+            <Form.Item label="Nama Sertifikat" required>
               <Controller
                 name="sertifikat"
-                defaultValue={currentRecord?.sertif_name}
+                defaultValue={currentRecord?.sertif_name || ""}
                 control={control}
-                rules={{ required: "Nama is required" }}
+                rules={{ required: "Nama sertifikat diperlukan" }}
                 render={({ field }) => (
                   <Input
                     {...field}
-                    placeholder="Masukkan nama"
+                    placeholder="Masukkan nama sertifikat"
                     style={{ width: "100%", height: "50px" }}
                   />
                 )}
               />
             </Form.Item>
+
             <Form.Item label="Nama" required>
               <Controller
                 name="nama"
+                defaultValue={
+                  currentRecord?.nama_peserta || " nama peserta tidak ada"
+                }
                 control={control}
-                defaultValue={currentRecord?.nama_peserta}
-                rules={{ required: "Nama is required" }}
+                rules={{ required: "Nama peserta diperlukan" }}
                 render={({ field }) => (
                   <Input
                     {...field}
-                    placeholder="Made Rendy Putra Mahardika"
+                    placeholder="Masukkan nama peserta"
                     style={{ width: "100%", height: "50px" }}
                   />
                 )}
@@ -447,28 +494,35 @@ const Dashboard = () => {
             <Form.Item label="Bidang Studi" required>
               <Controller
                 name="fieldOfStudy"
+                defaultValue={
+                  currentRecord?.kompeten_bidang ||
+                  "tidak mengisi bidang tidak ada"
+                }
                 control={control}
-                defaultValue={currentRecord?.nama_peserta}
-                rules={{ required: "Field of Study is required" }}
+                rules={{ required: "Bidang studi diperlukan" }}
                 render={({ field }) => (
                   <Input
                     {...field}
-                    placeholder="Masukkan Bidang Studi"
+                    placeholder="Masukkan bidang studi"
                     style={{ width: "100%", height: "50px" }}
                   />
                 )}
               />
             </Form.Item>
 
-            <Form.Item label="Total tahun" required>
+            <Form.Item label="Total Tahun" required>
               <Controller
                 name="validTime"
+                defaultValue={
+                  currentRecord?.valid_date?.valid_total ||
+                  "tidak mengisi Total Tahun tidak ada"
+                }
                 control={control}
-                rules={{ required: "Valid Time is required" }}
+                rules={{ required: "Waktu validasi diperlukan" }}
                 render={({ field }) => (
                   <Input
                     {...field}
-                    placeholder="2 Tahun"
+                    placeholder="Masukkan jumlah tahun"
                     style={{ width: "100%", height: "50px" }}
                   />
                 )}
@@ -478,27 +532,40 @@ const Dashboard = () => {
             <Form.Item label="Waktu Expired (Mulai)" required>
               <Controller
                 name="expiredTimeStart"
+                defaultValue={
+                  currentRecord?.valid_date?.valid_start
+                    ? moment(
+                        currentRecord.valid_date.valid_start,
+                        "DD MMMM YYYY"
+                      )
+                    : null
+                }
                 control={control}
-                rules={{ required: "Expired Time (Start) is required" }}
+                rules={{ required: "Waktu mulai diperlukan" }}
                 render={({ field }) => (
                   <DatePicker
                     {...field}
-                    placeholder="Pilih waktu"
+                    placeholder="Pilih waktu mulai"
                     style={{ width: "100%", height: "50px" }}
                   />
                 )}
               />
             </Form.Item>
 
-            <Form.Item label="Waktu Expired (Seleai)" required>
+            <Form.Item label="Waktu Expired (Selesai)" required>
               <Controller
                 name="expiredTimeEnd"
+                defaultValue={
+                  currentRecord?.valid_date?.valid_end
+                    ? moment(currentRecord.valid_date.valid_end, "DD MMMM YYYY")
+                    : null
+                }
                 control={control}
-                rules={{ required: "Expired Time (End) is required" }}
+                rules={{ required: "Waktu selesai diperlukan" }}
                 render={({ field }) => (
                   <DatePicker
                     {...field}
-                    placeholder="Pilih Waktu"
+                    placeholder="Pilih waktu selesai"
                     style={{ width: "100%", height: "50px" }}
                   />
                 )}
@@ -508,27 +575,35 @@ const Dashboard = () => {
             <Form.Item label="Total Pertemuan" required>
               <Controller
                 name="totalMeeting"
+                defaultValue={
+                  currentRecord?.total_meet ||
+                  "tidak mengisi Total Pertemuan tidak ada"
+                }
                 control={control}
-                rules={{ required: "Total Meeting is required" }}
+                rules={{ required: "Jumlah pertemuan diperlukan" }}
                 render={({ field }) => (
                   <InputNumber
                     {...field}
-                    placeholder="contoh: 14"
+                    placeholder="Masukkan jumlah pertemuan"
                     style={{ width: "100%", height: "50px" }}
                   />
                 )}
               />
             </Form.Item>
 
-            <Form.Item label="Total waktu Pertemuan" required>
+            <Form.Item label="Waktu Pertemuan" required>
               <Controller
                 name="meetingTime"
+                defaultValue={
+                  currentRecord?.meet_time ||
+                  "tidak mengisi Waktu Pertemuan tidak ada"
+                }
                 control={control}
-                rules={{ required: "Meeting Time is required" }}
+                rules={{ required: "Waktu pertemuan diperlukan" }}
                 render={({ field }) => (
                   <InputNumber
                     {...field}
-                    placeholder="contoh: 13"
+                    placeholder="Masukkan waktu pertemuan"
                     style={{ width: "100%", height: "50px" }}
                   />
                 )}
@@ -542,6 +617,7 @@ const Dashboard = () => {
               <Controller
                 name="selectedCompetenceId"
                 control={control}
+                defaultValue={currentRecord?.kompeten_bidang}
                 render={({ field }) => (
                   <Select
                     placeholder="Pilih kompetensi"
@@ -564,6 +640,26 @@ const Dashboard = () => {
                 )}
               />
             </Form.Item>
+
+            {skkni && (
+              <Form.Item label="SKKNI">
+                <Input
+                  value={skkni}
+                  readOnly
+                  style={{ width: "100%", height: "50px" }}
+                />
+              </Form.Item>
+            )}
+
+            {divisi && (
+              <Form.Item label="Divisi">
+                <Input
+                  value={divisi}
+                  readOnly
+                  style={{ width: "100%", height: "50px" }}
+                />
+              </Form.Item>
+            )}
 
             {hardSkillFields.length > 0 && (
               <div>
@@ -614,6 +710,7 @@ const Dashboard = () => {
                     <Controller
                       name={`hardSkill[${index}].jp`}
                       control={control}
+                      defaultValue={currentRecord?.kompeten_bidang}
                       render={({ field }) => (
                         <InputNumber
                           {...field}
@@ -628,6 +725,7 @@ const Dashboard = () => {
                     <Controller
                       name={`hardSkill[${index}].skillScore`}
                       control={control}
+                      defaultValue={currentRecord?.kompeten_bidang}
                       render={({ field }) => (
                         <InputNumber
                           {...field}
@@ -657,6 +755,7 @@ const Dashboard = () => {
                     <Controller
                       name={`softSkill[${index}].skill_name`}
                       control={control}
+                      defaultValue={currentRecord?.kompeten_bidang}
                       render={({ field }) => (
                         <Input
                           {...field}
@@ -675,6 +774,7 @@ const Dashboard = () => {
                     <Controller
                       name={`softSkill[${index}].combined_units`}
                       control={control}
+                      defaultValue={currentRecord?.kompeten_bidang}
                       render={({ field }) => (
                         <Input.TextArea
                           {...field}
@@ -726,6 +826,7 @@ const Dashboard = () => {
               <Controller
                 name="selectedSignatureId"
                 control={control}
+                defaultValue={currentRecord?.kompeten_bidang}
                 render={({ field }) => (
                   <Select
                     placeholder="Pilih tanda tangan"

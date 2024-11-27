@@ -17,6 +17,8 @@ const Tool = () => {
 
   const { control, handleSubmit, reset, watch } = useForm({
     defaultValues: {
+      skkni:"",
+      divisi:"",
       competenceName: "",
       hardSkills: [
         { skill_name: "", description: [{ unit_code: "", unit_title: "" }] },
@@ -83,6 +85,8 @@ const Tool = () => {
   const onSubmit = async (data) => {
     const competenceData = {
       nama_kompetensi: data.competenceName,
+      skkni: data.skkni,
+      divisi: data.devisi,
       hard_skills: data.hardSkills,
       soft_skills: data.softSkills,
     };
@@ -102,7 +106,7 @@ const Tool = () => {
         message.success("Kompetensi berhasil ditambahkan!");
       }
       reset();
-    } catch (error) {d
+    } catch (error) {
       console.error("Error saat menyimpan kompetensi:", error);
       message.error("Error saat menyimpan kompetensi!");
     }
@@ -110,14 +114,12 @@ const Tool = () => {
 
   return (
     <MainLayout>
-
-
-      <div className="m-2" >
-      <Button 
-      style={{width:"50px", height:"50px"}}
-      icon={<BackwardFilled />}
-      onClick={backHandle}
-      />
+      <div className="m-2">
+        <Button
+          style={{ width: "50px", height: "50px" }}
+          icon={<BackwardFilled />}
+          onClick={backHandle}
+        />
       </div>
       <Form
         layout="vertical"
@@ -130,21 +132,63 @@ const Tool = () => {
           padding: "40px",
           borderRadius: "20px",
         }}
-        >
+      >
         <h3 className="text-center font-Poppins text-2xl font-bold p-6">
           Buat kompetensi{" "}
         </h3>
+
         <Form.Item label="Nama Kompetensi" required>
           <Controller
             name="competenceName"
             control={control}
+            rules={{ required: "Nama Kompetensi wajib diisi!" }}
             render={({ field }) => (
               <Input
                 placeholder="Masukkan nama kompetensi"
                 {...field}
                 style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
+        <Form.Item label="Skkni" required>
+          <Controller
+            name="skkni"
+            control={control}
+            render={({ field }) => (
+              <Input
+                placeholder="SKKNI No. 16 Th. 2016"
+                {...field}
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
+
+        <Form.Item label="Divisi" required>
+          <Controller
+            name="devisi"
+            control={control}
+            rules={{
+              required: "Input divisi berlebihan atau kurang dari satu! maksimal(1-3 huruf)",
+              validate: (value) =>
+                value.length <= 3 ||
+                "Input divisi berlebihan atau kurang dari satu!",
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <>
+                <Input
+                  placeholder="SKKNI No. 16 Th. 2016"
+                  {...field}
+                  style={{ width: "100%", height: "50px" }}
                 />
-              )}
+                {error && (
+                  <span style={{ color: "red", fontSize: "12px" }}>
+                    {error.message}
+                  </span>
+                )}
+              </>
+            )}
           />
         </Form.Item>
 
@@ -159,18 +203,18 @@ const Tool = () => {
                 control={control}
                 render={({ field }) => (
                   <Input
-                  placeholder="Masukkan nama hard skill"
-                  {...field}
-                  style={{ width: "100%", height: "50px" }}
+                    placeholder="Masukkan nama hard skill"
+                    {...field}
+                    style={{ width: "100%", height: "50px" }}
                   />
                 )}
-                />
+              />
               <Button
                 type="text"
                 danger
                 icon={<MinusCircleOutlined />}
                 onClick={() => removeHardSkill(index)}
-                >
+              >
                 Hapus
               </Button>
             </Form.Item>
@@ -183,12 +227,12 @@ const Tool = () => {
                       control={control}
                       render={({ field }) => (
                         <Input
-                        placeholder="Masukkan unit code"
-                        {...field}
-                        style={{ width: "100%", height: "50px" }}
+                          placeholder="Masukkan unit code"
+                          {...field}
+                          style={{ width: "100%", height: "50px" }}
                         />
                       )}
-                      />
+                    />
                   </Form.Item>
                   <Form.Item label="Unit Title">
                     <Controller
@@ -219,7 +263,7 @@ const Tool = () => {
           block
           icon={<PlusOutlined />}
           style={{ marginBottom: "20px" }}
-          >
+        >
           Tambah Hard Skill
         </Button>
 
@@ -234,18 +278,18 @@ const Tool = () => {
                 control={control}
                 render={({ field }) => (
                   <Input
-                  placeholder="Masukkan nama soft skill"
-                  {...field}
-                  style={{ width: "100%", height: "50px" }}
+                    placeholder="Masukkan nama soft skill"
+                    {...field}
+                    style={{ width: "100%", height: "50px" }}
                   />
                 )}
-                />
+              />
               <Button
                 type="text"
                 danger
                 icon={<MinusCircleOutlined />}
                 onClick={() => removeSoftSkill(index)}
-                >
+              >
                 Hapus
               </Button>
             </Form.Item>
@@ -261,9 +305,9 @@ const Tool = () => {
                           placeholder="Masukkan unit code"
                           {...field}
                           style={{ width: "100%", height: "50px" }}
-                          />
-                        )}
                         />
+                      )}
+                    />
                   </Form.Item>
                   <Form.Item label="Unit Title">
                     <Controller
@@ -271,12 +315,12 @@ const Tool = () => {
                       control={control}
                       render={({ field }) => (
                         <Input
-                        placeholder="Masukkan unit title"
-                        {...field}
-                        style={{ width: "100%", height: "50px" }}
+                          placeholder="Masukkan unit title"
+                          {...field}
+                          style={{ width: "100%", height: "50px" }}
                         />
                       )}
-                      />
+                    />
                   </Form.Item>
                 </div>
               ))}
@@ -294,7 +338,7 @@ const Tool = () => {
           block
           icon={<PlusOutlined />}
           style={{ marginBottom: "20px" }}
-          >
+        >
           Tambah Soft Skill
         </Button>
 
@@ -303,12 +347,11 @@ const Tool = () => {
             type="primary"
             htmlType="submit"
             style={{ width: "100%", height: "50px" }}
-            >
+          >
             Simpan
           </Button>
         </Form.Item>
       </Form>
-
     </MainLayout>
   );
 };

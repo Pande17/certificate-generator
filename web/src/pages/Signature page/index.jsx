@@ -1,14 +1,18 @@
 import MainLayout from "../MainLayout/Layout";
 import { Kompetensi } from "../api middleware";
-import { message, Table, Col, Row, Button, Input, Modal } from "antd";
+import { message, Table, Col, Row, Button, Input, Modal, Form } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
 
 const SignaturePage = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [searchText, setSearchText] = useState("");
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editData, setEditData] = useState(null);
+  const { control, handleSubmit, reset } = useForm();
 
   const navigate = useNavigate();
   const { confirm } = Modal;
@@ -53,16 +57,13 @@ const SignaturePage = () => {
 
   const delConfirm = (_id, config_name) => {
     confirm({
-      title: `apakah anda yakon ingin menghapus kompetensi ${config_name}`,
-      content: "data yang di hapus tidak dapat dikembalikan",
+      title: `Apakah Anda yakin ingin menghapus kompetensi ${config_name}?`,
+      content: "Data yang dihapus tidak dapat dikembalikan.",
       okType: "danger",
-      okText: "ya, Hapus",
+      okText: "Ya, Hapus",
       cancelText: "Batal",
       onOk() {
         delHandle(_id);
-      },
-      onCancel() {
-        console.log("penghapusan dibatalkan");
       },
     });
   };
@@ -72,8 +73,39 @@ const SignaturePage = () => {
   };
 
   const handleEdit = (record) => {
-    message.info(`Edit triggered for ${record._id}`);
-    // Implement edit logic
+    setEditData(record);
+    reset(record); // Isi form dengan data yang diedit
+    setIsEditModalVisible(true);
+  };
+
+  const onSubmit = async (formData) => {
+    try {
+      const updatedData = {
+        ...editData,
+        ...formData,
+        signature: formData.ttd,
+        stamp: formData.Cap,
+        name: formData.atasNama,
+        config_name: formData.displayNama,
+        role: formData.jabatan,
+      };
+
+      await Kompetensi.put(`/${editData._id}`, updatedData);
+
+      setData((prevData) =>
+        prevData.map((item) => (item._id === editData._id ? updatedData : item))
+      );
+
+      message.success("Data berhasil diperbarui");
+      setIsEditModalVisible(false);
+    } catch (error) {
+      console.error("Error response:", error.response);
+      message.error(
+        `Gagal memperbarui data: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+    }
   };
 
   const columns = [
@@ -161,6 +193,87 @@ const SignaturePage = () => {
           </Col>
         </Row>
       </div>
+
+      {/* Modal Edit */}
+      <Modal
+        title="Edit Data"
+        open={isEditModalVisible}
+        onCancel={() => setIsEditModalVisible(false)}
+        footer={null}
+      >
+        <Form layout="vertical" onFinish={handleSubmit(onSubmit)}>
+          <Form.Item label="Display Nama" required>
+            <Controller
+              name="displayNama"
+              control={control}
+              rules={{ required: "Wajib mengisi display nama" }}
+              render={({ field }) => (
+                <Input {...field} placeholder="Masukkan nama display" />
+              )}
+            />
+          </Form.Item>
+
+          <Form.Item label="Nama Penandatangan" required>
+            <Controller
+              name="atasNama"
+              control={control}
+              rules={{ required: "Wajib mengisi Nama" }}
+              render={({ field }) => (
+                <Input {...field} placeholder="Masukkan nama Penandatangan" />
+              )}
+            />
+          </Form.Item>
+
+          <Form.Item label="Jabatan Penandatangan" required>
+            <Controller
+              name="jabatan"
+              control={control}
+              rules={{ required: "Wajib mengisi jabatan" }}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  placeholder="Masukkan Jabatan Penandatangan"
+                />
+              )}
+            />
+          </Form.Item>
+
+          <Form.Item label="Link Gambar Tanda Tangan" required>
+            <Controller
+              name="ttd"
+              control={control}
+              rules={{ required: "Wajib mengisi Link" }}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  placeholder="Masukkan Link Gambar Tanda Tangan"
+                />
+              )}
+            />
+          </Form.Item>
+
+          <Form.Item label="Link Gambar Cap Perusahaan" required>
+            <Controller
+              name="Cap"
+              control={control}
+              rules={{ required: "Wajib mengisi Link" }}
+              render={({ field }) => (
+                <Input {...field} placeholder="Masukkan Link Gambar Cap" />
+              )}
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              style={{ width: "100%", height: "50px" }}
+            >
+              Simpan
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </MainLayout>
   );
 };
