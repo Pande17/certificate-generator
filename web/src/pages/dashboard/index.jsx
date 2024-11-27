@@ -19,10 +19,10 @@ import {
   EditOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
 import MainLayout from "../MainLayout/Layout";
 
 const { confirm } = Modal;
+
 const Dashboard = () => {
   const [dta, setDta] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -39,7 +39,10 @@ const Dashboard = () => {
     },
   });
 
+<<<<<<< HEAD
   const navigate = useNavigate();
+=======
+>>>>>>> parent of da22287 (update page)
   // Fetch data dari API
   useEffect(() => {
     const fetchData = async () => {
@@ -296,9 +299,15 @@ const Dashboard = () => {
     }
   };
 
+<<<<<<< HEAD
   const createNav = () => {
     navigate("/create");
   };
+=======
+   const createNav = () => {
+     navigate("/create-paraf");
+   };
+>>>>>>> parent of da22287 (update page)
 
   const columns = [
     {

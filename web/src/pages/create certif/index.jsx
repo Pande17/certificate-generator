@@ -46,6 +46,8 @@ function MyForm() {
   };
 
   const onSubmit = async (formData) => {
+    console.log(formData); // Periksa formData yang diterima
+
     const totalSkillScore = calculateTotalSkillScore(
       formData.hardSkill, // Pastikan ini adalah array
       formData.softSkill // Pastikan ini adalah array
@@ -279,7 +281,6 @@ function MyForm() {
           />
         </Form.Item>
 
-
         <Form.Item label="Total tahun" required>
           <Controller
             name="validTime"
@@ -347,21 +348,6 @@ function MyForm() {
             rules={{ required: "Meeting Time is required" }}
             render={({ field }) => (
               <InputNumber
-                {...field}
-                placeholder="contoh: 13"
-                style={{ width: "100%", height: "50px" }}
-              />
-            )}
-          />
-        </Form.Item>
-
-        <Form.Item label="Link logo Perusahaan" required>
-          <Controller
-            name="linkLogo"
-            control={control}
-            rules={{ required: "Meeting Time is required" }}
-            render={({ field }) => (
-              <Input
                 {...field}
                 placeholder="contoh: 13"
                 style={{ width: "100%", height: "50px" }}
@@ -572,7 +558,7 @@ function MyForm() {
                 </Option>
                 {signatureData.map((signature) => (
                   <Option key={signature._id} value={signature._id}>
-                    {signature.config_name}
+                    {signature.config_signature}
                   </Option>
                 ))}
               </Select>

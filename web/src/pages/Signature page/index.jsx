@@ -69,7 +69,7 @@ const filteredData = data.filter((item) =>
    };   
 
       const createNav = () => {
-        navigate("/createParaf");
+        navigate("/create");
       };
 
   const handleEdit = (record) => {

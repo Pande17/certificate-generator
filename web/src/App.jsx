@@ -10,8 +10,6 @@ import Tes from "./pages/tes/Index.jsx"
 import CreateKompetensi from "./pages/create competence/index.jsx"
 import Qr from "./pages/qr page/index.jsx"
 import SignaturePage from "./pages/Signature page/index.jsx";
-import CreateParaf from "./pages/create paraf/index.jsx";
-
 const App = () => {
   return (
     <Routes>
@@ -24,8 +22,7 @@ const App = () => {
       <Route path="/side" element={<Side />} />
       <Route path="/Tes" element={<Tes />} />
       <Route path="/qrPage" element={<Qr />}/>
-      <Route path="/signature" element={<SignaturePage />}/>
-      <Route path="/createParaf" element = {<CreateParaf />}/>
+      <Route path="/signature" element={<SignaturePage/>}/>
     </Routes>
   );
 };
