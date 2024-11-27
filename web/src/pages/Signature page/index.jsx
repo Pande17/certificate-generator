@@ -1,34 +1,37 @@
 import MainLayout from "../MainLayout/Layout";
-import { Kompetensi } from "../api middleware";
-import { message, Table, Col, Row, Button, Input, Modal } from "antd";
+import { Signature } from "../api middleware";
+import { message, Table, Col, Row, Button, Input, Modal, Form } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import { useEffect, useState } from "react";
-
 
 const SignaturePage = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [searchText, setSearchText] = useState("");
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [currentSignature, setCurrentSignature] = useState(null);
+  const [dataSignature, setDataSignature] = useState(null);
+  const [error, setError] = useState(null);
+  const [form] = Form.useForm();
 
   const navigate = useNavigate();
   const { confirm } = Modal;
+
+  const filteredData = data.filter((item) =>
+    item.config_name?.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   
-const filteredData = data.filter((item) =>
-  item.config_name?.toLowerCase().includes(searchText.toLowerCase())
-);
-
-
-
   useEffect(() => {
     const fetchSignature = async () => {
       setLoading(true);
       try {
-        const respons = await Kompetensi.get(
+        const respons = await Signature.get(
           `http://127.0.0.1:3000/api/signature`
         );
         const datas = respons.data.data;
-     const filterData = datas.filter((item) => !item.deleted_at);
+        const filterData = datas.filter((item) => !item.deleted_at);
         setData(filterData);
       } catch (error) {
         console.log("error", error);
@@ -39,42 +42,115 @@ const filteredData = data.filter((item) =>
     fetchSignature();
   }, []);
 
- const delHandle = async (_id) => {
-   try {
-     await Kompetensi.delete(`http://127.0.0.1:3000/api/signature/${_id}`);
-     setData((prevData) => prevData.filter((item) => item._id !== _id));
-     message.success("Data berhasil dihapus");
-   } catch (error) {
-     console.error("Error response:", error.response);
-     message.error(
-       `Gagal menghapus data: ${error.response?.data?.message || error.message}`
-     );
-   }
- };
-
-   const delConfirm = (_id, config_name) => {
-     confirm({
-       title: `apakah anda yakon ingin menghapus kompetensi ${config_name}`,
-       content: "data yang di hapus tidak dapat dikembalikan",
-       okType: "danger",
-       okText: "ya, Hapus",
-       cancelText: "Batal",
-       onOk() {
-         delHandle(_id);
-       },
-       onCancel() {
-         console.log("penghapusan dibatalkan");
-       },
-     });
-   };   
-
-      const createNav = () => {
-        navigate("/createParaf");
+ 
+  useEffect(() => {
+    if (currentSignature) {
+      const fetchData = async () => {
+        setLoading(true);
+        try {
+          const response = await Signature.get(
+            `http://127.0.0.1:3000/api/signature/${currentSignature._id}`
+          );
+          const sigData = response.data.data;
+          console.log(sigData);
+          if (!sigData.deleted_at) {
+            setDataSignature(sigData); 
+          } else {
+            message.warning("Data sertifikat tidak tersedia.");
+          }
+        } catch (err) {
+          console.error("Error fetching data:", err);
+          setError("Gagal memuat data sertifikat.");
+        } finally {
+          setLoading(false);
+        }
       };
+      fetchData();
+    }
+  }, [currentSignature]); 
 
-  const handleEdit = (record) => {
-    message.info(`Edit triggered for ${record._id}`);
-    // Implement edit logic
+  const delHandle = async (_id) => {
+    try {
+      await Signature.delete(`http://127.0.0.1:3000/api/signature/${_id}`);
+      setData((prevData) => prevData.filter((item) => item._id !== _id));
+      message.success("Data berhasil dihapus");
+    } catch (error) {
+      console.error("Error response:", error.response);
+      message.error(
+        `Gagal menghapus data: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+    }
+  };
+
+  const delConfirm = (_id, config_name) => {
+    confirm({
+      title: `Apakah anda yakin ingin menghapus kompetensi ${config_name}?`,
+      content: "Data yang dihapus tidak dapat dikembalikan",
+      okType: "danger",
+      okText: "Ya, Hapus",
+      cancelText: "Batal",
+      onOk() {
+        delHandle(_id);
+      },
+      onCancel() {
+        console.log("Penghapusan dibatalkan");
+      },
+    });
+  };
+
+  const createNav = () => {
+    navigate("/createParaf");
+  };
+
+
+  const handleEdit = async (record) => {
+    try {
+      setLoading(true);
+      console.log("Fetching data for ID:", record._id);
+      const response = await Signature.get(
+        `http://127.0.0.1:3000/api/signature/${record._id}` 
+      );
+      const signatureData = response.data.data;
+
+      if (!signatureData.deleted_at) {
+        setCurrentSignature(signatureData); 
+        form.setFieldsValue(signatureData); 
+        setIsEditModalVisible(true); 
+      } else {
+        message.warning("Data sertifikat tidak tersedia.");
+      }
+    } catch (error) {
+      console.error("Error fetching detailed data:", error);
+      message.error("Gagal memuat data.");
+    } finally {
+      setLoading(false); 
+    }
+  };
+
+
+  const handleSubmit = async (values) => {
+    setLoading(true);
+    try {
+      await Signature.put(
+        `http://127.0.0.1:3000/api/signature/${currentSignature._id}`,
+        values
+      );
+      message.success("Data berhasil diperbarui");
+      setIsEditModalVisible(false); 
+      
+      setData((prevData) =>
+        prevData.map((item) =>
+          item._id === currentSignature._id ? { ...item, ...values } : item
+        )
+      );
+    } catch (error) {
+      console.error("Error updating signature:", error);
+      message.error("Gagal memperbarui data");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const columns = [
@@ -113,14 +189,14 @@ const filteredData = data.filter((item) =>
             onClick={() => handleEdit(record)}
             style={{ margin: 8 }}
           />
-        </>   
+        </>
       ),
     },
   ];
 
   return (
     <MainLayout>
-      <div className="flex flex-col items-center  p-5">
+      <div className="flex flex-col items-center p-5">
         <div>
           <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl">
             List Paraf
@@ -143,8 +219,7 @@ const filteredData = data.filter((item) =>
             justifyContent: "center",
             width: "90%",
             overflowX: "auto",
-          }}
-        >
+          }}>
           <Col span={24}>
             <Table
               dataSource={filteredData}
@@ -161,6 +236,35 @@ const filteredData = data.filter((item) =>
             />
           </Col>
         </Row>
+
+        <Modal
+          title="Edit Signature"
+          open={isEditModalVisible}
+          onCancel={() => setIsEditModalVisible(false)}
+          footer={null}>
+          <Form form={form} layout="vertical" onFinish={handleSubmit}>
+            <Form.Item label="Display Nama" name="config_name">
+              <Input placeholder="Masukkan nama display" />
+            </Form.Item>
+            <Form.Item label="Nama Penandatangan" name="name">
+              <Input placeholder="Masukkan nama penandatangan" />
+            </Form.Item>
+            <Form.Item label="Jabatan Penandatangan" name="role">
+              <Input placeholder="Masukkan jabatan penandatangan" />
+            </Form.Item>
+            <Form.Item label="Link Gambar Tanda Tangan" name="signature">
+              <Input placeholder="Masukkan link tanda tangan" />
+            </Form.Item>
+            <Form.Item label="Link Gambar Cap Perusahaan" name="stamp">
+              <Input placeholder="Masukkan link cap perusahaan" />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Simpan
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
     </MainLayout>
   );
