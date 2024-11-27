@@ -52,7 +52,7 @@ const competence = () => {
     const fetchCompetencies = async () => {
       try {
         const response = await Kompetensi.get(
-          "http://127.0.0.1:3000/api/competence"
+          "/"
         );
         if (response.data && Array.isArray(response.data.data)) {
           setCompetencies(response.data.data);
@@ -186,13 +186,14 @@ const competence = () => {
     {
       title: "Kompetensi",
       align: "center",
-      
+      width: 100,
       responsive: ["xs", "sm", "md", "lg"],
       key: "nama_kompetensi",
       dataIndex: "nama_kompetensi",
       ellipsis: true,
     },
     {
+      width: 100,
       title: "Aksi",
       key: "actions",
       responsive: ["xs", "sm", "md", "lg"],

@@ -19,7 +19,7 @@ const LoginPage = () => {
     setMsg("");
     try {
       const response = await Login.post(
-        `/`,
+        "/",
         {
           admin_name,
           admin_password,

@@ -38,15 +38,13 @@ const Dashboard = () => {
       selectedCompetenceId: "",
     },
   });
-  
+
   const navigate = useNavigate();
   // Fetch data dari API
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await Sertifikat.get(
-          "/"
-        );
+        const response = await Sertifikat.get("/");
         const certificates = response.data.data || [];
         const filteredData = certificates.filter((item) => !item.deleted_at);
         setDta(filteredData);
@@ -57,9 +55,7 @@ const Dashboard = () => {
     };
     const fetchSignature = async () => {
       try {
-        const response = await Signature.get(
-          "/"
-        );
+        const response = await Signature.get("/");
         setSignatureData(response.data.data);
       } catch (error) {
         console.log("Error fetching signature data:", error);
@@ -67,9 +63,7 @@ const Dashboard = () => {
     };
     const fetchCompetence = async () => {
       try {
-        const response = await Kompetensi.get(
-          "/"
-        );
+        const response = await Kompetensi.get("/");
         setKompetensiData(response.data.data);
       } catch (error) {
         console.log("Error fetching competence data:", error);
@@ -187,10 +181,7 @@ const Dashboard = () => {
         },
       };
 
-      const response = await Sertifikat.put(
-        "/",
-        formattedData
-      );
+      const response = await Sertifikat.put("/", formattedData);
 
       if (response.status === 200) {
         console.log(dta);
@@ -285,15 +276,12 @@ const Dashboard = () => {
 
   const downloadPDF = async (_id) => {
     try {
-      const response = await Sertifikat.get(
-        `/${_id}/b`,
-        {
-          headers: {
-            "Content-Type": "application/pdf",
-          },
-          responseType: "blob",
-        }
-      );
+      const response = await Sertifikat.get(`/${_id}/b`, {
+        headers: {
+          "Content-Type": "application/pdf",
+        },
+        responseType: "blob",
+      });
 
       // Membuat link untuk mengunduh file
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -306,12 +294,11 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error downloading PDF:", error);
     }
-  
   };
 
-   const createNav = () => {
-     navigate("/create");
-   };
+  const createNav = () => {
+    navigate("/create");
+  };
 
   const columns = [
     {
@@ -364,11 +351,17 @@ const Dashboard = () => {
   return (
     <MainLayout>
       <div className="flex flex-col items-center justify-center w-full lg:w-3/4 p-5">
+
         <div>
           <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl">
             List Sertifikat
           </p>
         </div>
+
+        <Button onClick={createNav} className="m-3">
+          Buat Sertifikat
+        </Button>
+
         <input
           type="text"
           placeholder="Search"
@@ -376,9 +369,7 @@ const Dashboard = () => {
           onChange={handleSearch}
           className="mb-4 p-2 border border-gray-300 rounded w-full md:w-1/2"
         />
-        <Button onClick={createNav} className="m-3">
-          Buat Sertifikat
-        </Button>
+
         <Row style={{ width: "100%", overflowX: "auto" }}>
           <Col span={24}>
             <Table
