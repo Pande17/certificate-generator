@@ -372,11 +372,13 @@ func EditCertificate(c *fiber.Ctx) error {
 	fmt.Printf("Total SS JP: %d, Total SS Score: %.2f\n", totalSSJP, totalSSSkor)
 	fmt.Printf("Total JP: %d, Total Score: %.2f, Final Skor: %.2f\n", totalJP, totalScore, finalSkor)
 
+	sertifName := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(strings.ToUpper(input.Data.SertifName)), "SERTIFIKAT"))
+	
 	// Update the certificate with the new data while preserving KodeReferral fields
 	update := bson.M{
 		"$set": bson.M{
 			"data": bson.M{
-				"sertif_name": input.Data.SertifName,
+				"sertif_name": sertifName,
 				"logo":        input.Data.Logo,
 				"kode_referral": bson.M{
 					"referral_id": existingKodeReferral["referral_id"], // Preserve existing referral ID
