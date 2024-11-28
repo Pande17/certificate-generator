@@ -14,7 +14,9 @@ import { Sertifikat,Kompetensi,Signature } from "../api middleware";
 
 function MyForm() {
   const [data, setData] = useState([]);
-   const [signatureData, setSignatureData] = useState([]);
+  const [signatureData, setSignatureData] = useState([]);
+  const [skkni, setSkkni] = useState("");
+  const [divisi, setDivisi] = useState("");
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       hardSkill: [],
@@ -177,33 +179,43 @@ function MyForm() {
      fetchSignature();
    }, []);
 
-  const fetchCompetence = async (competenceId) => {
-    const url = `/${competenceId}`;
-    try {
-      const response = await Kompetensi.get(url);
+const fetchCompetence = async (competenceId) => {
+  const url = `/${competenceId}`;
+  try {
+    const response = await Kompetensi.get(url);
 
-      const { hard_skills = [], soft_skills = [] } = response.data.data || {};
+    const {
+      hard_skills = [],
+      soft_skills = [],
+      skkni = "",
+      divisi = "",
+    } = response.data.data || {};
 
-      const newHardSkills = hard_skills.map((hardSkill) => ({
-        skill_name: hardSkill.skill_name || "",
-        combined_units: hardSkill.description
-          .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
-          .join("\n"),
-      }));
+    const newHardSkills = hard_skills.map((hardSkill) => ({
+      skill_name: hardSkill.skill_name || "",
+      combined_units: hardSkill.description
+        .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
+        .join("\n"),
+    }));
 
-      const newSoftSkills = soft_skills.map((softSkill) => ({
-        skill_name: softSkill.skill_name || "",
-        combined_units: softSkill.description
-          .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
-          .join("\n"),
-      }));
+    const newSoftSkills = soft_skills.map((softSkill) => ({
+      skill_name: softSkill.skill_name || "",
+      combined_units: softSkill.description
+        .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
+        .join("\n"),
+    }));
 
-      replaceHardSkill(newHardSkills);
-      replaceSoftSkill(newSoftSkills);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+    replaceHardSkill(newHardSkills);
+    replaceSoftSkill(newSoftSkills);
+
+    // Simpan skkni dan divisi ke state
+    setSkkni(skkni);
+    setDivisi(divisi);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 
  const handleCompetenceChange = (value) => {
    // Hanya reset field terkait
@@ -278,7 +290,6 @@ function MyForm() {
             )}
           />
         </Form.Item>
-
 
         <Form.Item label="Total tahun" required>
           <Controller
@@ -363,7 +374,7 @@ function MyForm() {
             render={({ field }) => (
               <Input
                 {...field}
-                placeholder="contoh: 13"
+                placeholder="Masukkan Link Gambar"
                 style={{ width: "100%", height: "50px" }}
               />
             )}
@@ -399,6 +410,26 @@ function MyForm() {
             )}
           />
         </Form.Item>
+
+        {skkni && (
+          <Form.Item label="SKKNI">
+            <Input
+              value={skkni}
+              readOnly
+              style={{ width: "100%", height: "50px" }}
+            />
+          </Form.Item>
+        )}
+
+        {divisi && (
+          <Form.Item label="Divisi">
+            <Input
+              value={divisi}
+              readOnly
+              style={{ width: "100%", height: "50px" }}
+            />
+          </Form.Item>
+        )}
 
         {hardSkillFields.length > 0 && (
           <div>

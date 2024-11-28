@@ -52,7 +52,7 @@ const competence = () => {
     const fetchCompetencies = async () => {
       try {
         const response = await Kompetensi.get(
-          "http://127.0.0.1:3000/api/competence"
+          "/"
         );
         if (response.data && Array.isArray(response.data.data)) {
           setCompetencies(response.data.data);
@@ -76,6 +76,8 @@ const competence = () => {
 
   const { control, handleSubmit } = useForm({
     defaultValues: {
+      skkni: "",
+      divisi: "",
       competenceName: "",
       hardSkills: [
         { skill_name: "", description: [{ unit_code: "", unit_title: "" }] },
@@ -87,7 +89,6 @@ const competence = () => {
     },
   });
 
-  const { Option } = Select;
   const {
     fields: hardSkillsFields,
     append: addHardSkill,
@@ -149,6 +150,8 @@ const competence = () => {
   const onSubmit = async (data) => {
     const competenceData = {
       nama_kompetensi: data.competenceName,
+      divisi: data.divisi,
+      skkni: data.skkni,
       hard_skills: data.hardSkills,
       soft_skills: data.softSkills,
     };
@@ -193,6 +196,7 @@ const competence = () => {
       ellipsis: true,
     },
     {
+      width: 100,
       title: "Aksi",
       key: "actions",
       responsive: ["xs", "sm", "md", "lg"],
@@ -252,7 +256,7 @@ const competence = () => {
             layout="vertical"
             onFinish={handleSubmit(onSubmit)}
             style={{
-              width: "95%",
+              width: "90%",
               maxHeight: "100vh",
               overflowY: "scroll",
               backgroundColor: "white",
@@ -270,6 +274,33 @@ const competence = () => {
                 render={({ field }) => (
                   <Input
                     placeholder="Masukkan nama kompetensi"
+                    {...field}
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
+              />
+            </Form.Item>
+            <Form.Item label="Skkni" required>
+              <Controller
+                name="skkni"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    placeholder="It"
+                    {...field}
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
+              />
+            </Form.Item>
+
+            <Form.Item label="Divisi" required>
+              <Controller
+                name="divisi"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    placeholder="SKKNI No. 16 Th. 2016"
                     {...field}
                     style={{ width: "100%", height: "50px" }}
                   />
@@ -442,7 +473,7 @@ const competence = () => {
         <Row
           style={{
             justifyContent: "center",
-            width: "100%",
+            width: "90%",
             overflowX: "auto",
           }}
         >
