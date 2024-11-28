@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// Use fallback if REACT_APP_API_URL is undefined
-const api = import.meta.env.REACT_APP_API_URL || "http://localhost:3000";
+// Use fallback if VITE_BACKEND is undefined
+const api = import.meta.env.VITE_BACKEND || "http://localhost:3000";
 
 const Signature = axios.create({
   baseURL: `${api}/api/signature`,
