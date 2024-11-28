@@ -400,6 +400,9 @@ func EditCertificate(c *fiber.Ctx) error {
 		},
 	}
 
+	// make pdf creation concurrent to return handler faster
+	// go generator.CreatePDF(c, &update, "ab")
+
 	_, err = certificateCollection.UpdateOne(c.Context(), filter, update)
 	if err != nil {
 		return Conflict(c, "Gagal memperbarui Data Sertifikat! Silakan coba lagi.", "Gagal memperbarui Data Sertifikat")
@@ -483,17 +486,16 @@ func DownloadCertificate(c *fiber.Ctx) error {
 	}
 	data := pdf.Data
 
-	filepath := "./assets/certificate/" + data.DataID + "-" + certifType + ".pdf"
+	filepath := "./api/certificate/download/" + data.DataID + "-" + certifType + ".pdf"
 	if _, err := os.Stat(filepath); err != nil {
 		if os.IsNotExist(err) {
 			if _, creating := generator.CreatingPDF[data.DataID+"-"+certifType]; creating {
 				for _, creating := generator.CreatingPDF[data.DataID+"-"+certifType]; creating; {
 					time.Sleep(time.Second)
 				}
-			} else {
-				if err = generator.CreatePDF(c, &data, certifType); err != nil {
-					return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
-				}
+			}
+			if err = generator.CreatePDF(c, &data, certifType); err != nil {
+				return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
 			}
 		} else {
 			return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
