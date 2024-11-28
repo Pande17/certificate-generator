@@ -99,7 +99,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 		HardSkills:     pdfReq.Data.HardSkills,
 		SoftSkills:     pdfReq.Data.SoftSkills,
 		FinalSkor:      pdfReq.Data.FinalSkor,
-		Signature: model.Signature{
+		Signature: model.SignatureData{
 			ConfigName: pdfReq.Data.Signature.ConfigName,
 			Stamp:      pdfReq.Data.Signature.Stamp,
 			Signature:  pdfReq.Data.Signature.Signature,
@@ -311,7 +311,7 @@ func EditCertificate(c *fiber.Ctx) error {
 		HardSkills:     pdfData.HardSkills,
 		SoftSkills:     pdfData.SoftSkills,
 		FinalSkor:      pdfData.FinalSkor,
-		Signature: model.Signature{
+		Signature: model.SignatureData{
 			ConfigName: pdfData.Signature.ConfigName,
 			Stamp:      pdfData.Signature.Stamp,
 			Signature:  pdfData.Signature.Signature,
