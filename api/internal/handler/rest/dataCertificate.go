@@ -123,7 +123,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	// make pdf creation concurrent to return handler faster
-	go generator.CreatePDF(c, &mappedData, "ab")
+	go generator.CreatePDF(c, &mappedData, "ab", true)
 
 	// insert data from struct "PDF" to collection "certificate" in database MongoDB
 	_, err = certificateCollection.InsertOne(context.TODO(), certificate)
@@ -469,15 +469,10 @@ func DownloadCertificate(c *fiber.Ctx) error {
 	}
 	data := pdf.Data
 
-	filepath := "./api/certificate/download/" + data.DataID + "-" + certifType + ".pdf"
+	filepath := "./assets/certificate/" + data.DataID + "-" + certifType + ".pdf"
 	if _, err := os.Stat(filepath); err != nil {
 		if os.IsNotExist(err) {
-			if _, creating := generator.CreatingPDF[data.DataID+"-"+certifType]; creating {
-				for _, creating := generator.CreatingPDF[data.DataID+"-"+certifType]; creating; {
-					time.Sleep(time.Second)
-				}
-			}
-			if err = generator.CreatePDF(c, &data, certifType); err != nil {
+			if err = generator.CreatePDF(c, &data, certifType, false); err != nil {
 				return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
 			}
 		} else {
@@ -485,7 +480,7 @@ func DownloadCertificate(c *fiber.Ctx) error {
 		}
 	}
 	c.Response().Header.Add("Content-Type", "application/pdf")
-	return c.Download("./assets/certificate/"+data.DataID+"-"+certifType+".pdf", "Sertifikat BTW Edutech "+certifType+" - "+data.NamaPeserta)
+	return c.Download(filepath, "Sertifikat BTW Edutech "+certifType+" - "+data.NamaPeserta)
 }
 
 func processCertificate(certif *model.CertificateData) *model.CertificateData {
