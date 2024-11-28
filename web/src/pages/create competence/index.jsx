@@ -172,13 +172,13 @@ const Tool = () => {
             rules={{
               required: "Input divisi berlebihan atau kurang dari satu! maksimal(1-3 huruf)",
               validate: (value) =>
-                value.length <= 3 ||
+                value.length <= 6 ||
                 "Input divisi berlebihan atau kurang dari satu!",
             }}
             render={({ field, fieldState: { error } }) => (
               <>
                 <Input
-                  placeholder="SKKNI No. 16 Th. 2016"
+                  placeholder="IT"
                   {...field}
                   style={{ width: "100%", height: "50px" }}
                 />
