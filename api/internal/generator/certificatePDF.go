@@ -152,7 +152,7 @@ func createPDF(ctx context.Context, c *fiber.Ctx, dataReq *model.CertificateData
 	}
 
 	// generate qrcode
-	link := fmt.Sprintf("%s://%s/assets/certificate/", c.Protocol(), c.Hostname())
+	link := fmt.Sprintf("%s/assets/certificate/", os.Getenv("CERTIF_GEN_FRONTEND"))
 	encstr, err := GenerateQRCode(link, dataReq.DataID)
 	if err != nil {
 		return err
