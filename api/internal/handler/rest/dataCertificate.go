@@ -75,23 +75,11 @@ func CreateCertificate(c *fiber.Ctx) error {
 		return NotFound(c, "Gagal memeriksa kompetensi yang ada. Silakan coba lagi.", err.Error())
 	}
 
-	totalHSJP, totalHSSkor := uint64(0), float64(0)
-	for _, hs := range pdfReq.Data.HardSkills.Skills {
-		totalHSJP += hs.SkillJP
-		totalHSSkor += hs.SkillScore
-	}
+	pdfReq.Data = *processCertificate(&pdfReq.Data)
 
-	totalSSJP, totalSSSkor := uint64(0), float64(0)
-	for _, ss := range pdfReq.Data.SoftSkills.Skills {
-		totalSSJP += ss.SkillJP
-		totalSSSkor += ss.SkillScore
-	}
-
-	sertifName := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(strings.ToUpper(pdfReq.Data.SertifName)), "SERTIFIKAT"))
 	mappedData := model.CertificateData{
 		AdminId:    objectID,
-		SertifName: sertifName,
-		Logo:       pdfReq.Data.Logo,
+		SertifName: pdfReq.Data.SertifName,
 		KodeReferral: model.KodeReferral{
 			ReferralID: nextReferralID,
 			Divisi:     kompetensi.Divisi,
@@ -99,30 +87,23 @@ func CreateCertificate(c *fiber.Ctx) error {
 			TahunRilis: year,
 		},
 		NamaPeserta:    pdfReq.Data.NamaPeserta,
-		SKKNI:          pdfReq.Data.SKKNI,
+		SKKNI:          kompetensi.SKKNI,
 		KompetenBidang: pdfReq.Data.KompetenBidang,
 		Kompetensi:     pdfReq.Data.Kompetensi,
 		Validation:     pdfReq.Data.Validation,
 		DataID:         newDataID,
-		TotalJP:        totalHSJP + totalSSJP,
+		TotalJP:        pdfReq.Data.TotalJP,
 		TotalMeet:      pdfReq.Data.TotalMeet,
 		MeetTime:       pdfReq.Data.MeetTime,
 		ValidDate:      pdfReq.Data.ValidDate,
-		HardSkills: model.SkillPDF{
-			Skills:          pdfReq.Data.HardSkills.Skills,
-			TotalSkillJP:    totalHSJP,
-			TotalSkillScore: float64(math.Round(totalHSSkor/float64(len(pdfReq.Data.HardSkills.Skills))*10) / 10),
-		},
-		SoftSkills: model.SkillPDF{
-			Skills:          pdfReq.Data.SoftSkills.Skills,
-			TotalSkillJP:    totalSSJP,
-			TotalSkillScore: float64(math.Round(totalSSSkor/float64(len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
-		},
-		FinalSkor: float64(math.Round((totalHSSkor+totalSSSkor)/float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
+		HardSkills:     pdfReq.Data.HardSkills,
+		SoftSkills:     pdfReq.Data.SoftSkills,
+		FinalSkor:      pdfReq.Data.FinalSkor,
 		Signature: model.Signature{
 			ConfigName: pdfReq.Data.Signature.ConfigName,
 			Stamp:      pdfReq.Data.Signature.Stamp,
 			Signature:  pdfReq.Data.Signature.Signature,
+			Logo:       pdfReq.Data.Signature.Logo,
 			Name:       pdfReq.Data.Signature.Name,
 			Role:       pdfReq.Data.Signature.Role,
 		},
@@ -131,7 +112,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 	certificate := model.PDF{
 		AdminId:    objectID,
 		DataID:     newDataID,
-		SertifName: sertifName,
+		SertifName: pdfReq.Data.SertifName,
 		Data:       mappedData,
 		Model: model.Model{
 			ID:        primitive.NewObjectID(),
@@ -505,6 +486,39 @@ func DownloadCertificate(c *fiber.Ctx) error {
 	}
 	c.Response().Header.Add("Content-Type", "application/pdf")
 	return c.Download("./assets/certificate/"+data.DataID+"-"+certifType+".pdf", "Sertifikat BTW Edutech "+certifType+" - "+data.NamaPeserta)
+}
+
+func processCertificate(certif *model.CertificateData) *model.CertificateData {
+	certif.SertifName = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(strings.ToUpper(certif.SertifName)), "SERTIFIKAT"))
+
+	totalHSJP, totalHSSkor := uint64(0), float64(0)
+	for _, hs := range certif.HardSkills.Skills {
+		totalHSJP += hs.SkillJP
+		totalHSSkor += hs.SkillScore
+	}
+
+	totalSSJP, totalSSSkor := uint64(0), float64(0)
+	for _, ss := range certif.SoftSkills.Skills {
+		totalSSJP += ss.SkillJP
+		totalSSSkor += ss.SkillScore
+	}
+
+	certif.TotalJP = totalHSJP + totalSSJP
+	certif.FinalSkor = float64(math.Round((totalHSSkor+totalSSSkor)/float64(len(certif.HardSkills.Skills)+len(certif.SoftSkills.Skills))*10) / 10)
+
+	certif.HardSkills = model.SkillPDF{
+		Skills:          certif.HardSkills.Skills,
+		TotalSkillJP:    totalHSJP,
+		TotalSkillScore: float64(math.Round(totalHSSkor/float64(len(certif.HardSkills.Skills))*10) / 10),
+	}
+
+	certif.SoftSkills = model.SkillPDF{
+		Skills:          certif.SoftSkills.Skills,
+		TotalSkillJP:    totalSSJP,
+		TotalSkillScore: float64(math.Round(totalSSSkor/float64(len(certif.SoftSkills.Skills))*10) / 10),
+	}
+
+	return certif
 }
 
 // {
