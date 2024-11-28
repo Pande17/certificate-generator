@@ -7,9 +7,10 @@ services:
       - mongo
     environment:
       APP_DEBUG: 'false'
-      CERTIF_GEN_FRONTEND: "http://localhost"
+      CERTIF_GEN_FRONTEND: 'http://localhost'
     env_file:
       - ./api/.env
+      - ./api/.env.local
     ports:
       - '3000:3000'
     volumes:
@@ -36,7 +37,7 @@ services:
       - '80:80'
 
     # mount for dev testing
-    # must only pull public & src dir bcs of a weird bug on npm lockfile or smth 
+    # must only pull public & src dir bcs of a weird bug on npm lockfile or smth
     # src (according to returned err): https://github.com/npm/cli/issues/4828
     volumes:
       - ./web/public:/app/public

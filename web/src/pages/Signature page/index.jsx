@@ -27,7 +27,7 @@ const SignaturePage = () => {
       setLoading(true);
       try {
         const response = await Signature.get(
-          "http://127.0.0.1:3000/api/signature"
+          "/"
         );
         const datas = response.data.data;
         const filterData = datas.filter((item) => !item.deleted_at);
