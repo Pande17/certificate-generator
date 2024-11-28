@@ -3,7 +3,7 @@ package model
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type Signature struct {
-	AdminId    primitive.ObjectID `json:"admin_id" bson:"admin_id"`
+	AdminId    primitive.ObjectID `json:"admin_id" bson:"admin_id,omitempty"`
 	ConfigName string             `json:"config_name" bson:"config_name"`
 	Stamp      string             `json:"stamp" bson:"stamp"`
 	Logo       string             `json:"logo" bson:"logo"`
