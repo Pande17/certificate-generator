@@ -11,6 +11,7 @@ import CreateKompetensi from "./pages/create competence/index.jsx"
 import SignaturePage from "./pages/Signature page/index.jsx";
 import CreateParaf from "./pages/create Paraf/index.jsx";
 import CertificateTable from "./pages/qr page/index.jsx";
+// import errorHandle from "./pages/Error.jsx";
 
 
 const App = () => {
@@ -24,6 +25,7 @@ const App = () => {
         path="/competence/create-competence"
         element={<CreateKompetensi />}
       />
+      {/* <Route path="*" component={errorHandle} /> */}
       <Route path="/layout" element={<Layout />} />
       <Route path="/side" element={<Side />} />
       <Route path="/Tes" element={<Tes />} />

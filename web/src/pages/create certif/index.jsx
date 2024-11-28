@@ -68,8 +68,8 @@ function MyForm() {
           meet_time: formData.meetingTime,
           skkni: formData.skkni,
           valid_date: {
-            valid_start: formData.expiredTimeStard?.format("DD MMMM YYYY"),
-            valid_end: formData.expiredTimeEnd?.format("DD MMMM YYYY"),
+            valid_start: formData.expiredTimeStard,
+            valid_end: formData.expiredTimeEnd,
             valid_total: formData.validtime,
           },
           total_meet: formData.totalMeeting,
@@ -310,32 +310,31 @@ const fetchCompetence = async (competenceId) => {
           <Controller
             name="expiredTimeStart"
             control={control}
-            rules={{ required: "Expired Time (Start) is required" }}
+            rules={{ required: "Waktu mulai diperlukan" }}
             render={({ field }) => (
-              <DatePicker
+              <Input
                 {...field}
-                placeholder="Pilih waktu"
+                placeholder="Pilih waktu mulai"
                 style={{ width: "100%", height: "50px" }}
               />
             )}
           />
         </Form.Item>
 
-        <Form.Item label="Waktu Expired (Seleai)" required>
+        <Form.Item label="Waktu Expired (Selesai)" required>
           <Controller
             name="expiredTimeEnd"
             control={control}
-            rules={{ required: "Expired Time (End) is required" }}
+            rules={{ required: "Waktu selesai diperlukan" }}
             render={({ field }) => (
-              <DatePicker
+              <Input
                 {...field}
-                placeholder="Pilih Waktu"
+                placeholder="Pilih waktu selesai"
                 style={{ width: "100%", height: "50px" }}
               />
             )}
           />
         </Form.Item>
-
         <Form.Item label="Total Pertemuan" required>
           <Controller
             name="totalMeeting"
@@ -357,24 +356,9 @@ const fetchCompetence = async (competenceId) => {
             control={control}
             rules={{ required: "Meeting Time is required" }}
             render={({ field }) => (
-              <InputNumber
-                {...field}
-                placeholder="contoh: 13"
-                style={{ width: "100%", height: "50px" }}
-              />
-            )}
-          />
-        </Form.Item>
-
-        <Form.Item label="Link logo Perusahaan" required>
-          <Controller
-            name="linkLogo"
-            control={control}
-            rules={{ required: "Meeting Time is required" }}
-            render={({ field }) => (
               <Input
                 {...field}
-                placeholder="Masukkan Link Gambar"
+                placeholder="contoh: 13"
                 style={{ width: "100%", height: "50px" }}
               />
             )}
