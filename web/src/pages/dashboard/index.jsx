@@ -89,117 +89,36 @@ const Dashboard = () => {
     name: "softSkill",
   });
 
-  const calculateTotalSkillScore = (hardSkills, softSkills) => {
-    const totalHardSkillsScore = Array.isArray(hardSkills)
-      ? hardSkills.reduce((acc, skill) => acc + (skill.skill_score || 0), 0)
-      : 0; // Pastikan hardSkills adalah array, jika tidak, set default ke 0
+ const onSubmit = async (formData) => {
+   try {
+     const sanitizedHardSkills = (formData.hardSkill || []).filter(
+       (skill) => skill.skill_name && skill.jp
+     );
+     const sanitizedSoftSkills = (formData.softSkill || []).filter(
+       (skill) => skill.skill_name && skill.skill_score
+     );
 
-    const totalSoftSkillsScore = Array.isArray(softSkills)
-      ? softSkills.reduce((acc, skill) => acc + (skill.skill_score || 0), 0)
-      : 0; // Pastikan softSkills adalah array, jika tidak, set default ke 0
+     const formattedData = {
+       ...formData,
+       hardSkill: sanitizedHardSkills,
+       softSkill: sanitizedSoftSkills,
+     };
 
-    return totalHardSkillsScore + totalSoftSkillsScore;
-  };
+     const response = await Sertifikat.put(
+       `/${currentRecord._id}`,
+       formattedData
+     );
 
-  const onSubmit = async (formData) => {
-    const totalSkillScore = calculateTotalSkillScore(
-      formData.hardSkill, // Pastikan ini adalah array
-      formData.softSkill // Pastikan ini adalah array
-    );
-
-    try {
-      const formattedData = {
-        savedb: true,
-        page_name: "page2a",
-        zoom: 1.367,
-        data: {
-          sertif_name: formData.sertifikat,
-          nama_peserta: formData.nama,
-          kompeten_bidang: formData.fieldOfStudy,
-          kompetensi: dta.find(
-            (item) => item._id === formData.selectedCompetenceId
-          )?.nama_kompetensi,
-          meet_time: formData.meetingTime,
-          skkni: formData.skkni,
-          valid_date: {
-            valid_start: formData.expiredTimeStard,
-            valid_end: formData.expiredTimeEnd,
-            valid_total: formData.validtime,
-          },
-          total_meet: formData.totalMeeting,
-          kode_referral: {
-            referral_id: formData.codeReferralOrder,
-            divisi: formData.codeReferralFieldOfStudy,
-            bulan_rilis: formData.codeReferralMonth,
-            tahun_rilis: formData.codeReferralYear,
-          },
-          hard_skills: {
-            skills: Array.isArray(formData.hardSkill)
-              ? formData.hardSkill.map((skill) => ({
-                  skill_name: skill.skill_name,
-                  skill_jp: skill.jp,
-                  description: skill.combined_units.split("\n").map((line) => {
-                    const [unit_code, unit_title] = line.split(" - ");
-                    return { unit_code, unit_title };
-                  }),
-                }))
-              : [],
-            total_skill_jp:
-              formData.hardSkill?.reduce(
-                (acc, skill) => acc + (skill.jp || 0),
-                0
-              ) || 0,
-            total_skill_score: totalSkillScore, // Replace with actual computation if necessary
-          },
-          soft_skills: {
-            skills: Array.isArray(formData.softSkill)
-              ? formData.softSkill.map((skill) => ({
-                  skill_name: skill.skill_name,
-                  skill_jp: skill.jp,
-                  skill_score: skill.skill_score,
-                  description: skill.combined_units.split("\n").map((line) => {
-                    const [unit_code, unit_title] = line.split(" - ");
-                    return { unit_code, unit_title };
-                  }),
-                }))
-              : [],
-            total_skill_jp:
-              formData.softSkill?.reduce(
-                (acc, skill) => acc + (skill.jp || 0),
-                0
-              ) || 0,
-            total_skill_score: totalSkillScore, // Replace with actual computation if necessary
-          },
-          signature: {},
-          total_jp:
-            (formData.hardSkill?.reduce(
-              (acc, skill) => acc + (skill.jp || 0),
-              0
-            ) || 0) +
-            (formData.softSkill?.reduce(
-              (acc, skill) => acc + (skill.jp || 0),
-              0
-            ) || 0),
-        },
-      };
-
-   const response = await Sertifikat.put(
-     `/${currentRecord._id}`,
-     formattedData
-   );
-
-
-      if (response.status === 200) {
-        console.log(dta);
-        message.success("Certificate added successfully!");
-        reset(); // Clear the form
-      }
-    } catch (error) {
-      console.log(dta);
-      console.log("Error adding certificate:", error);
-      message.error("Failed to add certificate. Please try again.");
-    }
-  };
+     if (response.status === 200) {
+       message.success("Sertifikat berhasil diperbarui!");
+       reset();
+       setIsEditModalVisible(false); // Tutup modal
+     }
+   } catch (error) {
+     console.error("Error updating certificate:", error);
+     message.error("Gagal memperbarui sertifikat.");
+   }
+ };
 
   const { Option } = Select;
 
@@ -284,17 +203,16 @@ const Dashboard = () => {
     }
   };
 
-
- const handleCompetenceChange = (value) => {
-   // Hanya reset field terkait
-   reset((prevValues) => ({
-     ...prevValues, // Pertahankan nilai sebelumnya
-     selectedCompetenceId: value,
-     hardSkill: [],
-     softSkill: [],
-   }));
-   fetchCompetence(value);
- };
+  const handleCompetenceChange = (value) => {
+    // Hanya reset field terkait
+    reset((prevValues) => ({
+      ...prevValues, // Pertahankan nilai sebelumnya
+      selectedCompetenceId: value,
+      hardSkill: [],
+      softSkill: [],
+    }));
+    fetchCompetence(value);
+  };
 
   const filteredData = dta.filter((item) =>
     item.sertif_name.toLowerCase().includes(searchText.toLowerCase())
@@ -578,7 +496,6 @@ const Dashboard = () => {
               />
             </Form.Item>
 
-        
             <h1 className="text-center font-Poppins text-2xl font-medium p-6">
               Pilih kompetensi
             </h1>
