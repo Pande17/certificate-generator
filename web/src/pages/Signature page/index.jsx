@@ -1,5 +1,5 @@
 import MainLayout from "../MainLayout/Layout";
-import { Kompetensi } from "../api middleware";
+import { Signature } from "../api middleware";
 import { message, Table, Col, Row, Button, Input, Modal, Form } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
@@ -7,32 +7,34 @@ import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 const SignaturePage = () => {
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState([]);
-  const [searchText, setSearchText] = useState("");
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [editData, setEditData] = useState(null);
-  const { control, handleSubmit, reset } = useForm();
-
+  const [loading, setLoading] = useState(false); // Untuk indikasi loading data
+  const [data, setData] = useState([]); // Menyimpan data dari API
+  const [searchText, setSearchText] = useState(""); // Filter pencarian
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false); // Status modal edit
+  const [editData, setEditData] = useState(null); // Data yang sedang diedit
+  const { control, handleSubmit, reset } = useForm(); // React Hook Form
   const navigate = useNavigate();
   const { confirm } = Modal;
 
+  // **Filter Data Berdasarkan Pencarian**
   const filteredData = data.filter((item) =>
     item.config_name?.toLowerCase().includes(searchText.toLowerCase())
   );
 
+  // **Ambil Data dari API saat Komponen Mount**
   useEffect(() => {
     const fetchSignature = async () => {
       setLoading(true);
       try {
-        const respons = await Kompetensi.get(
-          `http://127.0.0.1:3000/api/signature`
+        const response = await Signature.get(
+          "http://127.0.0.1:3000/api/signature"
         );
-        const datas = respons.data.data;
+        const datas = response.data.data;
         const filterData = datas.filter((item) => !item.deleted_at);
         setData(filterData);
       } catch (error) {
-        console.log("error", error);
+        console.error("Error fetching signatures:", error);
+        message.error("Gagal memuat data.");
       } finally {
         setLoading(false);
       }
@@ -40,24 +42,21 @@ const SignaturePage = () => {
     fetchSignature();
   }, []);
 
+  // **Hapus Data**
   const delHandle = async (_id) => {
     try {
-      await Kompetensi.delete(`/${_id}`);
+      await Signature.delete(`/${_id}`);
       setData((prevData) => prevData.filter((item) => item._id !== _id));
       message.success("Data berhasil dihapus");
     } catch (error) {
-      console.error("Error response:", error.response);
-      message.error(
-        `Gagal menghapus data: ${
-          error.response?.data?.message || error.message
-        }`
-      );
+      console.error("Error deleting data:", error);
+      message.error("Gagal menghapus data.");
     }
   };
 
   const delConfirm = (_id, config_name) => {
     confirm({
-      title: `Apakah Anda yakin ingin menghapus kompetensi ${config_name}?`,
+      title: `Apakah Anda yakin ingin menghapus paraf "${config_name}"?`,
       content: "Data yang dihapus tidak dapat dikembalikan.",
       okType: "danger",
       okText: "Ya, Hapus",
@@ -68,16 +67,34 @@ const SignaturePage = () => {
     });
   };
 
+  // **Navigasi ke Halaman Pembuatan Sertifikat**
   const createNav = () => {
     navigate("/createParaf");
   };
 
-  const handleEdit = (record) => {
-    setEditData(record);
-    reset(record); // Isi form dengan data yang diedit
-    setIsEditModalVisible(true);
+  // **Buka Modal Edit dengan Data yang Dipilih**
+  const handleEdit = async (record) => {
+    try {
+      const response = await Signature.get(`/${record._id}`);
+      const certificateData = response.data.data;
+
+      setEditData(certificateData);
+      reset({
+        displayNama: certificateData.config_name || "",
+        atasNama: certificateData.name || "",
+        jabatan: certificateData.role || "",
+        ttd: certificateData.signature || "",
+        Cap: certificateData.stamp || "",
+      });
+
+      setIsEditModalVisible(true);
+    } catch (error) {
+      console.error("Error fetching certificate details:", error);
+      message.error("Gagal mengambil data sertifikat.");
+    }
   };
 
+  // **Simpan Perubahan Data**
   const onSubmit = async (formData) => {
     try {
       const updatedData = {
@@ -90,7 +107,7 @@ const SignaturePage = () => {
         role: formData.jabatan,
       };
 
-      await Kompetensi.put(`/${editData._id}`, updatedData);
+      await Signature.put(`/${editData._id}`, updatedData);
 
       setData((prevData) =>
         prevData.map((item) => (item._id === editData._id ? updatedData : item))
@@ -99,34 +116,27 @@ const SignaturePage = () => {
       message.success("Data berhasil diperbarui");
       setIsEditModalVisible(false);
     } catch (error) {
-      console.error("Error response:", error.response);
-      message.error(
-        `Gagal memperbarui data: ${
-          error.response?.data?.message || error.message
-        }`
-      );
+      console.error("Error updating data:", error);
+      message.error("Gagal memperbarui data.");
     }
   };
 
+  // **Kolom Tabel**
   const columns = [
     {
       title: "Id",
       align: "center",
       width: 100,
-      responsive: ["xs", "sm", "md", "lg"],
       render: (text, record, index) => index + 1,
     },
     {
-      responsive: ["xs", "sm", "md", "lg"],
       title: "Signature",
       align: "center",
       dataIndex: "config_name",
-      key: "config",
+      key: "config_name",
       width: 100,
     },
     {
-      width: 100,
-      responsive: ["xs", "sm", "md", "lg"],
       title: "Aksi",
       align: "center",
       render: (text, record) => (
@@ -134,9 +144,9 @@ const SignaturePage = () => {
           <Button
             icon={<DeleteOutlined />}
             type="primary"
-            style={{ margin: 8 }}
             danger
             onClick={() => delConfirm(record._id, record.config_name)}
+            style={{ margin: 8 }}
           />
           <Button
             icon={<EditOutlined />}
@@ -151,12 +161,10 @@ const SignaturePage = () => {
 
   return (
     <MainLayout>
-      <div className="flex flex-col items-center  p-5">
-        <div>
-          <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl">
-            List Paraf
-          </p>
-        </div>
+      <div className="flex flex-col items-center p-5">
+        <p className="text-xl font-semibold mb-5 bg-white p-3 rounded-xl">
+          List Paraf
+        </p>
 
         <Button onClick={createNav} className="m-3">
           Buat Sertifikat
@@ -170,11 +178,7 @@ const SignaturePage = () => {
         />
 
         <Row
-          style={{
-            justifyContent: "center",
-            width: "90%",
-            overflowX: "auto",
-          }}
+          style={{ justifyContent: "center", width: "90%", overflowX: "auto" }}
         >
           <Col span={24}>
             <Table
@@ -188,7 +192,6 @@ const SignaturePage = () => {
                 x: "max-content",
                 y: filteredData.length > 6 ? 500 : undefined,
               }}
-              style={{ width: "100%" }}
             />
           </Col>
         </Row>
@@ -217,9 +220,9 @@ const SignaturePage = () => {
             <Controller
               name="atasNama"
               control={control}
-              rules={{ required: "Wajib mengisi Nama" }}
+              rules={{ required: "Wajib mengisi nama" }}
               render={({ field }) => (
-                <Input {...field} placeholder="Masukkan nama Penandatangan" />
+                <Input {...field} placeholder="Masukkan nama penandatangan" />
               )}
             />
           </Form.Item>
@@ -232,7 +235,7 @@ const SignaturePage = () => {
               render={({ field }) => (
                 <Input
                   {...field}
-                  placeholder="Masukkan Jabatan Penandatangan"
+                  placeholder="Masukkan jabatan penandatangan"
                 />
               )}
             />
@@ -242,12 +245,9 @@ const SignaturePage = () => {
             <Controller
               name="ttd"
               control={control}
-              rules={{ required: "Wajib mengisi Link" }}
+              rules={{ required: "Wajib mengisi link" }}
               render={({ field }) => (
-                <Input
-                  {...field}
-                  placeholder="Masukkan Link Gambar Tanda Tangan"
-                />
+                <Input {...field} placeholder="Masukkan link tanda tangan" />
               )}
             />
           </Form.Item>
@@ -256,9 +256,9 @@ const SignaturePage = () => {
             <Controller
               name="Cap"
               control={control}
-              rules={{ required: "Wajib mengisi Link" }}
+              rules={{ required: "Wajib mengisi link" }}
               render={({ field }) => (
-                <Input {...field} placeholder="Masukkan Link Gambar Cap" />
+                <Input {...field} placeholder="Masukkan link cap perusahaan" />
               )}
             />
           </Form.Item>

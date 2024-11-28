@@ -32,8 +32,8 @@ const Dashboard = () => {
   const [currentRecord, setCurrentRecord] = useState(null);
   const [signatureData, setSignatureData] = useState([]);
   const [kompetensiData, setKompetensiData] = useState([]);
-   const [skkni, setSkkni] = useState("");
-   const [divisi, setDivisi] = useState("");
+  const [skkni, setSkkni] = useState("");
+  const [divisi, setDivisi] = useState("");
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       hardSkill: [],
@@ -52,7 +52,6 @@ const Dashboard = () => {
         const certificates = response.data.data || [];
         const filteredData = certificates.filter((item) => !item.deleted_at);
         setDta(filteredData);
-    
       } catch (err) {
         console.error("Error fetching data:", err);
         message.error("Gagal memuat data.");
@@ -103,8 +102,6 @@ const Dashboard = () => {
   };
 
   const onSubmit = async (formData) => {
-    console.log(formData); // Periksa formData yang diterima
-
     const totalSkillScore = calculateTotalSkillScore(
       formData.hardSkill, // Pastikan ini adalah array
       formData.softSkill // Pastikan ini adalah array
@@ -125,8 +122,8 @@ const Dashboard = () => {
           meet_time: formData.meetingTime,
           skkni: formData.skkni,
           valid_date: {
-            valid_start: formData.expiredTimeStard?.format("DD MMMM YYYY"),
-            valid_end: formData.expiredTimeEnd?.format("DD MMMM YYYY"),
+            valid_start: formData.expiredTimeStard,
+            valid_end: formData.expiredTimeEnd,
             valid_total: formData.validtime,
           },
           total_meet: formData.totalMeeting,
@@ -186,8 +183,11 @@ const Dashboard = () => {
         },
       };
 
+   const response = await Sertifikat.put(
+     `/${currentRecord._id}`,
+     formattedData
+   );
 
-      const response = await Sertifikat.put("/", formattedData);
 
       if (response.status === 200) {
         console.log(dta);
@@ -233,89 +233,68 @@ const Dashboard = () => {
     });
   };
 
-const handleEdit = async (record) => {
-  setCurrentRecord(record);
-  setIsEditModalVisible(true); // Menampilkan modal edit
+  const handleEdit = async (record) => {
+    try {
+      const response = await Sertifikat.get(`/${record._id}`); // Ganti dengan endpoint yang benar
+      const certificateData = response.data.data.data;
+      console.log("Data yang diambil dari API:", certificateData);
 
-  try {
-    const response = await Sertifikat.get(`/certificate/${record._id}`); // Ganti dengan endpoint yang benar
-    const certificateData = response.data.data;
-         console.log("Data yang diambil dari API:", certificateData.data);
-    // Setel data form ke state atau form
-    reset({
-      sertifikat: certificateData.sertif_name,
-      nama: certificateData.nama_peserta,
-      fieldOfStudy: certificateData.kompeten_bidang,
-      selectedCompetenceId: certificateData.kompetensi,
-      meetingTime: certificateData.meet_time,
-      skkni: certificateData.skkni,
-      expiredTimeStard: moment(certificateData.valid_date?.valid_start),
-      expiredTimeEnd: moment(certificateData.valid_date?.valid_end),
-      validtime: certificateData.valid_date?.valid_total,
-      totalMeeting: certificateData.total_meet,
-      codeReferralOrder: certificateData.kode_referral?.referral_id,
-      codeReferralFieldOfStudy: certificateData.kode_referral?.divisi,
-      codeReferralMonth: certificateData.kode_referral?.bulan_rilis,
-      codeReferralYear: certificateData.kode_referral?.tahun_rilis,
-      hardSkill: certificateData.hard_skills?.skills || [],
-      softSkill: certificateData.soft_skills?.skills || [],
-    });
-
-    // Jika perlu, Anda bisa menambahkan logika untuk memuat data lainnya (seperti signature, kompetensi, dll.)
-  } catch (error) {
-    console.error("Error fetching certificate details:", error);
-    message.error("Gagal mengambil data sertifikat.");
-  }
-};
-
-
- const fetchCompetence = async (competenceId) => {
-   const url = `/${competenceId}`;
-   try {
-     const response = await Kompetensi.get(url);
-     
-
-     const {
-       hard_skills = [],
-       soft_skills = [],
-       skkni = "",
-       divisi = "",
-     } = response.data.data || {};
-
-     const newHardSkills = hard_skills.map((hardSkill) => ({
-       skill_name: hardSkill.skill_name || "",
-       combined_units: hardSkill.description
-         .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
-         .join("\n"),
-     }));
-
-     const newSoftSkills = soft_skills.map((softSkill) => ({
-       skill_name: softSkill.skill_name || "",
-       combined_units: softSkill.description
-         .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
-         .join("\n"),
-     }));
-
-     replaceHardSkill(newHardSkills);
-     replaceSoftSkill(newSoftSkills);
-
-     // Simpan skkni dan divisi ke state
-     setSkkni(skkni);
-     setDivisi(divisi);
-   } catch (err) {
-     console.log(err);
-   }
- };
-
-  const handleCompetenceChange = (value) => {
-    // Reset and update hard and soft skills upon competence change
-    reset({
-      selectedCompetenceId: value,
-      hardSkill: [],
-      softSkill: [],
-    });
-    fetchCompetence(value);
+      setCurrentRecord(certificateData);
+      setIsEditModalVisible(true);
+    } catch (error) {
+      console.error("Error fetching certificate details:", error);
+      message.error("Gagal mengambil data sertifikat.");
+    }
   };
+
+  const fetchCompetence = async (competenceId) => {
+    const url = `/${competenceId}`;
+    try {
+      const response = await Kompetensi.get(url);
+
+      const {
+        hard_skills = [],
+        soft_skills = [],
+        skkni = "",
+        divisi = "",
+      } = response.data.data || {};
+
+      const newHardSkills = hard_skills.map((hardSkill) => ({
+        skill_name: hardSkill.skill_name || "",
+        combined_units: hardSkill.description
+          .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
+          .join("\n"),
+      }));
+
+      const newSoftSkills = soft_skills.map((softSkill) => ({
+        skill_name: softSkill.skill_name || "",
+        combined_units: softSkill.description
+          .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
+          .join("\n"),
+      }));
+
+      replaceHardSkill(newHardSkills);
+      replaceSoftSkill(newSoftSkills);
+
+      // Simpan skkni dan divisi ke state
+      setSkkni(skkni);
+      setDivisi(divisi);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+
+ const handleCompetenceChange = (value) => {
+   // Hanya reset field terkait
+   reset((prevValues) => ({
+     ...prevValues, // Pertahankan nilai sebelumnya
+     selectedCompetenceId: value,
+     hardSkill: [],
+     softSkill: [],
+   }));
+   fetchCompetence(value);
+ };
 
   const filteredData = dta.filter((item) =>
     item.sertif_name.toLowerCase().includes(searchText.toLowerCase())
@@ -323,7 +302,7 @@ const handleEdit = async (record) => {
 
   const downloadPDF = async (_id) => {
     try {
-      const response = await Sertifikat.get(`/${_id}/b`, {
+      const response = await Sertifikat.get(`/download/${_id}/b`, {
         headers: {
           "Content-Type": "application/pdf",
         },
@@ -342,7 +321,6 @@ const handleEdit = async (record) => {
       console.error("Error downloading PDF:", error);
     }
   };
-
 
   const createNav = () => {
     navigate("/create");
@@ -439,6 +417,29 @@ const handleEdit = async (record) => {
           title="Edit Sertifikat"
           open={isEditModalVisible}
           onCancel={() => setIsEditModalVisible(false)}
+          afterOpenChange={(visible) => {
+            if (visible && currentRecord) {
+              reset({
+                sertifikat: currentRecord?.sertif_name || "Tidak mengisi",
+                nama: currentRecord?.nama_peserta || "Tidak mengisi",
+                fieldOfStudy: currentRecord?.kompeten_bidang || "Tidak mengisi",
+                validTime:
+                  currentRecord?.valid_date?.valid_total || "Tidak mengisi",
+                expiredTimeStart:
+                  currentRecord?.valid_date?.valid_start || "Tidak mengisi",
+                expiredTimeEnd:
+                  currentRecord?.valid_date?.valid_end || "Tidak mengisi",
+                totalMeeting: currentRecord?.total_meet || "Tidak mengisi",
+                meetingTime: currentRecord?.meet_time || "Tidak mengisi",
+                selectedCompetenceId:
+                  currentRecord?.kompeten_bidang || "Tidak mengisi", // Atur nilai awal di sini
+                selectedSignatureId:
+                  currentRecord?.kompeten_bidang || "Tidak mengisi",
+                hardSkill: currentRecord?.hardSkills || [],
+                softSkill: currentRecord?.softSkills || [],
+              });
+            }
+          }}
           footer={null}
         >
           <Form
@@ -460,7 +461,6 @@ const handleEdit = async (record) => {
             <Form.Item label="Nama Sertifikat" required>
               <Controller
                 name="sertifikat"
-                defaultValue={currentRecord?.sertif_name || ""}
                 control={control}
                 rules={{ required: "Nama sertifikat diperlukan" }}
                 render={({ field }) => (
@@ -476,9 +476,6 @@ const handleEdit = async (record) => {
             <Form.Item label="Nama" required>
               <Controller
                 name="nama"
-                defaultValue={
-                  currentRecord?.nama_peserta || " nama peserta tidak ada"
-                }
                 control={control}
                 rules={{ required: "Nama peserta diperlukan" }}
                 render={({ field }) => (
@@ -494,10 +491,6 @@ const handleEdit = async (record) => {
             <Form.Item label="Bidang Studi" required>
               <Controller
                 name="fieldOfStudy"
-                defaultValue={
-                  currentRecord?.kompeten_bidang ||
-                  "tidak mengisi bidang tidak ada"
-                }
                 control={control}
                 rules={{ required: "Bidang studi diperlukan" }}
                 render={({ field }) => (
@@ -513,10 +506,6 @@ const handleEdit = async (record) => {
             <Form.Item label="Total Tahun" required>
               <Controller
                 name="validTime"
-                defaultValue={
-                  currentRecord?.valid_date?.valid_total ||
-                  "tidak mengisi Total Tahun tidak ada"
-                }
                 control={control}
                 rules={{ required: "Waktu validasi diperlukan" }}
                 render={({ field }) => (
@@ -532,18 +521,10 @@ const handleEdit = async (record) => {
             <Form.Item label="Waktu Expired (Mulai)" required>
               <Controller
                 name="expiredTimeStart"
-                defaultValue={
-                  currentRecord?.valid_date?.valid_start
-                    ? moment(
-                        currentRecord.valid_date.valid_start,
-                        "DD MMMM YYYY"
-                      )
-                    : null
-                }
                 control={control}
                 rules={{ required: "Waktu mulai diperlukan" }}
                 render={({ field }) => (
-                  <DatePicker
+                  <Input
                     {...field}
                     placeholder="Pilih waktu mulai"
                     style={{ width: "100%", height: "50px" }}
@@ -555,15 +536,10 @@ const handleEdit = async (record) => {
             <Form.Item label="Waktu Expired (Selesai)" required>
               <Controller
                 name="expiredTimeEnd"
-                defaultValue={
-                  currentRecord?.valid_date?.valid_end
-                    ? moment(currentRecord.valid_date.valid_end, "DD MMMM YYYY")
-                    : null
-                }
                 control={control}
                 rules={{ required: "Waktu selesai diperlukan" }}
                 render={({ field }) => (
-                  <DatePicker
+                  <Input
                     {...field}
                     placeholder="Pilih waktu selesai"
                     style={{ width: "100%", height: "50px" }}
@@ -575,10 +551,6 @@ const handleEdit = async (record) => {
             <Form.Item label="Total Pertemuan" required>
               <Controller
                 name="totalMeeting"
-                defaultValue={
-                  currentRecord?.total_meet ||
-                  "tidak mengisi Total Pertemuan tidak ada"
-                }
                 control={control}
                 rules={{ required: "Jumlah pertemuan diperlukan" }}
                 render={({ field }) => (
@@ -594,22 +566,19 @@ const handleEdit = async (record) => {
             <Form.Item label="Waktu Pertemuan" required>
               <Controller
                 name="meetingTime"
-                defaultValue={
-                  currentRecord?.meet_time ||
-                  "tidak mengisi Waktu Pertemuan tidak ada"
-                }
                 control={control}
                 rules={{ required: "Waktu pertemuan diperlukan" }}
                 render={({ field }) => (
-                  <InputNumber
+                  <Input
                     {...field}
-                    placeholder="Masukkan waktu pertemuan"
+                    placeholder="2 Bulan"
                     style={{ width: "100%", height: "50px" }}
                   />
                 )}
               />
             </Form.Item>
 
+        
             <h1 className="text-center font-Poppins text-2xl font-medium p-6">
               Pilih kompetensi
             </h1>
@@ -617,7 +586,6 @@ const handleEdit = async (record) => {
               <Controller
                 name="selectedCompetenceId"
                 control={control}
-                defaultValue={currentRecord?.kompeten_bidang}
                 render={({ field }) => (
                   <Select
                     placeholder="Pilih kompetensi"
@@ -710,7 +678,6 @@ const handleEdit = async (record) => {
                     <Controller
                       name={`hardSkill[${index}].jp`}
                       control={control}
-                      defaultValue={currentRecord?.kompeten_bidang}
                       render={({ field }) => (
                         <InputNumber
                           {...field}
@@ -725,7 +692,6 @@ const handleEdit = async (record) => {
                     <Controller
                       name={`hardSkill[${index}].skillScore`}
                       control={control}
-                      defaultValue={currentRecord?.kompeten_bidang}
                       render={({ field }) => (
                         <InputNumber
                           {...field}
@@ -755,7 +721,6 @@ const handleEdit = async (record) => {
                     <Controller
                       name={`softSkill[${index}].skill_name`}
                       control={control}
-                      defaultValue={currentRecord?.kompeten_bidang}
                       render={({ field }) => (
                         <Input
                           {...field}
@@ -774,7 +739,6 @@ const handleEdit = async (record) => {
                     <Controller
                       name={`softSkill[${index}].combined_units`}
                       control={control}
-                      defaultValue={currentRecord?.kompeten_bidang}
                       render={({ field }) => (
                         <Input.TextArea
                           {...field}
@@ -826,7 +790,6 @@ const handleEdit = async (record) => {
               <Controller
                 name="selectedSignatureId"
                 control={control}
-                defaultValue={currentRecord?.kompeten_bidang}
                 render={({ field }) => (
                   <Select
                     placeholder="Pilih tanda tangan"
