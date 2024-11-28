@@ -55,13 +55,22 @@ func CreateKompetensi(c *fiber.Ctx) error {
 
 	// Check the availability of the competence name
 	var existingKompetensi model.Kompetensi
-	filter := bson.M{"nama_kompetensi": kompetensiReq.KompetensiName}
+	filter := bson.M{
+		"nama_kompetensi": kompetensiReq.KompetensiName,
+	}
 
 	// Find competence with the same name
 	err = collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
 	if err == nil {
-		return Conflict(c, "Kompetensi dengan nama ini sudah ada! Silakan gunakan nama lain.", "Kompetensi dengan nama yang sama sudah ada!")
-	} else if err != mongo.ErrNoDocuments {
+		// Competence with the same name exists, check if it's deleted
+		if existingKompetensi.DeletedAt == nil {
+			// If DeletedAt is nil, the name is still in use
+			return Conflict(c, "Kompetensi dengan nama ini sudah ada! Silakan gunakan nama lain.", "Kompetensi dengan nama yang sama sudah ada!")
+		}
+		// If DeletedAt is not nil, we can proceed to create a new competence
+	} else if err == mongo.ErrNoDocuments {
+		// No existing competence found, proceed to create a new one
+	} else {
 		return Conflict(c, "Gagal memeriksa kompetensi yang ada. Silakan coba lagi.", err.Error())
 	}
 

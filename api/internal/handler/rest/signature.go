@@ -25,6 +25,7 @@ func CreateSignature(c *fiber.Ctx) error {
 		ConfigName string `json:"config_name" bson:"config_name" valid:"required~Nama konfigurasi tidak boleh kosong!"`
 		Stamp      string `json:"stamp" valid:"required~Stamp tidak boleh kosong!, url"`
 		Signature  string `json:"signature" valid:"required~Signature tidak boleh kosong!, url"`
+		Logo       string `json:"logo" valid:"required~Logo tidak boleh kosong!, url"`
 		Name       string `json:"name" valid:"required~Nama tidak boleh kosong!, stringlength(1|60)~Nama harus antara 1 hingga 60 karakter!"`
 		Role       string `json:"role" valid:"required~Peran tidak boleh kosong!, stringlength(1|60)~Peran harus antara 1 hingga 60 karakter!"`
 	}
@@ -58,6 +59,7 @@ func CreateSignature(c *fiber.Ctx) error {
 		ConfigName: signatureReq.ConfigName,
 		Stamp:      signatureReq.Stamp,
 		Signature:  signatureReq.Signature,
+		Logo:       signatureReq.Logo,
 		Name:       signatureReq.Name,
 		Role:       signatureReq.Role,
 		Model: model.Model{
@@ -201,6 +203,7 @@ func EditSignature(c *fiber.Ctx) error {
 		ConfigName string `json:"config_name" bson:"config_name" valid:"required~Nama konfigurasi tidak boleh kosong!"`
 		Stamp      string `json:"stamp" valid:"required~Stamp tidak boleh kosong!, url"`
 		Signature  string `json:"signature" valid:"required~Signature tidak boleh kosong!, url"`
+		Logo       string `json:"logo" valid:"required~Logo tidak boleh kosong!, url"`
 		Name       string `json:"name" valid:"required~Nama tidak boleh kosong!, stringlength(1|60)~Nama harus antara 1 hingga 60 karakter!"`
 		Role       string `json:"role" valid:"required~Peran tidak boleh kosong!, stringlength(1|60)~Peran harus antara 1 hingga 60 karakter!"`
 	}
