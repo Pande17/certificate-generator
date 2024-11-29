@@ -20,7 +20,6 @@ import (
 
 var pdfg *wkhtmltopdf.PDFGenerator
 var mtx sync.Mutex
-var CreatingPDF = map[string]bool{}
 
 type UnitCompetence struct {
 	UnitCode  string
@@ -138,13 +137,13 @@ func init() {
 	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
 }
 
-func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, certifType string) error {
+func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, certifType string, forceCreate bool) error {
 	ctx, cancel := context.WithTimeout(c.Context(), time.Minute)
 	defer cancel()
-	return createPDF(ctx, c, dataReq, certifType)
+	return createPDF(ctx, c, dataReq, certifType, forceCreate)
 }
 
-func createPDF(ctx context.Context, c *fiber.Ctx, dataReq *model.CertificateData, certifType string) error {
+func createPDF(ctx context.Context, c *fiber.Ctx, dataReq *model.CertificateData, certifType string, forceCreate bool) error {
 	makeA := strings.Contains(certifType, "a")
 	makeB := strings.Contains(certifType, "b")
 	if !(makeA || makeB) {
@@ -160,12 +159,16 @@ func createPDF(ctx context.Context, c *fiber.Ctx, dataReq *model.CertificateData
 	dataReq.QRCode = encstr
 
 	mtx.Lock()
-	CreatingPDF[dataReq.DataID+"-a"] = makeA
-	CreatingPDF[dataReq.DataID+"-b"] = makeB
-	defer func() {
-		CreatingPDF = map[string]bool{}
-	}()
 	defer mtx.Unlock()
+
+	_, err = os.Stat("assets/certificate/" + dataReq.DataID + "-a.pdf")
+	makeA = makeA && (os.IsNotExist(err) || forceCreate)
+	_, err = os.Stat("assets/certificate/" + dataReq.DataID + "-b.pdf")
+	makeB = makeB && (os.IsNotExist(err) || forceCreate)
+	if !(makeA || makeB) {
+		// file is made & isn't force-create, return early
+		return nil
+	}
 
 	select {
 	case <-ctx.Done():
@@ -235,7 +238,7 @@ func makePage(c *fiber.Ctx, dataReq *model.CertificateData, pageName string) (*w
 	if err != nil {
 		return nil, err
 	}
-	if err := t.ExecuteTemplate(c.Response().BodyWriter(), pageName, *dataReq); err != nil {
+	if err := t.ExecuteTemplate(c, pageName, *dataReq); err != nil {
 		return nil, err
 	}
 

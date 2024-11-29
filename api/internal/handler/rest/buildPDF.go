@@ -22,7 +22,7 @@ func CheckPDF(c *fiber.Ctx) error {
 	if !(pdfReq.Type == "a" || pdfReq.Type == "b") {
 		return BadRequest(c, "Tipe sertifikat tidak diketahui.", "query type isn't a or b")
 	}
-	generator.CreatePDF(c, &pdfReq.Data, pdfReq.Type)
+	generator.CreatePDF(c, &pdfReq.Data, pdfReq.Type, true)
 	return c.SendFile("assets/certificate/" + pdfReq.Data.DataID + "-" + pdfReq.Type + ".pdf")
 }
 
