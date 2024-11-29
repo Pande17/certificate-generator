@@ -121,7 +121,7 @@ function MyForm() {
           },
           signature: {
             config_name: formData.config_name,
-            logo: formData.logoPerusahaan,
+            logo: formData.logo,
             role: formData.role,
             signature: formData.linkGambarPenandatangan,
             name: formData.namaPenandatangan,
@@ -711,19 +711,7 @@ function MyForm() {
               />
             </Form.Item>
 
-            <Form.Item label="Link logo perusahaan" required>
-              <Controller
-                name="logoPerusahaan"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    readOnly
-                    style={{ width: "100%", height: "50px" }}
-                  />
-                )}
-              />
-            </Form.Item>
+          
           </>
         )}
 

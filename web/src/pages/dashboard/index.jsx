@@ -31,10 +31,12 @@ const Dashboard = () => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
   const [signatureData, setSignatureData] = useState([]);
+    const [selectedSignature, setSelectedSignature] = useState(null);
+    const [isSignatureSelected, setIsSignatureSelected] = useState(false);
   const [kompetensiData, setKompetensiData] = useState([]);
   const [skkni, setSkkni] = useState("");
   const [divisi, setDivisi] = useState("");
-  const { control, handleSubmit, reset } = useForm({
+  const { control, handleSubmit, reset, setValue } = useForm({
     defaultValues: {
       hardSkill: [],
       softSkill: [],
@@ -50,11 +52,9 @@ const Dashboard = () => {
       setLoading(true); // Set loading to true while fetching data
       try {
         const response = await Sertifikat.get("/");
-        console.log("Response from API:", response.data); // Log respons
         if (response.status === 200) {
           const certificates = response.data.data || [];
           const filteredData = certificates.filter((item) => !item.deleted_at);
-          console.log("Filtered Data:", filteredData); // Log data yang difilter
           setDta(filteredData);
         } else {
           console.error("Error fetching data:", response.status);
@@ -101,36 +101,109 @@ const Dashboard = () => {
     name: "softSkill",
   });
 
-  const onSubmit = async (formData) => {
-    try {
-      const sanitizedHardSkills = (formData.hardSkill || []).filter(
-        (skill) => skill.skill_name && skill.jp
-      );
-      const sanitizedSoftSkills = (formData.softSkill || []).filter(
-        (skill) => skill.skill_name && skill.skill_score
-      );
+ const onSubmit = async (formData) => {
+   const totalSkillScore = calculateTotalSkillScore(
+     formData.hardSkill, // Pastikan ini adalah array
+     formData.softSkill // Pastikan ini adalah array
+   );
 
-      const formattedData = {
-        ...formData,
-        hardSkill: sanitizedHardSkills,
-        softSkill: sanitizedSoftSkills,
-      };
+   try {
+     const formattedData = {
+       savedb: true,
+       page_name: "page2a",
+       zoom: 1.367,
+       data: {
+         sertif_name: formData.sertifikat,
+         nama_peserta: formData.nama,
+         kompeten_bidang: formData.fieldOfStudy,
+         kompetensi: data.find(
+           (item) => item._id === formData.selectedCompetenceId
+         )?.nama_kompetensi,
+         meet_time: formData.meetingTime,
+         skkni: formData.skkni,
+         validation: formData.validation,
+         valid_date: {
+           valid_start: formData.expiredTimeStart,
+           valid_end: formData.expiredTimeEnd,
+           valid_total: formData.validTime,
+         },
+         total_meet: formData.totalMeeting,
+         kode_referral: {
+           divisi: formData.codeReferralFieldOfStudy,
+         },
+         hard_skills: {
+           skills: Array.isArray(formData.hardSkill)
+             ? formData.hardSkill.map((skill) => ({
+                 skill_name: skill.skill_name,
+                 skill_jp: skill.jp,
+                 skill_score: skill.skillScore,
+                 description: skill.combined_units.split("\n").map((line) => {
+                   const [unit_code, unit_title] = line.split(" - ");
+                   return { unit_code, unit_title };
+                 }),
+               }))
+             : [],
+           total_skill_jp:
+             formData.hardSkill?.reduce(
+               (acc, skill) => acc + (skill.jp || 0),
+               0
+             ) || 0,
+           total_skill_score: totalSkillScore, // Replace with actual computation if necessary
+         },
+         soft_skills: {
+           skills: Array.isArray(formData.softSkill)
+             ? formData.softSkill.map((skill) => ({
+                 skill_name: skill.skill_name,
+                 skill_jp: skill.jp,
+                 skill_score: skill.skillScore,
+                 description: skill.combined_units.split("\n").map((line) => {
+                   const [unit_code, unit_title] = line.split(" - ");
+                   return { unit_code, unit_title };
+                 }),
+               }))
+             : [],
+           total_skill_jp:
+             formData.softSkill?.reduce(
+               (acc, skill) => acc + (skill.jp || 0),
+               0
+             ) || 0,
+           total_skill_score: totalSkillScore, // Replace with actual computation if necessary
+         },
+         signature: {
+           config_name: formData.config_name,
+           logo: formData.logo,
+           role: formData.role,
+           signature: formData.linkGambarPenandatangan,
+           name: formData.namaPenandatangan,
+           stamp: formData.stamp,
+         },
+         total_jp:
+           (formData.hardSkill?.reduce(
+             (acc, skill) => acc + (skill.jp || 0),
+             0
+           ) || 0) +
+           (formData.softSkill?.reduce(
+             (acc, skill) => acc + (skill.jp || 0),
+             0
+           ) || 0),
+       },
+     };
 
-      const response = await Sertifikat.put(
-        `/${currentRecord._id}`, // Gunakan ID dari `currentRecord`
-        formattedData
-      );
+     const response = await Sertifikat.put("", formattedData);
 
-      if (response.status === 200) {
-        message.success("Sertifikat berhasil diperbarui!");
-        reset();
-        setIsEditModalVisible(false); // Tutup modal
-      }
-    } catch (error) {
-      console.error("Error updating certificate:", error);
-      message.error("Gagal memperbarui sertifikat.");
-    }
-  };
+     if (response.status === 200) {
+       message.success("Certificate added successfully!");
+       reset(); // Clear the form
+     } else {
+       console.log("Ada masalah dengan respons:", response);
+     }
+   } catch (error) {
+     console.log("Error adding certificate:", error);
+     message.error("Failed to add certificate. Please try again.");
+   }
+
+   navigate(`/dashboard`);
+ };
 
   const { Option } = Select;
 
@@ -167,22 +240,14 @@ const Dashboard = () => {
     try {
       const response = await Sertifikat.get(`/${record._id}`);
 
-      // Ambil data dari dua level yang berbeda
-      const primaryData = response.data.data; // Data yang mengandung ID
-      const additionalData = primaryData.data; // Data lain yang Anda butuhkan
-
-      console.log("Data utama (dengan ID):", primaryData);
-      console.log("Data tambahan:", additionalData);
-
-      // Gabungkan data menjadi satu objek
+      const primaryData = response.data.data; 
+      const additionalData = primaryData.data;
       const certificateData = {
         ...primaryData, // Data utama termasuk ID
-        ...additionalData, // Data tambahan
+        ...additionalData, 
       };
 
-      console.log("Gabungan data sertifikat:", certificateData);
-
-      setCurrentRecord(certificateData);
+        setCurrentRecord(certificateData);
       setIsEditModalVisible(true);
     } catch (error) {
       console.error("Error fetching certificate details:", error);
@@ -237,6 +302,33 @@ const Dashboard = () => {
     }));
     fetchCompetence(value);
   };
+   const fetchSignatureId = async (SignatureId) => {
+     try {
+       const response = await Signature.get(`/${SignatureId}`);
+       return response.data.data;
+     } catch (error) {
+       console.error("Error fetching signature:", error);
+       return null;
+     }
+   };
+
+   const handleSignatureChange = async (value) => {
+     const signature = await fetchSignatureId(value);
+     if (signature) {
+       setSelectedSignature(signature);
+       setIsSignatureSelected(true);
+
+       setValue("namaPenandatangan", signature.name || "");
+       setValue("role", signature.role || "");
+       setValue("logo", signature.logo || "");
+       setValue("linkGambarPenandatangan", signature.stamp || "");
+       setValue("logoPerusahaan", signature.logo || "");
+       setValue("stamp", signature.stamp || "");
+     } else {
+       setIsSignatureSelected(false);
+     }
+   };
+
 
   const filteredData = dta.filter((item) =>
     item.sertif_name.toLowerCase().includes(searchText.toLowerCase())
@@ -346,7 +438,8 @@ const Dashboard = () => {
             justifyContent: "center",
             width: "100%",
             overflowX: "auto",
-          }}>
+          }}
+        >
           <Col span={24}>
             <Table
               dataSource={filteredData}
@@ -390,7 +483,8 @@ const Dashboard = () => {
               });
             }
           }}
-          footer={null}>
+          footer={null}
+        >
           <Form
             layout="vertical"
             style={{
@@ -402,10 +496,8 @@ const Dashboard = () => {
               borderRadius: "20px",
               margin: "auto",
             }}
-            onFinish={handleSubmit(onSubmit)}>
-            <div className="text-center font-Poppins font-bold text-xl">
-              Buat Sertifikat
-            </div>
+            onFinish={handleSubmit(onSubmit)}
+          >
             <Form.Item label="Nama Sertifikat" required>
               <Controller
                 name="sertifikat"
@@ -541,7 +633,8 @@ const Dashboard = () => {
                     onChange={(value) => {
                       field.onChange(value);
                       handleCompetenceChange(value);
-                    }}>
+                    }}
+                  >
                     <Option value="" disabled>
                       pilih kompetensi
                     </Option>
@@ -738,9 +831,11 @@ const Dashboard = () => {
                 control={control}
                 render={({ field }) => (
                   <Select
-                    placeholder="Pilih tanda tangan"
                     {...field}
-                    style={{ width: "100%", height: "50px" }}>
+                    placeholder="Pilih Template Paraf"
+                    onChange={handleSignatureChange}
+                    style={{ width: "100%", height: "50px" }}
+                  >
                     <Option value="" disabled>
                       Pilih Tanda Tangan
                     </Option>
@@ -753,6 +848,80 @@ const Dashboard = () => {
                 )}
               />
             </Form.Item>
+
+            {isSignatureSelected && selectedSignature && (
+              <>
+                <Form.Item label="Nama penandatangan" required>
+                  <Controller
+                    name="namaPenandatangan"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        readOnly
+                        style={{ width: "100%", height: "50px" }}
+                      />
+                    )}
+                  />
+                </Form.Item>
+
+                <Form.Item label="Jabatan Penandatangan" required>
+                  <Controller
+                    name="role"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        readOnly
+                        style={{ width: "100%", height: "50px" }}
+                      />
+                    )}
+                  />
+                </Form.Item>
+
+                <Form.Item label="Stamp Perusahaan" required>
+                  <Controller
+                    name="stamp"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        readOnly
+                        style={{ width: "100%", height: "50px" }}
+                      />
+                    )}
+                  />
+                </Form.Item>
+
+                <Form.Item label="Link logo" required>
+                  <Controller
+                    name="logo"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        readOnly
+                        style={{ width: "100%", height: "50px" }}
+                      />
+                    )}
+                  />
+                </Form.Item>
+
+                <Form.Item label="Link gambar penandatangan" required>
+                  <Controller
+                    name="linkGambarPenandatangan"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        readOnly
+                        style={{ width: "100%", height: "50px" }}
+                      />
+                    )}
+                  />
+                </Form.Item>
+              </>
+            )}
 
             <Form.Item>
               <Button type="primary" htmlType="submit">
