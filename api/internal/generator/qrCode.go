@@ -6,8 +6,8 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
-func GenerateQRCode(link, str string) (string, error) {
-	qr, err := qrcode.New(link+str+".pdf", qrcode.Medium)
+func GenerateQRCode(link string) (string, error) {
+	qr, err := qrcode.New(link, qrcode.Medium)
 	if err != nil {
 		return "", err
 	}
