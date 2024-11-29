@@ -360,11 +360,11 @@ const fetchCompetence = async (competenceId) => {
             )}
           />
         </Form.Item>
-        <Form.Item label="waktu dan Tempat Pengesahan" required>
+        <Form.Item label="Waktu dan Tempat Pengesahan" required>
           <Controller
             name="validation"
             control={control}
-            rules={{ required: "Meeting Time is required" }}
+            rules={{ required: "Validation is required" }}
             render={({ field }) => (
               <Input
                 {...field}
@@ -602,63 +602,6 @@ const fetchCompetence = async (competenceId) => {
                   </Option>
                 ))}
               </Select>
-            )}
-          />
-        </Form.Item>
-
-        <Form.Item label="waktu dan Tempat Pengesahan" required>
-          <Controller
-            name="validation"
-            control={control}
-            rules={{ required: "Meeting Time is required" }}
-            render={({ field }) => (
-              <Input
-                {...field}
-                placeholder="contoh: 13"
-                style={{ width: "100%", height: "50px" }}
-              />
-            )}
-          />
-        </Form.Item>
-        <Form.Item label="waktu dan Tempat Pengesahan" required>
-          <Controller
-            name="validation"
-            control={control}
-            rules={{ required: "Meeting Time is required" }}
-            render={({ field }) => (
-              <Input
-                {...field}
-                placeholder="contoh: 13"
-                style={{ width: "100%", height: "50px" }}
-              />
-            )}
-          />
-        </Form.Item>
-        <Form.Item label="waktu dan Tempat Pengesahan" required>
-          <Controller
-            name="validation"
-            control={control}
-            rules={{ required: "Meeting Time is required" }}
-            render={({ field }) => (
-              <Input
-                {...field}
-                placeholder="contoh: 13"
-                style={{ width: "100%", height: "50px" }}
-              />
-            )}
-          />
-        </Form.Item>
-        <Form.Item label="waktu dan Tempat Pengesahan" required>
-          <Controller
-            name="validation"
-            control={control}
-            rules={{ required: "Meeting Time is required" }}
-            render={({ field }) => (
-              <Input
-                {...field}
-                placeholder="contoh: 13"
-                style={{ width: "100%", height: "50px" }}
-              />
             )}
           />
         </Form.Item>
