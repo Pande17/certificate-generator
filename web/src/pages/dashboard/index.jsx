@@ -246,7 +246,7 @@ const Dashboard = () => {
 
   const columns = [
     {
-      title: "ID",
+      title: "No",
       align: "center",
       width: 100,
       responsive: ["xs", "sm", "md", "lg"],
@@ -313,7 +313,7 @@ const Dashboard = () => {
           className="mb-4 p-2 border border-gray-300 rounded w-full md:w-1/2"
         />
 
-        <Row style={{ width: "100%", overflowX: "auto" }}>
+        <Row  style={{ justifyContent: "center", width: "100%", overflowX: "auto" }}>
           <Col span={24}>
             <Table
               dataSource={filteredData}
@@ -326,7 +326,7 @@ const Dashboard = () => {
                 x: "max-content",
                 y: filteredData.length > 6 ? 500 : undefined,
               }}
-              style={{ width: "100%" }}
+
             />
           </Col>
         </Row>
