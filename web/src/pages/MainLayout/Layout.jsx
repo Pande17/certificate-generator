@@ -30,42 +30,44 @@ const Sidebar = ({ children }) => {
 	);
 
 	return (
-		<div
-			className="p-9 bg-Background min-h-screen"
-			style={{
-				backgroundImage: `url(${backgroundImage})`,
-				backgroundRepeat: 'no-repeat',
-				backgroundPosition: 'center',
-			}}
-		>
-			{isMobileOrTablet ? (
-				<>
-					<Button type="primary" icon={<MenuOutlined />} onClick={showDrawer} />
-					<Drawer
-						title={<img src={logo} alt="Logo" style={{ width: '100px' }} />}
-						placement="left"
-						onClose={closeDrawer}
-						open={drawerOpen}
-						width="50%" // Adjust drawer width as needed
-					>
-						{renderMenu()}
-					</Drawer>
+    <div
+      className="p-9 bg-Background min-h-screen"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+      }}
+    >
+      {isMobileOrTablet ? (
+        <>
+          <Button type="primary" icon={<MenuOutlined />} onClick={showDrawer} />
+          <Drawer
+            title={<img src={logo} alt="Logo" style={{ width: "100px" }} />}
+            placement="left"
+            onClose={closeDrawer}
+            open={drawerOpen}
+            width="50%" // Adjust drawer width as needed
+          >
+            {renderMenu()}
+          </Drawer>
 
-					<div className="mt-4">{children || <p>Main content</p>}</div>
-				</>
-			) : (
-				<div className="flex align-middle">
-					<div className="bg-white flex flex-col w-fit p-8 rounded-xl h-screen font-Poppins text-xl gap-3">
-						<div>
-							<img src={logo} alt="logo" />
-						</div>
-						{renderMenu()}
-					</div>
-					<div className="flex-1 align-middle justify-center flex items-center">{children || <p>Main content</p>}</div>
-				</div>
-			)}
-		</div>
-	);
+          <div className="mt-4">{children || <p>Main content</p>}</div>
+        </>
+      ) : (
+        <div className="flex align-middle">
+          <div className="bg-white flex flex-col w-fit p-8 rounded-xl h-screen font-Poppins text-xl gap-3">
+            <div>
+              <img src={logo} alt="logo" />
+            </div>
+            {renderMenu()}
+          </div>
+          <div className="flex-1 align-middle justify-center flex items-center">
+            {children || <p>Main content</p>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Sidebar;

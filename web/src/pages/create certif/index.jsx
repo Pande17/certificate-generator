@@ -15,6 +15,8 @@ import { Sertifikat,Kompetensi,Signature } from "../api middleware";
 function MyForm() {
   const [data, setData] = useState([]);
   const [signatureData, setSignatureData] = useState([]);
+    const [selectedSignature, setSelectedSignature] = useState(null);
+    const [isSignatureSelected, setIsSignatureSelected] = useState(false);
   const [skkni, setSkkni] = useState("");
   const [divisi, setDivisi] = useState("");
   const { control, handleSubmit, reset, setValue } = useForm({
@@ -115,7 +117,14 @@ function MyForm() {
               ) || 0,
             total_skill_score: totalSkillScore, // Replace with actual computation if necessary
           },
-          signature: {},
+          signature: {
+            config_name: formData.config_name,
+            logo: formData.logoPerusahaan,
+            role: formData.role,
+            signature: formData.linkGambarPenandatangan,
+            name: formData.namaPenandatangan,
+            stamp:formData.stamp,
+          },
           total_jp:
             (formData.hardSkill?.reduce(
               (acc, skill) => acc + (skill.jp || 0),
@@ -137,6 +146,8 @@ function MyForm() {
         console.log(data);
         message.success("Certificate added successfully!");
         reset(); // Clear the form
+      }else{
+         console.log("Ada masalah dengan respons:", response);
       }
     } catch (error) {
       console.log(data);
@@ -213,16 +224,43 @@ const fetchCompetence = async (competenceId) => {
 };
 
 
- const handleCompetenceChange = (value) => {
-   // Hanya reset field terkait
-   reset((prevValues) => ({
-     ...prevValues, // Pertahankan nilai sebelumnya
-     selectedCompetenceId: value,
-     hardSkill: [],
-     softSkill: [],
-   }));
-   fetchCompetence(value);
- };
+const handleCompetenceChange = (value) => {
+  reset((prevValues) => ({
+    ...prevValues, // Pertahankan nilai sebelumnya
+    selectedCompetenceId: value,
+    hardSkill: [],
+    softSkill: [],
+  }));
+  fetchCompetence(value);
+};
+
+const fetchSignatureId = async (SignatureId) => {
+  try {
+    const response = await Signature.get(`/${SignatureId}`);
+    return response.data.data;
+  } catch (error) {
+    console.error("Error fetching signature:", error);
+    return null;
+  }
+};
+
+const handleSignatureChange = async (value) => {
+  const signature = await fetchSignatureId(value);
+  if (signature) {
+    setSelectedSignature(signature);
+    setIsSignatureSelected(true);
+
+    setValue("namaPenandatangan", signature.name || "");
+    setValue("role", signature.role || "");
+    setValue("logo", signature.logo || "");
+    setValue("linkGambarPenandatangan", signature.stamp || "");
+    setValue("logoPerusahaan", signature.logo || "");
+    setValue("stamp", signature.stamp || "");
+  } else {
+    setIsSignatureSelected(false);
+  }
+};
+
 
 
   return (
@@ -589,8 +627,9 @@ const fetchCompetence = async (competenceId) => {
             control={control}
             render={({ field }) => (
               <Select
-                placeholder="Pilih tanda tangan"
                 {...field}
+                placeholder="Pilih template paraf"
+                onChange={handleSignatureChange}
                 style={{ width: "100%", height: "50px" }}
               >
                 <Option value="" disabled>
@@ -606,62 +645,94 @@ const fetchCompetence = async (competenceId) => {
           />
         </Form.Item>
 
-        <Form.Item label="waktu dan Tempat Pengesahan" required>
-          <Controller
-            name="validation"
-            control={control}
-            rules={{ required: "Meeting Time is required" }}
-            render={({ field }) => (
-              <Input
-                {...field}
-                placeholder="contoh: 13"
-                style={{ width: "100%", height: "50px" }}
+
+        {isSignatureSelected && selectedSignature && (
+          <>
+            <Form.Item label="Nama penandatangan" required>
+              <Controller
+                name="namaPenandatangan"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
               />
-            )}
-          />
-        </Form.Item>
-        <Form.Item label="waktu dan Tempat Pengesahan" required>
-          <Controller
-            name="validation"
-            control={control}
-            rules={{ required: "Meeting Time is required" }}
-            render={({ field }) => (
-              <Input
-                {...field}
-                placeholder="contoh: 13"
-                style={{ width: "100%", height: "50px" }}
+            </Form.Item>
+
+            <Form.Item label="Jabatan Penandatangan" required>
+              <Controller
+                name="role"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
               />
-            )}
-          />
-        </Form.Item>
-        <Form.Item label="waktu dan Tempat Pengesahan" required>
-          <Controller
-            name="validation"
-            control={control}
-            rules={{ required: "Meeting Time is required" }}
-            render={({ field }) => (
-              <Input
-                {...field}
-                placeholder="contoh: 13"
-                style={{ width: "100%", height: "50px" }}
+            </Form.Item>
+
+            <Form.Item label="Stamp Perusahaan" required>
+              <Controller
+                name="stamp"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
               />
-            )}
-          />
-        </Form.Item>
-        <Form.Item label="waktu dan Tempat Pengesahan" required>
-          <Controller
-            name="validation"
-            control={control}
-            rules={{ required: "Meeting Time is required" }}
-            render={({ field }) => (
-              <Input
-                {...field}
-                placeholder="contoh: 13"
-                style={{ width: "100%", height: "50px" }}
+            </Form.Item>
+
+            <Form.Item label="Link logo" required>
+              <Controller
+                name="logo"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
               />
-            )}
-          />
-        </Form.Item>
+            </Form.Item>
+
+            <Form.Item label="Link gambar penandatangan" required>
+              <Controller
+                name="linkGambarPenandatangan"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
+              />
+            </Form.Item>
+
+            <Form.Item label="Link logo perusahaan" required>
+              <Controller
+                name="logoPerusahaan"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
+              />
+            </Form.Item>
+          </>
+        )}
 
         <Form.Item>
           <Button type="primary" htmlType="submit">

@@ -12,7 +12,7 @@ const CertificateTable = () => {
   const downloadPDF = async (_id) => {
     try {
       const response = await Sertifikat.get(
-        `http://127.0.0.1:3000/assets/certificate/${_id}/b`,
+        `http://127.0.0.1:3000/assets/certificate/${data_id}/b`,
         {
           headers: {
             "Content-Type": "application/pdf",
@@ -25,7 +25,7 @@ const CertificateTable = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `${_id}.pdf`); // Nama file saat diunduh
+      link.setAttribute("download", `${data_id}.pdf`); // Nama file saat diunduh
       document.body.appendChild(link);
       link.click();
       link.remove(); // Hapus link setelah digunakan
@@ -39,7 +39,7 @@ const CertificateTable = () => {
       setLoading(true);
       try {
         const response = await Sertifikat.get(
-          `http://127.0.0.1:3000/api/certificate/data_id/${id}`
+          `/${data_id}/a`
         );
         const certData = response.data.data;
         if (!certData.deleted_at) {

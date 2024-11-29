@@ -281,8 +281,8 @@ const handleEdit = async (record) => {
     },
     {
       title: "Daftar Sertifikat",
-      dataIndex: "sertif_name",
-      key: "sertif_name",
+      dataIndex: "sertif_title",
+      key: "sertif_title",
       responsive: ["xs", "sm", "md", "lg"],
       ellipsis: true,
     },
