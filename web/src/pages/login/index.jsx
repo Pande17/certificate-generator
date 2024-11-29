@@ -31,7 +31,7 @@ const LoginPage = () => {
           },
         }
       );
-      
+
       if (response.status === 200) {
         const tokenString = response.data.data; // Adjust this based on your API response
         if (tokenString) {

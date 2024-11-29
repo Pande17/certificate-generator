@@ -10,12 +10,16 @@ import {
   message,
 } from "antd";
 import MainLayout from "../MainLayout/Layout";
-import { Sertifikat,Kompetensi,Signature } from "../api middleware";
+import { Sertifikat, Kompetensi, Signature } from "../api middleware";
 
 function MyForm() {
   const [data, setData] = useState([]);
-   const [signatureData, setSignatureData] = useState([]);
-  const { control, handleSubmit, reset } = useForm({
+  const [signatureData, setSignatureData] = useState([]);
+  const [selectedSignature, setSelectedSignature] = useState(null);
+  const [isSignatureSelected, setIsSignatureSelected] = useState(false);
+  const [skkni, setSkkni] = useState("");
+  const [divisi, setDivisi] = useState("");
+  const { control, handleSubmit, reset, setValue } = useForm({
     defaultValues: {
       hardSkill: [],
       softSkill: [],
@@ -65,23 +69,22 @@ function MyForm() {
           )?.nama_kompetensi,
           meet_time: formData.meetingTime,
           skkni: formData.skkni,
+          validation: formData.validation,
           valid_date: {
-            valid_start: formData.expiredTimeStard?.format("DD MMMM YYYY"),
-            valid_end: formData.expiredTimeEnd?.format("DD MMMM YYYY"),
-            valid_total: formData.validtime,
+            valid_start: formData.expiredTimeStart,
+            valid_end: formData.expiredTimeEnd,
+            valid_total: formData.validTime,
           },
           total_meet: formData.totalMeeting,
           kode_referral: {
-            referral_id: formData.codeReferralOrder,
             divisi: formData.codeReferralFieldOfStudy,
-            bulan_rilis: formData.codeReferralMonth,
-            tahun_rilis: formData.codeReferralYear,
           },
           hard_skills: {
             skills: Array.isArray(formData.hardSkill)
               ? formData.hardSkill.map((skill) => ({
                   skill_name: skill.skill_name,
                   skill_jp: skill.jp,
+                  skill_score: skill.skillScore,
                   description: skill.combined_units.split("\n").map((line) => {
                     const [unit_code, unit_title] = line.split(" - ");
                     return { unit_code, unit_title };
@@ -100,7 +103,7 @@ function MyForm() {
               ? formData.softSkill.map((skill) => ({
                   skill_name: skill.skill_name,
                   skill_jp: skill.jp,
-                  skill_score: skill.skill_score,
+                  skill_score: skill.skillScore,
                   description: skill.combined_units.split("\n").map((line) => {
                     const [unit_code, unit_title] = line.split(" - ");
                     return { unit_code, unit_title };
@@ -115,7 +118,12 @@ function MyForm() {
             total_skill_score: totalSkillScore, // Replace with actual computation if necessary
           },
           signature: {
-
+            config_name: formData.config_name,
+            logo: formData.logoPerusahaan,
+            role: formData.role,
+            signature: formData.linkGambarPenandatangan,
+            name: formData.namaPenandatangan,
+            stamp: formData.stamp,
           },
           total_jp:
             (formData.hardSkill?.reduce(
@@ -129,15 +137,14 @@ function MyForm() {
         },
       };
 
-      const response = await Sertifikat.post(
-        "/",
-        formattedData
-      );
+      const response = await Sertifikat.post("", formattedData);
 
       if (response.status === 200) {
         console.log(data);
         message.success("Certificate added successfully!");
         reset(); // Clear the form
+      } else {
+        console.log("Ada masalah dengan respons:", response);
       }
     } catch (error) {
       console.log(data);
@@ -148,41 +155,41 @@ function MyForm() {
 
   const { Option } = Select;
 
-   useEffect(() => {
-     // Fetch competence data
-     const fetchCompetence = async () => {
-       try {
-         const response = await Kompetensi.get(
-           "/"
-         );
+  useEffect(() => {
+    // Fetch competence data
+    const fetchCompetence = async () => {
+      try {
+        const response = await Kompetensi.get("/");
         setData(response.data.data);
-       } catch (error) {
-         console.log("Error fetching competence data:", error);
-       }
-     };
+      } catch (error) {
+        console.log("Error fetching competence data:", error);
+      }
+    };
 
-     // Fetch signature data
-     const fetchSignature = async () => {
-       try {
-         const response = await Signature.get(
-           "/"
-         );
-         setSignatureData(response.data.data);
-       } catch (error) {
-         console.log("Error fetching signature data:", error);
-       }
-     };
+    // Fetch signature data
+    const fetchSignature = async () => {
+      try {
+        const response = await Signature.get("/");
+        setSignatureData(response.data.data);
+      } catch (error) {
+        console.log("Error fetching signature data:", error);
+      }
+    };
 
-     fetchCompetence();
-     fetchSignature();
-   }, []);
+    fetchCompetence();
+    fetchSignature();
+  }, []);
 
   const fetchCompetence = async (competenceId) => {
-    const url = `/${competenceId}`;
     try {
-      const response = await Kompetensi.get(url);
+      const response = await Kompetensi.get(`/${competenceId}`);
 
-      const { hard_skills = [], soft_skills = [] } = response.data.data || {};
+      const {
+        hard_skills = [],
+        soft_skills = [],
+        skkni = "",
+        divisi = "",
+      } = response.data.data || {};
 
       const newHardSkills = hard_skills.map((hardSkill) => ({
         skill_name: hardSkill.skill_name || "",
@@ -200,22 +207,51 @@ function MyForm() {
 
       replaceHardSkill(newHardSkills);
       replaceSoftSkill(newSoftSkills);
+
+      // Simpan skkni dan divisi ke state
+      setSkkni(skkni);
+      setDivisi(divisi);
     } catch (err) {
       console.log(err);
     }
   };
 
- const handleCompetenceChange = (value) => {
-   // Hanya reset field terkait
-   reset((prevValues) => ({
-     ...prevValues, // Pertahankan nilai sebelumnya
-     selectedCompetenceId: value,
-     hardSkill: [],
-     softSkill: [],
-   }));
-   fetchCompetence(value);
- };
+  const handleCompetenceChange = (value) => {
+    reset((prevValues) => ({
+      ...prevValues, // Pertahankan nilai sebelumnya
+      selectedCompetenceId: value,
+      hardSkill: [],
+      softSkill: [],
+    }));
+    fetchCompetence(value);
+  };
 
+  const fetchSignatureId = async (SignatureId) => {
+    try {
+      const response = await Signature.get(`/${SignatureId}`);
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching signature:", error);
+      return null;
+    }
+  };
+
+  const handleSignatureChange = async (value) => {
+    const signature = await fetchSignatureId(value);
+    if (signature) {
+      setSelectedSignature(signature);
+      setIsSignatureSelected(true);
+
+      setValue("namaPenandatangan", signature.name || "");
+      setValue("role", signature.role || "");
+      setValue("logo", signature.logo || "");
+      setValue("linkGambarPenandatangan", signature.stamp || "");
+      setValue("logoPerusahaan", signature.logo || "");
+      setValue("stamp", signature.stamp || "");
+    } else {
+      setIsSignatureSelected(false);
+    }
+  };
 
   return (
     <MainLayout>
@@ -235,11 +271,11 @@ function MyForm() {
         <div className="text-center font-Poppins font-bold text-xl">
           Buat Sertifikat
         </div>
-        <Form.Item label="Nama sertifikat" required>
+        <Form.Item label="Judul Sertifikat" required>
           <Controller
             name="sertifikat"
             control={control}
-            rules={{ required: "Nama is required" }}
+            rules={{ required: "Judul is required" }}
             render={({ field }) => (
               <Input
                 {...field}
@@ -279,8 +315,7 @@ function MyForm() {
           />
         </Form.Item>
 
-
-        <Form.Item label="Total tahun" required>
+        <Form.Item label="Total Tahun" required>
           <Controller
             name="validTime"
             control={control}
@@ -299,32 +334,31 @@ function MyForm() {
           <Controller
             name="expiredTimeStart"
             control={control}
-            rules={{ required: "Expired Time (Start) is required" }}
+            rules={{ required: "Waktu mulai diperlukan" }}
             render={({ field }) => (
-              <DatePicker
+              <Input
                 {...field}
-                placeholder="Pilih waktu"
+                placeholder="Pilih waktu mulai"
                 style={{ width: "100%", height: "50px" }}
               />
             )}
           />
         </Form.Item>
 
-        <Form.Item label="Waktu Expired (Seleai)" required>
+        <Form.Item label="Waktu Expired (Selesai)" required>
           <Controller
             name="expiredTimeEnd"
             control={control}
-            rules={{ required: "Expired Time (End) is required" }}
+            rules={{ required: "Waktu selesai diperlukan" }}
             render={({ field }) => (
-              <DatePicker
+              <Input
                 {...field}
-                placeholder="Pilih Waktu"
+                placeholder="Pilih waktu selesai"
                 style={{ width: "100%", height: "50px" }}
               />
             )}
           />
         </Form.Item>
-
         <Form.Item label="Total Pertemuan" required>
           <Controller
             name="totalMeeting"
@@ -340,13 +374,13 @@ function MyForm() {
           />
         </Form.Item>
 
-        <Form.Item label="Total waktu Pertemuan" required>
+        <Form.Item label="Total Waktu Pertemuan" required>
           <Controller
             name="meetingTime"
             control={control}
             rules={{ required: "Meeting Time is required" }}
             render={({ field }) => (
-              <InputNumber
+              <Input
                 {...field}
                 placeholder="contoh: 13"
                 style={{ width: "100%", height: "50px" }}
@@ -354,12 +388,11 @@ function MyForm() {
             )}
           />
         </Form.Item>
-
-        <Form.Item label="Link logo Perusahaan" required>
+        <Form.Item label="Waktu dan Tempat Pengesahan" required>
           <Controller
-            name="linkLogo"
+            name="validation"
             control={control}
-            rules={{ required: "Meeting Time is required" }}
+            rules={{ required: "Validation is required" }}
             render={({ field }) => (
               <Input
                 {...field}
@@ -379,7 +412,7 @@ function MyForm() {
             control={control}
             render={({ field }) => (
               <Select
-                placeholder="Pilih kompetensi"
+                placeholder="Pilih Kompetensi"
                 {...field}
                 style={{ width: "100%", height: "50px" }}
                 onChange={(value) => {
@@ -388,7 +421,7 @@ function MyForm() {
                 }}
               >
                 <Option value="" disabled>
-                  pilih kommpetensi
+                  Pilih Kompetensi
                 </Option>
                 {data.map((competence) => (
                   <Option key={competence._id} value={competence._id}>
@@ -400,10 +433,30 @@ function MyForm() {
           />
         </Form.Item>
 
+        {skkni && (
+          <Form.Item label="SKKNI">
+            <Input
+              value={skkni}
+              readOnly
+              style={{ width: "100%", height: "50px" }}
+            />
+          </Form.Item>
+        )}
+
+        {divisi && (
+          <Form.Item label="Divisi">
+            <Input
+              value={divisi}
+              readOnly
+              style={{ width: "100%", height: "50px" }}
+            />
+          </Form.Item>
+        )}
+
         {hardSkillFields.length > 0 && (
           <div>
             <h2 className="font-Poppins text-2xl font-medium text-center p-6">
-              Hardskills
+              Hard Skills
             </h2>
             {hardSkillFields.map((skill, index) => (
               <div key={index} style={{ marginBottom: "20px" }}>
@@ -482,7 +535,7 @@ function MyForm() {
         {softSkillFields.length > 0 && (
           <div>
             <h2 className="font-Poppins text-2xl font-medium text-center p-6">
-              Softskills
+              Soft Skills
             </h2>
             {softSkillFields.map((skill, index) => (
               <div key={index} style={{ marginBottom: "20px" }}>
@@ -538,13 +591,14 @@ function MyForm() {
                     />
                   )}
                 />
+
                 <Controller
                   name={`softSkill[${index}].skillScore`}
                   control={control}
                   render={({ field }) => (
                     <InputNumber
                       {...field}
-                      placeholder="score"
+                      placeholder="Score"
                       style={{
                         width: "100%",
                         height: "50px",
@@ -563,8 +617,9 @@ function MyForm() {
             control={control}
             render={({ field }) => (
               <Select
-                placeholder="Pilih tanda tangan"
                 {...field}
+                placeholder="Pilih Template Paraf"
+                onChange={handleSignatureChange}
                 style={{ width: "100%", height: "50px" }}
               >
                 <Option value="" disabled>
@@ -579,6 +634,94 @@ function MyForm() {
             )}
           />
         </Form.Item>
+
+        {isSignatureSelected && selectedSignature && (
+          <>
+            <Form.Item label="Nama penandatangan" required>
+              <Controller
+                name="namaPenandatangan"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
+              />
+            </Form.Item>
+
+            <Form.Item label="Jabatan Penandatangan" required>
+              <Controller
+                name="role"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
+              />
+            </Form.Item>
+
+            <Form.Item label="Stamp Perusahaan" required>
+              <Controller
+                name="stamp"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
+              />
+            </Form.Item>
+
+            <Form.Item label="Link logo" required>
+              <Controller
+                name="logo"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
+              />
+            </Form.Item>
+
+            <Form.Item label="Link gambar penandatangan" required>
+              <Controller
+                name="linkGambarPenandatangan"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
+              />
+            </Form.Item>
+
+            <Form.Item label="Link logo perusahaan" required>
+              <Controller
+                name="logoPerusahaan"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
+              />
+            </Form.Item>
+          </>
+        )}
 
         <Form.Item>
           <Button type="primary" htmlType="submit">

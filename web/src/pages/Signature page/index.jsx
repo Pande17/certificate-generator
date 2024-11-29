@@ -4,37 +4,37 @@ import { message, Table, Col, Row, Button, Input, Modal, Form } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { useNavigate} from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
 
 const SignaturePage = () => {
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState([]);
-  const [searchText, setSearchText] = useState("");
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [currentSignature, setCurrentSignature] = useState(null);
-  const [dataSignature, setDataSignature] = useState(null);
-  const [error, setError] = useState(null);
-  const [form] = Form.useForm();
-
+  const [loading, setLoading] = useState(false); // Untuk indikasi loading data
+  const [data, setData] = useState([]); // Menyimpan data dari API
+  const [searchText, setSearchText] = useState(""); // Filter pencarian
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false); // Status modal edit
+  const [editData, setEditData] = useState(null); // Data yang sedang diedit
+  const { control, handleSubmit, reset } = useForm(); // React Hook Form
   const navigate = useNavigate();
   const { confirm } = Modal;
 
+  // **Filter Data Berdasarkan Pencarian**
   const filteredData = data.filter((item) =>
     item.config_name?.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  
+  // **Ambil Data dari API saat Komponen Mount**
   useEffect(() => {
     const fetchSignature = async () => {
       setLoading(true);
       try {
-        const respons = await Signature.get(
-          `http://127.0.0.1:3000/api/signature`
+        const response = await Signature.get(
+          "/"
         );
-        const datas = respons.data.data;
+        const datas = response.data.data;
         const filterData = datas.filter((item) => !item.deleted_at);
         setData(filterData);
       } catch (error) {
-        console.log("error", error);
+        console.error("Error fetching signatures:", error);
+        message.error("Gagal memuat data.");
       } finally {
         setLoading(false);
       }
@@ -42,146 +42,112 @@ const SignaturePage = () => {
     fetchSignature();
   }, []);
 
- 
-  useEffect(() => {
-    if (currentSignature) {
-      const fetchData = async () => {
-        setLoading(true);
-        try {
-          const response = await Signature.get(
-            `http://127.0.0.1:3000/api/signature/${currentSignature._id}`
-          );
-          const sigData = response.data.data;
-          console.log(sigData);
-          if (!sigData.deleted_at) {
-            setDataSignature(sigData); 
-          } else {
-            message.warning("Data sertifikat tidak tersedia.");
-          }
-        } catch (err) {
-          console.error("Error fetching data:", err);
-          setError("Gagal memuat data sertifikat.");
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchData();
-    }
-  }, [currentSignature]); 
-
-  const delHandle = async (_id) => {
-    try {
-      await Signature.delete(`http://127.0.0.1:3000/api/signature/${_id}`);
-      setData((prevData) => prevData.filter((item) => item._id !== _id));
-      message.success("Data berhasil dihapus");
-    } catch (error) {
-      console.error("Error response:", error.response);
-      message.error(
-        `Gagal menghapus data: ${
-          error.response?.data?.message || error.message
-        }`
-      );
-    }
-  };
+ const delHandle = async (_id) => {
+   try {
+     await Kompetensi.delete(`http://127.0.0.1:3000/api/signature/${_id}`);
+     setData((prevData) => prevData.filter((item) => item._id !== _id));
+     message.success("Data berhasil dihapus");
+   } catch (error) {
+     console.error("Error response:", error.response);
+     message.error(
+       `Gagal menghapus data: ${error.response?.data?.message || error.message}`
+     );
+   }
+ };
 
   const delConfirm = (_id, config_name) => {
     confirm({
-      title: `Apakah anda yakin ingin menghapus kompetensi ${config_name}?`,
-      content: "Data yang dihapus tidak dapat dikembalikan",
+      title: `Apakah Anda yakin ingin menghapus paraf "${config_name}"?`,
+      content: "Data yang dihapus tidak dapat dikembalikan.",
       okType: "danger",
       okText: "Ya, Hapus",
       cancelText: "Batal",
       onOk() {
         delHandle(_id);
       },
-      onCancel() {
-        console.log("Penghapusan dibatalkan");
-      },
     });
   };
 
+  // **Navigasi ke Halaman Pembuatan Sertifikat**
   const createNav = () => {
     navigate("/createParaf");
   };
 
-
+  // **Buka Modal Edit dengan Data yang Dipilih**
   const handleEdit = async (record) => {
     try {
-      setLoading(true);
-      console.log("Fetching data for ID:", record._id);
-      const response = await Signature.get(
-        `http://127.0.0.1:3000/api/signature/${record._id}` 
-      );
-      const signatureData = response.data.data;
+      const response = await Signature.get(`/${record._id}`);
+      const certificateData = response.data.data;
 
-      if (!signatureData.deleted_at) {
-        setCurrentSignature(signatureData); 
-        form.setFieldsValue(signatureData); 
-        setIsEditModalVisible(true); 
-      } else {
-        message.warning("Data sertifikat tidak tersedia.");
-      }
+      setEditData(certificateData);
+      reset({
+        displayNama: certificateData.config_name || "",
+        atasNama: certificateData.name || "",
+        jabatan: certificateData.role || "",
+        ttd: certificateData.signature || "",
+        Cap: certificateData.stamp || "",
+      });
+
+      setIsEditModalVisible(true);
     } catch (error) {
-      console.error("Error fetching detailed data:", error);
-      message.error("Gagal memuat data.");
-    } finally {
-      setLoading(false); 
+      console.error("Error fetching certificate details:", error);
+      message.error("Gagal mengambil data sertifikat.");
     }
   };
 
-
-  const handleSubmit = async (values) => {
-    setLoading(true);
+  // **Simpan Perubahan Data**
+  const onSubmit = async (formData) => {
     try {
-      await Signature.put(
-        `http://127.0.0.1:3000/api/signature/${currentSignature._id}`,
-        values
-      );
-      message.success("Data berhasil diperbarui");
-      setIsEditModalVisible(false); 
-      
+      const updatedData = {
+        ...editData,
+        ...formData,
+        signature: formData.ttd,
+        stamp: formData.Cap,
+        name: formData.atasNama,
+        config_name: formData.displayNama,
+        role: formData.jabatan,
+      };
+
+      await Signature.put(`/${editData._id}`, updatedData);
+
       setData((prevData) =>
-        prevData.map((item) =>
-          item._id === currentSignature._id ? { ...item, ...values } : item
-        )
+        prevData.map((item) => (item._id === editData._id ? updatedData : item))
       );
+
+      message.success("Data berhasil diperbarui");
+      setIsEditModalVisible(false);
     } catch (error) {
-      console.error("Error updating signature:", error);
-      message.error("Gagal memperbarui data");
-    } finally {
-      setLoading(false);
+      console.error("Error updating data:", error);
+      message.error("Gagal memperbarui data.");
     }
   };
 
+  // **Kolom Tabel**
   const columns = [
     {
-      title: "Id",
+      title: "No",
       align: "center",
       width: 100,
-      responsive: ["xs", "sm", "md", "lg"],
       render: (text, record, index) => index + 1,
     },
     {
-      responsive: ["xs", "sm", "md", "lg"],
       title: "Signature",
       align: "center",
       dataIndex: "config_name",
-      key: "config",
-      width: 100,
+      key: "config_name",
     },
     {
-      width: 100,
-      responsive: ["xs", "sm", "md", "lg"],
+      width: 300,
       title: "Aksi",
       align: "center",
-      render: (text, record) => (
+      render: (Text, record) => (
         <>
           <Button
             icon={<DeleteOutlined />}
             type="primary"
-            style={{ margin: 8 }}
             danger
             onClick={() => delConfirm(record._id, record.config_name)}
+            style={{ margin: 8 }}
           />
           <Button
             icon={<EditOutlined />}
@@ -196,15 +162,13 @@ const SignaturePage = () => {
 
   return (
     <MainLayout>
-      <div className="flex flex-col items-center p-5">
-        <div>
-          <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl">
-            List Paraf
-          </p>
-        </div>
+      <div className="flex flex-col items-center justify-center w-full lg:w-3/4 p-5">
+        <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl" >
+          Daftar Paraf
+        </p>
 
         <Button onClick={createNav} className="m-3">
-          Buat Sertifikat
+          Buat Paraf
         </Button>
 
         <Input
@@ -215,11 +179,8 @@ const SignaturePage = () => {
         />
 
         <Row
-          style={{
-            justifyContent: "center",
-            width: "90%",
-            overflowX: "auto",
-          }}>
+          style={{ justifyContent: "center", width: "100%", overflowX: "auto" }}
+        >
           <Col span={24}>
             <Table
               dataSource={filteredData}
@@ -232,7 +193,6 @@ const SignaturePage = () => {
                 x: "max-content",
                 y: filteredData.length > 6 ? 500 : undefined,
               }}
-              style={{ width: "100%" }}
             />
           </Col>
         </Row>
@@ -266,6 +226,84 @@ const SignaturePage = () => {
           </Form>
         </Modal>
       </div>
+
+      {/* Modal Edit */}
+      <Modal
+        title="Edit Data"
+        open={isEditModalVisible}
+        onCancel={() => setIsEditModalVisible(false)}
+        footer={null}
+      >
+        <Form layout="vertical" onFinish={handleSubmit(onSubmit)}>
+          <Form.Item label="Display Nama" required>
+            <Controller
+              name="displayNama"
+              control={control}
+              rules={{ required: "Wajib mengisi display nama" }}
+              render={({ field }) => (
+                <Input {...field} placeholder="Masukkan nama display" />
+              )}
+            />
+          </Form.Item>
+
+          <Form.Item label="Nama Penandatangan" required>
+            <Controller
+              name="atasNama"
+              control={control}
+              rules={{ required: "Wajib mengisi nama" }}
+              render={({ field }) => (
+                <Input {...field} placeholder="Masukkan nama penandatangan" />
+              )}
+            />
+          </Form.Item>
+
+          <Form.Item label="Jabatan Penandatangan" required>
+            <Controller
+              name="jabatan"
+              control={control}
+              rules={{ required: "Wajib mengisi jabatan" }}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  placeholder="Masukkan jabatan penandatangan"
+                />
+              )}
+            />
+          </Form.Item>
+
+          <Form.Item label="Link Gambar Tanda Tangan" required>
+            <Controller
+              name="ttd"
+              control={control}
+              rules={{ required: "Wajib mengisi link" }}
+              render={({ field }) => (
+                <Input {...field} placeholder="Masukkan link tanda tangan" />
+              )}
+            />
+          </Form.Item>
+
+          <Form.Item label="Link Gambar Cap Perusahaan" required>
+            <Controller
+              name="Cap"
+              control={control}
+              rules={{ required: "Wajib mengisi link" }}
+              render={({ field }) => (
+                <Input {...field} placeholder="Masukkan link cap perusahaan" />
+              )}
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              style={{ width: "100%", height: "50px" }}
+            >
+              Simpan
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </MainLayout>
   );
 };

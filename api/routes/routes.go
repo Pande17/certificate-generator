@@ -63,10 +63,9 @@ func RouteSetup(r *fiber.App) {
 	api.Get("/certificate", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.GetAllCertificates)
 	api.Get("/certificate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.GetCertificateByID)
 	api.Get("/certificate/:type/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.GetCertificateByID)
-	api.Put("/certiticate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), TEMPlate)
+	api.Put("/certificate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.EditCertificate)
 	api.Delete("/certificate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.DeleteCertificate)
-
-	r.Get("/assets/certificate/:id/:type", rest.DownloadCertificate, rest.GetCertificateByID)
+	api.Get("/certificate/download/:id/:type", rest.DownloadCertificate, rest.GetCertificateByID)
 
 	// temporary, remove later
 	api.Post("/checkpdf", rest.CheckPDF)

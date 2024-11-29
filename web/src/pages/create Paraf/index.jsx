@@ -139,6 +139,39 @@ const CreateParaf = () => {
           />
         </Form.Item>
 
+        <Form.Item label="Link logo Perusahaan" required>
+          <Controller
+            name="linkLogo"
+            control={control}
+            defaultValue="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833019/aset%20pdf/pnu45hydtyftsfxlqaxm.png"
+            rules={{ required: "Link logo perusahaan diperlukan" }}
+            render={({ field }) => (
+              <>
+                <Input
+                  {...field}
+                  placeholder="Masukkan Link Gambar"
+                  style={{ width: "100%", height: "50px" }}
+                />
+                {/* Menampilkan gambar dari link yang dimasukkan */}
+                {field.value && (
+                  <div style={{ marginTop: "10px" }}>
+                    <img
+                      src={field.value}
+                      alt="Logo Perusahaan"
+                      style={{
+                        width: "200px",
+                        height: "200px",
+                        border: "solid",
+                        borderColor: "black",
+                      }}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+          />
+        </Form.Item>
+
         <Form.Item>
           <Button
             type="primary"

@@ -21,13 +21,7 @@ var collectionSignature = database.GetCollection("signature")
 // Function to create a new signature
 func CreateSignature(c *fiber.Ctx) error {
 	// Struct for the incoming request body
-	var signatureReq struct {
-		ConfigName string `json:"config_name" bson:"config_name" valid:"required~Nama konfigurasi tidak boleh kosong!"`
-		Stamp      string `json:"stamp" valid:"required~Stamp tidak boleh kosong!, url"`
-		Signature  string `json:"signature" valid:"required~Signature tidak boleh kosong!, url"`
-		Name       string `json:"name" valid:"required~Nama tidak boleh kosong!, stringlength(1|60)~Nama harus antara 1 hingga 60 karakter!"`
-		Role       string `json:"role" valid:"required~Peran tidak boleh kosong!, stringlength(1|60)~Peran harus antara 1 hingga 60 karakter!"`
-	}
+	var signatureReq model.SignatureData
 
 	// Parse the request body
 	if err := c.BodyParser(&signatureReq); err != nil {
@@ -54,12 +48,15 @@ func CreateSignature(c *fiber.Ctx) error {
 
 	// Create a new signature object
 	signature := model.Signature{
-		AdminId:    objectID,
-		ConfigName: signatureReq.ConfigName,
-		Stamp:      signatureReq.Stamp,
-		Signature:  signatureReq.Signature,
-		Name:       signatureReq.Name,
-		Role:       signatureReq.Role,
+		SignatureData: model.SignatureData{
+			AdminId:    objectID,
+			ConfigName: signatureReq.ConfigName,
+			Stamp:      signatureReq.Stamp,
+			Signature:  signatureReq.Signature,
+			Logo:       signatureReq.Logo,
+			Name:       signatureReq.Name,
+			Role:       signatureReq.Role,
+		},
 		Model: model.Model{
 			ID:        primitive.NewObjectID(),
 			CreatedAt: time.Now(),
@@ -156,7 +153,7 @@ func GetSignatureByID(c *fiber.Ctx) error {
 		searchKey = "_id"
 		certifID, err := primitive.ObjectIDFromHex(idParam)
 		if err != nil {
-			return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
+			return BadRequest(c, "Signature ini tidak ada!", "Please provide a valid ObjectID")
 		}
 		searchVal = certifID
 	}
@@ -197,13 +194,7 @@ func EditSignature(c *fiber.Ctx) error {
 
 	filter := bson.M{"_id": signatureID} // Create filter to find the signature
 
-	var input struct {
-		ConfigName string `json:"config_name" bson:"config_name" valid:"required~Nama konfigurasi tidak boleh kosong!"`
-		Stamp      string `json:"stamp" valid:"required~Stamp tidak boleh kosong!, url"`
-		Signature  string `json:"signature" valid:"required~Signature tidak boleh kosong!, url"`
-		Name       string `json:"name" valid:"required~Nama tidak boleh kosong!, stringlength(1|60)~Nama harus antara 1 hingga 60 karakter!"`
-		Role       string `json:"role" valid:"required~Peran tidak boleh kosong!, stringlength(1|60)~Peran harus antara 1 hingga 60 karakter!"`
-	}
+	var input model.SignatureData
 
 	var signatureData bson.M // Variable to hold the found signature data
 
@@ -232,18 +223,16 @@ func EditSignature(c *fiber.Ctx) error {
 
 	// Create update for the signature data
 	update := bson.M{
-		"$set": bson.M{
-			"config_name": input.ConfigName,
-			"stamp":       input.Stamp,
-			"signature":   input.Signature,
-			"name":        input.Name,
-			"role":        input.Role,
-			"updated_at":  time.Now(),
-		},
+		"config_name": input.ConfigName,
+		"stamp":       input.Stamp,
+		"signature":   input.Signature,
+		"name":        input.Name,
+		"role":        input.Role,
+		"updated_at":  time.Now(),
 	}
 
 	// Update the signature in the database
-	_, err = collectionSignature.UpdateOne(c.Context(), filter, update)
+	_, err = collectionSignature.UpdateOne(c.Context(), filter, bson.M{"$set": update})
 	if err != nil {
 		return Conflict(c, "Gagal memperbarui signature! Silakan coba lagi.", err.Error())
 	}

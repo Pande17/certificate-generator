@@ -7,9 +7,10 @@ services:
       - mongo
     environment:
       APP_DEBUG: 'false'
-      CERTIF_GEN_FRONTEND: "http://localhost:5173/"
+      CERTIF_GEN_FRONTEND: 'http://localhost'
     env_file:
       - ./api/.env
+      - ./api/.env.local
     ports:
       - '3000:3000'
     volumes:
@@ -29,11 +30,18 @@ services:
   frontend:
     build:
       context: ./web
-      dockerfile: Dockerfile
+      dockerfile: dev.Dockerfile
     environment:
-      CERTIF_GEN_BACKEND: "http://localhost:3000/"
+      VITE_BACKEND: 'http://localhost:3000'
     ports:
       - '80:80'
+
+    # mount for dev testing
+    # must only pull public & src dir bcs of a weird bug on npm lockfile or smth
+    # src (according to returned err): https://github.com/npm/cli/issues/4828
+    volumes:
+      - ./web/public:/app/public
+      - ./web/src:/app/src
     networks:
       - certif-network
 

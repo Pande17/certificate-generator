@@ -25,6 +25,7 @@ var certificateCollection = database.GetCollection("certificate")
 var competenceCollection = database.GetCollection("competence")
 var counterCollection = database.GetCollection("counters")
 
+// function for Create data certificate
 func CreateCertificate(c *fiber.Ctx) error {
 	// add body request
 	var pdfReq struct {
@@ -74,23 +75,12 @@ func CreateCertificate(c *fiber.Ctx) error {
 		return NotFound(c, "Gagal memeriksa kompetensi yang ada. Silakan coba lagi.", err.Error())
 	}
 
-	totalHSJP, totalHSSkor := uint64(0), float64(0)
-	for _, hs := range pdfReq.Data.HardSkills.Skills {
-		totalHSJP += hs.SkillJP
-		totalHSSkor += hs.SkillScore
-	}
+	pdfReq.Data = *processCertificate(&pdfReq.Data)
 
-	totalSSJP, totalSSSkor := uint64(0), float64(0)
-	for _, ss := range pdfReq.Data.SoftSkills.Skills {
-		totalSSJP += ss.SkillJP
-		totalSSSkor += ss.SkillScore
-	}
-
-	sertifName := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(strings.ToUpper(pdfReq.Data.SertifName)), "SERTIFIKAT"))
 	mappedData := model.CertificateData{
-		AdminId:    objectID,
-		SertifName: sertifName,
-		Logo:       pdfReq.Data.Logo,
+		AdminId:     objectID,
+		SertifName:  pdfReq.Data.SertifName,
+		SertifTitle: pdfReq.Data.SertifTitle,
 		KodeReferral: model.KodeReferral{
 			ReferralID: nextReferralID,
 			Divisi:     kompetensi.Divisi,
@@ -98,39 +88,34 @@ func CreateCertificate(c *fiber.Ctx) error {
 			TahunRilis: year,
 		},
 		NamaPeserta:    pdfReq.Data.NamaPeserta,
+		SKKNI:          kompetensi.SKKNI,
 		KompetenBidang: pdfReq.Data.KompetenBidang,
 		Kompetensi:     pdfReq.Data.Kompetensi,
 		Validation:     pdfReq.Data.Validation,
 		DataID:         newDataID,
-		TotalJP:        totalHSJP + totalSSJP,
+		TotalJP:        pdfReq.Data.TotalJP,
 		TotalMeet:      pdfReq.Data.TotalMeet,
 		MeetTime:       pdfReq.Data.MeetTime,
 		ValidDate:      pdfReq.Data.ValidDate,
-		HardSkills: model.SkillPDF{
-			Skills:          pdfReq.Data.HardSkills.Skills,
-			TotalSkillJP:    totalHSJP,
-			TotalSkillScore: float64(math.Round(totalHSSkor/float64(len(pdfReq.Data.HardSkills.Skills))*10) / 10),
-		},
-		SoftSkills: model.SkillPDF{
-			Skills:          pdfReq.Data.SoftSkills.Skills,
-			TotalSkillJP:    totalSSJP,
-			TotalSkillScore: float64(math.Round(totalSSSkor/float64(len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
-		},
-		FinalSkor: float64(math.Round((totalHSSkor+totalSSSkor)/float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
-		Signature: model.Signature{
+		HardSkills:     pdfReq.Data.HardSkills,
+		SoftSkills:     pdfReq.Data.SoftSkills,
+		FinalSkor:      pdfReq.Data.FinalSkor,
+		Signature: model.SignatureData{
 			ConfigName: pdfReq.Data.Signature.ConfigName,
 			Stamp:      pdfReq.Data.Signature.Stamp,
 			Signature:  pdfReq.Data.Signature.Signature,
+			Logo:       pdfReq.Data.Signature.Logo,
 			Name:       pdfReq.Data.Signature.Name,
 			Role:       pdfReq.Data.Signature.Role,
 		},
 	}
 
 	certificate := model.PDF{
-		AdminId:    objectID,
-		DataID:     newDataID,
-		SertifName: sertifName,
-		Data:       mappedData,
+		AdminId:     objectID,
+		DataID:      newDataID,
+		SertifName:  pdfReq.Data.SertifName,
+		SertifTitle: pdfReq.Data.SertifTitle,
+		Data:        mappedData,
 		Model: model.Model{
 			ID:        primitive.NewObjectID(),
 			CreatedAt: currentTime,
@@ -140,7 +125,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	// make pdf creation concurrent to return handler faster
-	go generator.CreatePDF(c, &mappedData, "ab")
+	go generator.CreatePDF(c, &mappedData, "ab", true)
 
 	// insert data from struct "PDF" to collection "certificate" in database MongoDB
 	_, err = certificateCollection.InsertOne(context.TODO(), certificate)
@@ -152,7 +137,7 @@ func CreateCertificate(c *fiber.Ctx) error {
 	return OK(c, "Berhasil membuat sertifikat baru!", certificate)
 }
 
-// function to get all certificate data
+// function for get all certificate data
 func GetAllCertificates(c *fiber.Ctx) error {
 	var results []bson.M
 
@@ -173,13 +158,14 @@ func GetAllCertificates(c *fiber.Ctx) error {
 
 	// set the projection to return the required fields
 	projection := bson.M{
-		"_id":         1,
-		"admin_id":    1,
-		"data_id":     1,
-		"sertif_name": 1,
-		"created_at":  1,
-		"updated_at":  1,
-		"deleted_at":  1,
+		"_id":          1,
+		"admin_id":     1,
+		"data_id":      1,
+		"sertif_name":  1,
+		"sertif_title": 1,
+		"created_at":   1,
+		"updated_at":   1,
+		"deleted_at":   1,
 	}
 
 	// Create the filter to include admin_id and handle deleted_at
@@ -217,6 +203,7 @@ func GetAllCertificates(c *fiber.Ctx) error {
 	return OK(c, "Berhasil menampilkan semua data Kompetensi!", results)
 }
 
+// function for get detail certificate data by id
 func GetCertificateByID(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 	searchKey := c.Params("type")
@@ -262,7 +249,110 @@ func GetCertificateByID(c *fiber.Ctx) error {
 	return OK(c, "Berhasil mendapatkan data sertifikat!", certifDetail)
 }
 
-// Function for soft delete admin account
+// / Function for edit data certificate
+func EditCertificate(c *fiber.Ctx) error {
+	oID, err := primitive.ObjectIDFromHex(c.Params("id"))
+	if err != nil {
+		return BadRequest(c, "Data Sertifikat tidak ditemukan! Silakan periksa ID sertifikat.", "Gagal mengonversi parameter pada Edit Sertifikat")
+	}
+
+	filter := bson.M{"_id": oID}
+	var certificateMongo model.PDF
+	if err := certificateCollection.FindOne(c.Context(), filter).Decode(&certificateMongo); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return NotFound(c, "Data Sertifikat tidak ditemukan!", "Gagal menemukan Data Sertifikat")
+		}
+		return Conflict(c, "Gagal mendapatkan Data Sertifikat! Silakan coba lagi.", "Gagal menemukan Data Sertifikat")
+	}
+
+	if certificateMongo.DeletedAt != nil {
+		return AlreadyDeleted(c, "Data Sertifikat ini sudah dihapus! Silakan hubungi Data Sertifikat.", "Periksa Data Sertifikat yang dihapus", certificateMongo.DeletedAt)
+	}
+
+	var pdf model.PDF
+	if err := c.BodyParser(&pdf); err != nil {
+		return BadRequest(c, "Gagal mendapatkan Data Sertifikat! Silakan coba lagi.", err.Error())
+	}
+	pdfData := pdf.Data
+
+	// fetch Kompetensi by the given nama_kompetensi from the request
+	var kompetensi model.Kompetensi
+	if err := competenceCollection.FindOne(context.TODO(), bson.M{"nama_kompetensi": pdfData.Kompetensi}).Decode(&kompetensi); err != nil {
+		return NotFound(c, "Tidak menemukan kompetensi yang dicari. Mohon coba lagi.", err.Error())
+	}
+
+	// Retrieve existing KodeReferral values
+	if refBytes, err := json.Marshal(certificateMongo); err != nil {
+		return BadRequest(c, "Gagal mendapatkan Data Sertifikat! Silakan coba lagi.", err.Error())
+	} else {
+		if err := json.Unmarshal(refBytes, &pdfData.KodeReferral); err != nil {
+			return BadRequest(c, "Gagal mendapatkan Data Sertifikat! Silakan coba lagi.", err.Error())
+		}
+	}
+
+	pdfData = *processCertificate(&pdfData)
+
+	mappedData := model.CertificateData{
+		AdminId:     certificateMongo.AdminId,
+		SertifName:  pdfData.SertifName,
+		SertifTitle: pdfData.SertifTitle,
+		KodeReferral: model.KodeReferral{
+			ReferralID: certificateMongo.Data.KodeReferral.ReferralID,
+			Divisi:     kompetensi.Divisi,
+			BulanRilis: certificateMongo.Data.KodeReferral.BulanRilis,
+			TahunRilis: certificateMongo.Data.KodeReferral.TahunRilis,
+		},
+		NamaPeserta:    pdfData.NamaPeserta,
+		SKKNI:          kompetensi.SKKNI,
+		KompetenBidang: pdfData.KompetenBidang,
+		Kompetensi:     pdfData.Kompetensi,
+		Validation:     pdfData.Validation,
+		DataID:         certificateMongo.DataID,
+		TotalJP:        pdfData.TotalJP,
+		TotalMeet:      pdfData.TotalMeet,
+		MeetTime:       pdfData.MeetTime,
+		ValidDate:      pdfData.ValidDate,
+		HardSkills:     pdfData.HardSkills,
+		SoftSkills:     pdfData.SoftSkills,
+		FinalSkor:      pdfData.FinalSkor,
+		Signature: model.SignatureData{
+			ConfigName: pdfData.Signature.ConfigName,
+			Stamp:      pdfData.Signature.Stamp,
+			Signature:  pdfData.Signature.Signature,
+			Logo:       pdfData.Signature.Logo,
+			Name:       pdfData.Signature.Name,
+			Role:       pdfData.Signature.Role,
+		},
+	}
+
+	certificate := model.PDF{
+		AdminId:     certificateMongo.AdminId,
+		DataID:      certificateMongo.DataID,
+		SertifName:  pdfData.SertifName,
+		SertifTitle: pdfData.SertifTitle,
+		Data:        mappedData,
+		Model: model.Model{
+			ID:        certificateMongo.ID,
+			CreatedAt: certificateMongo.CreatedAt,
+			UpdatedAt: time.Now(),
+			DeletedAt: nil,
+		},
+	}
+
+	// Update the certificate with the new data while preserving KodeReferral fields
+	update := bson.M{"$set": certificate}
+
+	go generator.CreatePDF(c, &pdfData, "ab", true)
+
+	if _, err := certificateCollection.UpdateOne(c.Context(), filter, update); err != nil {
+		return Conflict(c, "Gagal memperbarui Data Sertifikat! Silakan coba lagi.", err.Error())
+	}
+
+	// Return success
+	return OK(c, "Data Sertifikat berhasil diperbarui!", certificate)
+}
+
+// Function for soft delete data certificate
 func DeleteCertificate(c *fiber.Ctx) error {
 	// Get id param
 	idParam := c.Params("id")
@@ -339,21 +429,53 @@ func DownloadCertificate(c *fiber.Ctx) error {
 	filepath := "./assets/certificate/" + data.DataID + "-" + certifType + ".pdf"
 	if _, err := os.Stat(filepath); err != nil {
 		if os.IsNotExist(err) {
-			if _, creating := generator.CreatingPDF[data.DataID+"-"+certifType]; creating {
-				for _, creating := generator.CreatingPDF[data.DataID+"-"+certifType]; creating; {
-					time.Sleep(time.Second)
-				}
-			} else {
-				if err = generator.CreatePDF(c, &data, certifType); err != nil {
-					return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
-				}
+			if err = generator.CreatePDF(c, &data, certifType, false); err != nil {
+				return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
 			}
 		} else {
 			return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
 		}
 	}
+
 	c.Response().Header.Add("Content-Type", "application/pdf")
-	return c.Download("./assets/certificate/"+data.DataID+"-"+certifType+".pdf", "Sertifikat BTW Edutech "+certifType+" - "+data.NamaPeserta)
+	addAllowOrigin(c)
+
+	return c.Download(filepath, "Sertifikat BTW Edutech "+certifType+" - "+data.NamaPeserta)
+}
+
+func processCertificate(certif *model.CertificateData) *model.CertificateData {
+	certif.SertifName = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(strings.ToUpper(certif.SertifName)), "SERTIFIKAT"))
+	certif.KodeReferral.Divisi = strings.ToUpper(certif.KodeReferral.Divisi)
+	certif.SertifTitle = fmt.Sprintf("%s - %s - %s", certif.DataID, certif.NamaPeserta, certif.Kompetensi)
+
+	totalHSJP, totalHSSkor := uint64(0), float64(0)
+	for _, hs := range certif.HardSkills.Skills {
+		totalHSJP += hs.SkillJP
+		totalHSSkor += hs.SkillScore
+	}
+
+	totalSSJP, totalSSSkor := uint64(0), float64(0)
+	for _, ss := range certif.SoftSkills.Skills {
+		totalSSJP += ss.SkillJP
+		totalSSSkor += ss.SkillScore
+	}
+
+	certif.TotalJP = totalHSJP + totalSSJP
+	certif.FinalSkor = float64(math.Round((totalHSSkor+totalSSSkor)/float64(len(certif.HardSkills.Skills)+len(certif.SoftSkills.Skills))*10) / 10)
+
+	certif.HardSkills = model.SkillPDF{
+		Skills:          certif.HardSkills.Skills,
+		TotalSkillJP:    totalHSJP,
+		TotalSkillScore: float64(math.Round(totalHSSkor/float64(len(certif.HardSkills.Skills))*10) / 10),
+	}
+
+	certif.SoftSkills = model.SkillPDF{
+		Skills:          certif.SoftSkills.Skills,
+		TotalSkillJP:    totalSSJP,
+		TotalSkillScore: float64(math.Round(totalSSSkor/float64(len(certif.SoftSkills.Skills))*10) / 10),
+	}
+
+	return certif
 }
 
 // {

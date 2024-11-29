@@ -5,9 +5,10 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 type CertificateData struct {
 	AdminId        primitive.ObjectID `json:"admin_id" bson:"admin_id"`
 	SertifName     string             `json:"sertif_name" bson:"sertif_name"`
-	Logo           string             `json:"logo" bson:"logo"`
+	SertifTitle    string             `json:"sertif_title" bson:"sertif_title,omitempty"`
 	KodeReferral   KodeReferral       `json:"kode_referral" bson:"kode_referral"`
 	NamaPeserta    string             `json:"nama_peserta" bson:"nama_peserta"`
+	SKKNI          string             `json:"skkni" bson:"skkni"`
 	KompetenBidang string             `json:"kompeten_bidang" bson:"kompeten_bidang"`
 	Kompetensi     string             `json:"kompetensi" bson:"kompetensi"`
 	Validation     string             `json:"validation" bson:"validation"`
@@ -20,7 +21,7 @@ type CertificateData struct {
 	FinalSkor      float64            `json:"final_skor" bson:"final_skor"`
 	HardSkills     SkillPDF           `json:"hard_skills" bson:"hard_skills"`
 	SoftSkills     SkillPDF           `json:"soft_skills" bson:"soft_skills"`
-	Signature      Signature          `json:"signature" bson:"signature"`
+	Signature      SignatureData      `json:"signature" bson:"signature"`
 }
 
 type KodeReferral struct {
