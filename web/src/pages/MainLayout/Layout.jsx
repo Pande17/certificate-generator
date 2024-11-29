@@ -35,6 +35,7 @@ const Sidebar = ({ children }) => {
 			style={{
 				backgroundImage: `url('../assets/Element.svg')`,
 				backgroundRepeat: 'no-repeat',
+				backgroundCover: 'cover',
 				backgroundPosition: 'center',
 			}}
 		>
