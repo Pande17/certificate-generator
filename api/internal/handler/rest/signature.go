@@ -30,7 +30,7 @@ func CreateSignature(c *fiber.Ctx) error {
 
 	// Validate the input data
 	if _, err := govalidator.ValidateStruct(signatureReq); err != nil {
-		return BadRequest(c, "Data yang dimasukkan tidak valid! Silakan periksa kembali.", "Data tidak valid")
+		return BadRequest(c, "Data yang dimasukkan tidak valid! Silakan periksa kembali.", err.Error())
 	}
 
 	// Retrieve the admin ID from the claims stored in context
