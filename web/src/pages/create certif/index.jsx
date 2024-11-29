@@ -17,7 +17,7 @@ function MyForm() {
   const [signatureData, setSignatureData] = useState([]);
   const [skkni, setSkkni] = useState("");
   const [divisi, setDivisi] = useState("");
-  const { control, handleSubmit, reset } = useForm({
+  const { control, handleSubmit, reset, setValue } = useForm({
     defaultValues: {
       hardSkill: [],
       softSkill: [],
@@ -67,23 +67,22 @@ function MyForm() {
           )?.nama_kompetensi,
           meet_time: formData.meetingTime,
           skkni: formData.skkni,
+          validation: formData.validation,
           valid_date: {
-            valid_start: formData.expiredTimeStard,
+            valid_start: formData.expiredTimeStart,
             valid_end: formData.expiredTimeEnd,
-            valid_total: formData.validtime,
+            valid_total: formData.validTime,
           },
           total_meet: formData.totalMeeting,
           kode_referral: {
-            referral_id: formData.codeReferralOrder,
             divisi: formData.codeReferralFieldOfStudy,
-            bulan_rilis: formData.codeReferralMonth,
-            tahun_rilis: formData.codeReferralYear,
           },
           hard_skills: {
             skills: Array.isArray(formData.hardSkill)
               ? formData.hardSkill.map((skill) => ({
                   skill_name: skill.skill_name,
                   skill_jp: skill.jp,
+                  skill_score: skill.skillScore,
                   description: skill.combined_units.split("\n").map((line) => {
                     const [unit_code, unit_title] = line.split(" - ");
                     return { unit_code, unit_title };
@@ -102,7 +101,7 @@ function MyForm() {
               ? formData.softSkill.map((skill) => ({
                   skill_name: skill.skill_name,
                   skill_jp: skill.jp,
-                  skill_score: skill.skill_score,
+                  skill_score: skill.skillScore,
                   description: skill.combined_units.split("\n").map((line) => {
                     const [unit_code, unit_title] = line.split(" - ");
                     return { unit_code, unit_title };
@@ -116,9 +115,7 @@ function MyForm() {
               ) || 0,
             total_skill_score: totalSkillScore, // Replace with actual computation if necessary
           },
-          signature: {
-
-          },
+          signature: {},
           total_jp:
             (formData.hardSkill?.reduce(
               (acc, skill) => acc + (skill.jp || 0),
@@ -180,9 +177,8 @@ function MyForm() {
    }, []);
 
 const fetchCompetence = async (competenceId) => {
-  const url = `/${competenceId}`;
   try {
-    const response = await Kompetensi.get(url);
+    const response = await Kompetensi.get( `/${competenceId}`);
 
     const {
       hard_skills = [],
@@ -353,6 +349,20 @@ const fetchCompetence = async (competenceId) => {
         <Form.Item label="Total waktu Pertemuan" required>
           <Controller
             name="meetingTime"
+            control={control}
+            rules={{ required: "Meeting Time is required" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="contoh: 13"
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
+        <Form.Item label="waktu dan Tempat Pengesahan" required>
+          <Controller
+            name="validation"
             control={control}
             rules={{ required: "Meeting Time is required" }}
             render={({ field }) => (
@@ -553,6 +563,7 @@ const fetchCompetence = async (competenceId) => {
                     />
                   )}
                 />
+
                 <Controller
                   name={`softSkill[${index}].skillScore`}
                   control={control}
@@ -591,6 +602,63 @@ const fetchCompetence = async (competenceId) => {
                   </Option>
                 ))}
               </Select>
+            )}
+          />
+        </Form.Item>
+
+        <Form.Item label="waktu dan Tempat Pengesahan" required>
+          <Controller
+            name="validation"
+            control={control}
+            rules={{ required: "Meeting Time is required" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="contoh: 13"
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
+        <Form.Item label="waktu dan Tempat Pengesahan" required>
+          <Controller
+            name="validation"
+            control={control}
+            rules={{ required: "Meeting Time is required" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="contoh: 13"
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
+        <Form.Item label="waktu dan Tempat Pengesahan" required>
+          <Controller
+            name="validation"
+            control={control}
+            rules={{ required: "Meeting Time is required" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="contoh: 13"
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
+        <Form.Item label="waktu dan Tempat Pengesahan" required>
+          <Controller
+            name="validation"
+            control={control}
+            rules={{ required: "Meeting Time is required" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="contoh: 13"
+                style={{ width: "100%", height: "50px" }}
+              />
             )}
           />
         </Form.Item>
