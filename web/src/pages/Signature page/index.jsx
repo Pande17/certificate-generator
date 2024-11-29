@@ -2,7 +2,7 @@ import MainLayout from "../MainLayout/Layout";
 import { Signature } from "../api middleware";
 import { message, Table, Col, Row, Button, Input, Modal, Form } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
@@ -42,17 +42,18 @@ const SignaturePage = () => {
     fetchSignature();
   }, []);
 
-  // **Hapus Data**
-  const delHandle = async (_id) => {
-    try {
-      await Signature.delete(`/${_id}`);
-      setData((prevData) => prevData.filter((item) => item._id !== _id));
-      message.success("Data berhasil dihapus");
-    } catch (error) {
-      console.error("Error deleting data:", error);
-      message.error("Gagal menghapus data.");
-    }
-  };
+ const delHandle = async (_id) => {
+   try {
+     await Kompetensi.delete(`http://127.0.0.1:3000/api/signature/${_id}`);
+     setData((prevData) => prevData.filter((item) => item._id !== _id));
+     message.success("Data berhasil dihapus");
+   } catch (error) {
+     console.error("Error response:", error.response);
+     message.error(
+       `Gagal menghapus data: ${error.response?.data?.message || error.message}`
+     );
+   }
+ };
 
   const delConfirm = (_id, config_name) => {
     confirm({
@@ -83,6 +84,7 @@ const SignaturePage = () => {
         displayNama: certificateData.config_name || "",
         atasNama: certificateData.name || "",
         jabatan: certificateData.role || "",
+        logo: formData.linkLogo || "",
         ttd: certificateData.signature || "",
         Cap: certificateData.stamp || "",
       });
@@ -162,7 +164,7 @@ const SignaturePage = () => {
   return (
     <MainLayout>
       <div className="flex flex-col items-center justify-center w-full lg:w-3/4 p-5">
-        <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl" >
+        <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl">
           Daftar Paraf
         </p>
 
@@ -195,6 +197,35 @@ const SignaturePage = () => {
             />
           </Col>
         </Row>
+
+        <Modal
+          title="Edit Signature"
+          open={isEditModalVisible}
+          onCancel={() => setIsEditModalVisible(false)}
+          footer={null}>
+          <Form form={form} layout="vertical" onFinish={handleSubmit}>
+            <Form.Item label="Display Nama" name="config_name">
+              <Input placeholder="Masukkan nama display" />
+            </Form.Item>
+            <Form.Item label="Nama Penandatangan" name="name">
+              <Input placeholder="Masukkan nama penandatangan" />
+            </Form.Item>
+            <Form.Item label="Jabatan Penandatangan" name="role">
+              <Input placeholder="Masukkan jabatan penandatangan" />
+            </Form.Item>
+            <Form.Item label="Link Gambar Tanda Tangan" name="signature">
+              <Input placeholder="Masukkan link tanda tangan" />
+            </Form.Item>
+            <Form.Item label="Link Gambar Cap Perusahaan" name="stamp">
+              <Input placeholder="Masukkan link cap perusahaan" />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Simpan
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
 
       {/* Modal Edit */}
@@ -259,6 +290,39 @@ const SignaturePage = () => {
               rules={{ required: "Wajib mengisi link" }}
               render={({ field }) => (
                 <Input {...field} placeholder="Masukkan link cap perusahaan" />
+              )}
+            />
+          </Form.Item>
+
+          <Form.Item label="Link logo Perusahaan" required>
+            <Controller
+              name="linkLogo"
+              control={control}
+              defaultValue="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833019/aset%20pdf/pnu45hydtyftsfxlqaxm.png"
+              rules={{ required: "Link logo perusahaan diperlukan" }}
+              render={({ field }) => (
+                <>
+                  <Input
+                    {...field}
+                    placeholder="Masukkan Link Gambar"
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                  {/* Menampilkan gambar dari link yang dimasukkan */}
+                  {field.value && (
+                    <div style={{ marginTop: "10px" }}>
+                      <img
+                        src={field.value}
+                        alt="Logo Perusahaan"
+                        style={{
+                          width: "200px",
+                          height: "200px",
+                          border: "solid",
+                          borderColor: "black",
+                        }}
+                      />
+                    </div>
+                  )}
+                </>
               )}
             />
           </Form.Item>

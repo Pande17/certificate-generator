@@ -14,6 +14,7 @@ import CertificateTable from "./pages/qr page/index.jsx";
 // import errorHandle from "./pages/Error.jsx";
 
 
+
 const App = () => {
   return (
     <Routes>
