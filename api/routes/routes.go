@@ -14,9 +14,9 @@ func RouteSetup(r *fiber.App) {
 	// CORS Middleware setup
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     os.Getenv("CERTIF_GEN_FRONTEND"),
-		AllowMethods:     "GET,POST,PUT,DELETE",                                 // Allowed HTTP methods
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, Cookie", // Allowed headers
-		ExposeHeaders:    "Authorization, Cookie, authToken, Bearer",
+		AllowMethods:     "GET,POST,PUT,DELETE",                                                                      // Allowed HTTP methods
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, Cookie, authToken, Bearer, X-Requested-With", // Allowed headers
+		ExposeHeaders:    "Content-Type, Authorization, Cookie, authToken, Bearer",
 		AllowCredentials: true,
 	}))
 
