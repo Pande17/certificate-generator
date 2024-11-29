@@ -106,6 +106,7 @@ const competence = () => {
     setIsEditModalVisible(true);
   };
 
+
   const filteredData = data.filter((item) =>
     item.nama_kompetensi.toLowerCase().includes(searchText.toLowerCase())
   );
