@@ -137,7 +137,7 @@ function MyForm() {
         },
       };
 
-      const response = await Sertifikat.post("/", formattedData);
+      const response = await Sertifikat.post("", formattedData);
 
       if (response.status === 200) {
         console.log(data);
