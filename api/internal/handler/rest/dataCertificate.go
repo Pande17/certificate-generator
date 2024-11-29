@@ -8,236 +8,403 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// connect collection certificate in database
+var certificateCollection = database.GetCollection("certificate")
+var competenceCollection = database.GetCollection("competence")
+var counterCollection = database.GetCollection("counters")
+
+// function for Create data certificate
 func CreateCertificate(c *fiber.Ctx) error {
 	// add body request
 	var pdfReq struct {
-		Data     model.CertificateData `json:"data" bson:"data"`
-		Zoom     float64               `json:"zoom"`
-		SaveDB   bool                  `json:"savedb"`
-		PageName string                `json:"page_name"`
+		Data model.CertificateData `json:"data" bson:"data"`
 	}
 
 	// parse the body request
 	if err := c.BodyParser(&pdfReq); err != nil {
-		return BadRequest(c, "Invalid body request", err.Error())
+		return BadRequest(c, "Data yang dimasukkan tidak valid! Mohon periksa kembali.", err.Error())
 	}
 
-	// connect collection certificate in database
-	certificateCollection := database.GetCollection("certificate")
-	competenceCollection := database.GetCollection("competence")
-	counterCollection := database.GetCollection("counters")
+	// Retrieve the admin ID from the claims stored in context
+	claims := c.Locals("admin").(jwt.MapClaims)
+	adminID, ok := claims["sub"].(string)
+	if !ok {
+		return Unauthorized(c, "Token Admin tidak valid!", "Token Admin tidak valid!")
+	}
+
+	// Convert adminID (which is a string) to MongoDB ObjectID
+	objectID, err := primitive.ObjectIDFromHex(adminID)
+	if err != nil {
+		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
+	}
 
 	// generate DataID (random string with 8 letter)
 	newDataID, err := generator.GetUniqueRandomID(certificateCollection, 8)
 	if err != nil {
-		return InternalServerError(c, "Failed to generate Data ID", "Server failed generate Data ID")
-	}
-
-	// generate qrcode
-	link := fmt.Sprintf("%s://%s/assets/certificate/", c.Protocol(), c.Hostname())
-	encstr, err := generator.GenerateQRCode(link, newDataID)
-	if err != nil {
-		return InternalServerError(c, "Failed to generate QRCode Img", "Server failed generate qrcode img")
+		return Conflict(c, "Gagal membuat ID Sertifikat! Silahkan coba lagi.", "Server failed generate Data ID")
 	}
 
 	// generate referral ID
-	nextReferralID, err := generator.GenerateReferralID(counterCollection, time.Now())
+	currentTime := time.Now()
+	nextReferralID, err := generator.GenerateReferralID(counterCollection, currentTime)
 	if err != nil {
-		return InternalServerError(c, "Failed to generate Referral ID", "Server failed generate Referral ID")
+		return Conflict(c, "Gagal membuat sertifikat! Silahkan coba lagi.", "Server failed generate Referral ID")
 	}
+
+	// generate month roman and year
+	year := currentTime.Year()
+	monthRoman := generator.MonthToRoman(int(currentTime.Month()))
 
 	// fetch Kompetensi by the given nama_kompetensi from the request
 	var kompetensi model.Kompetensi
 	filter := bson.M{"nama_kompetensi": pdfReq.Data.Kompetensi}
 	err = competenceCollection.FindOne(context.TODO(), filter).Decode(&kompetensi)
 	if err != nil {
-		return NotFound(c, "Competence Not Found", "Fetch Kompetepetensi by the given nama_kompetensi from the request")
+		return NotFound(c, "Gagal memeriksa kompetensi yang ada. Silakan coba lagi.", err.Error())
 	}
 
-	// can calculate jp & score automatically, but needs to have the correct json body
-
-	totalHSJP, totalHSSkor := uint64(0), float64(0)
-	for _, hs := range pdfReq.Data.HardSkills.Skills {
-		totalHSJP += hs.SkillJP
-		totalHSSkor += hs.SkillScore
-	}
-
-	totalSSJP, totalSSSkor := uint64(0), float64(0)
-	for _, ss := range pdfReq.Data.SoftSkills.Skills {
-		totalSSJP += ss.SkillJP
-		totalSSSkor += ss.SkillScore
-	}
+	pdfReq.Data = *processCertificate(&pdfReq.Data)
 
 	mappedData := model.CertificateData{
-		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
+		AdminId:    objectID,
+		SertifName: pdfReq.Data.SertifName,
 		KodeReferral: model.KodeReferral{
 			ReferralID: nextReferralID,
-			Divisi:     pdfReq.Data.KodeReferral.Divisi,
-			BulanRilis: pdfReq.Data.KodeReferral.BulanRilis,
-			TahunRilis: pdfReq.Data.KodeReferral.TahunRilis,
+			Divisi:     kompetensi.Divisi,
+			BulanRilis: monthRoman,
+			TahunRilis: year,
 		},
-		NamaPeserta:    strings.TrimSpace(pdfReq.Data.NamaPeserta),
-		SKKNI:          pdfReq.Data.SKKNI,
+		NamaPeserta:    pdfReq.Data.NamaPeserta,
+		SKKNI:          kompetensi.SKKNI,
 		KompetenBidang: pdfReq.Data.KompetenBidang,
 		Kompetensi:     pdfReq.Data.Kompetensi,
 		Validation:     pdfReq.Data.Validation,
-		QRCode:         encstr,
 		DataID:         newDataID,
-		TotalJP:        totalHSJP + totalSSJP,
+		TotalJP:        pdfReq.Data.TotalJP,
 		TotalMeet:      pdfReq.Data.TotalMeet,
 		MeetTime:       pdfReq.Data.MeetTime,
 		ValidDate:      pdfReq.Data.ValidDate,
-		HardSkills: model.SkillPDF{
-			Skills:          pdfReq.Data.HardSkills.Skills,
-			TotalSkillJP:    totalHSJP,
-			TotalSkillScore: float64(math.Round(totalHSSkor/float64(len(pdfReq.Data.HardSkills.Skills))*10) / 10),
+		HardSkills:     pdfReq.Data.HardSkills,
+		SoftSkills:     pdfReq.Data.SoftSkills,
+		FinalSkor:      pdfReq.Data.FinalSkor,
+		Signature: model.Signature{
+			ConfigName: pdfReq.Data.Signature.ConfigName,
+			Stamp:      pdfReq.Data.Signature.Stamp,
+			Signature:  pdfReq.Data.Signature.Signature,
+			Logo:       pdfReq.Data.Signature.Logo,
+			Name:       pdfReq.Data.Signature.Name,
+			Role:       pdfReq.Data.Signature.Role,
 		},
-		SoftSkills: model.SkillPDF{
-			Skills:          pdfReq.Data.SoftSkills.Skills,
-			TotalSkillJP:    totalSSJP,
-			TotalSkillScore: float64(math.Round(totalSSSkor/float64(len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
-		},
-		FinalSkor: float64(math.Round((totalHSSkor+totalSSSkor)/float64(len(pdfReq.Data.HardSkills.Skills)+len(pdfReq.Data.SoftSkills.Skills))*10) / 10),
 	}
 
 	certificate := model.PDF{
-		ID:         primitive.NewObjectID(),
+		AdminId:    objectID,
 		DataID:     newDataID,
-		SertifName: strings.ToUpper(pdfReq.Data.SertifName),
+		SertifName: pdfReq.Data.SertifName,
 		Data:       mappedData,
 		Model: model.Model{
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			ID:        primitive.NewObjectID(),
+			CreatedAt: currentTime,
+			UpdatedAt: currentTime,
 			DeletedAt: nil,
 		},
 	}
 
-	if err = generator.CreatePDF(c, &mappedData, pdfReq.Zoom, pdfReq.PageName); err != nil {
-		return InternalServerError(c, "can't create pdf file", err.Error())
-	}
+	// make pdf creation concurrent to return handler faster
+	go generator.CreatePDF(c, &mappedData, "ab")
 
 	// insert data from struct "PDF" to collection "certificate" in database MongoDB
-	if pdfReq.SaveDB {
-		_, err = certificateCollection.InsertOne(context.TODO(), certificate)
-		if err != nil {
-			return InternalServerError(c, "Failed to create new certificate data", "Server failed create new certificate")
-		}
+	_, err = certificateCollection.InsertOne(context.TODO(), certificate)
+	if err != nil {
+		return Conflict(c, "Gagal membuat data sertifikat baru! Silakan coba lagi.", "Server failed create new certificate")
 	}
 
 	// return success
-	return OK(c, "Success create new certificate", certificate)
+	return OK(c, "Berhasil membuat sertifikat baru!", certificate)
 }
 
-// Function to se all Admin Account
+// function for get all certificate data
 func GetAllCertificates(c *fiber.Ctx) error {
 	var results []bson.M
 
-	certificateCollection := database.GetCollection("certificate")
+	ctx := c.Context()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	// Retrieve the admin ID from the claims stored in context
+	claims := c.Locals("admin").(jwt.MapClaims)
+	adminID, ok := claims["sub"].(string)
+	if !ok {
+		return Unauthorized(c, "Token Admin tidak valid!", "Token Admin tidak valid!")
+	}
+
+	// Convert adminID (which is a string) to MongoDB ObjectID
+	objectID, err := primitive.ObjectIDFromHex(adminID)
+	if err != nil {
+		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
+	}
 
 	// set the projection to return the required fields
 	projection := bson.M{
 		"_id":         1,
+		"admin_id":    1,
 		"data_id":     1,
 		"sertif_name": 1,
 		"created_at":  1,
 		"updated_at":  1,
 		"deleted_at":  1,
-		// "data":        1,
 	}
 
-	// find the projection
-	cursor, err := certificateCollection.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	// Create the filter to include admin_id and handle deleted_at
+	filter := bson.M{
+		"admin_id": objectID,
+		"$or": []bson.M{
+			{"deleted_at": bson.M{"$exists": false}}, // DeletedAt field does not exist
+			{"deleted_at": bson.M{"$eq": nil}},       // DeletedAt field is nil
+		},
+	}
+
+	// Find all documents that match
+	cursor, err := certificateCollection.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "No Documents Found", "No certificates found")
+			return NotFound(c, "Sertifikat tidak dapat ditemukan!", err.Error())
 		}
-		return InternalServerError(c, "Failed to fetch data", "mongodb error can't find data")
+		return Conflict(c, "Gagal mengambil data kompetensi! Silakan coba lagi.", err.Error())
 	}
 	defer cursor.Close(ctx)
 
-	// decode each document and append it to results
+	// Decode each document and append it to results
 	for cursor.Next(ctx) {
-		var certificate bson.M
-		if err := cursor.Decode(&certificate); err != nil {
-			return InternalServerError(c, "Failed to decode data", "Cannot decode data")
+		var certiticate bson.M
+		if err := cursor.Decode(&certiticate); err != nil {
+			return Conflict(c, "Gagal mengambil data! Silakan coba lagi.", err.Error())
 		}
-		results = append(results, certificate)
+		results = append(results, certiticate)
 	}
 	if err := cursor.Err(); err != nil {
-		return InternalServerError(c, "Cursor error", "Cursor error")
+		return Conflict(c, "Gagal mengambil data! Silakan coba lagi.", err.Error())
 	}
 
 	// return success
-	return OK(c, "Success get all data", results)
+	return OK(c, "Berhasil menampilkan semua data Kompetensi!", results)
 }
 
+// function for get detail certificate data by id
 func GetCertificateByID(c *fiber.Ctx) error {
-	// Get acc_id from params
 	idParam := c.Params("id")
+	searchKey := c.Params("type")
+	if searchKey == "" { // from handler w/o type param, to not break api
+		searchKey = "oid"
+	} else if searchKey == "a" || searchKey == "b" { // from type of certificate
+		searchKey = "data_id"
+	}
+	var searchVal any
+	searchVal = idParam
 
-	// Convert idParam to ObjectID if needed
-	certifID, err := primitive.ObjectIDFromHex(idParam)
-	if err != nil {
-		fmt.Printf("error: %v\n", err.Error())
-		return BadRequest(c, "Invalid ID format", "Please provide a valid ObjectID")
+	// Convert to ObjectID if needed
+	if searchKey == "oid" {
+		searchKey = "_id"
+		certifID, err := primitive.ObjectIDFromHex(idParam)
+		if err != nil {
+			return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
+		}
+		searchVal = certifID
 	}
 
-	// connect to collection in mongoDB
-	certificateCollection := database.GetCollection("certificate")
-
-	// make filter to find document based on data_id (incremental id)
-	filter := bson.M{"_id": certifID}
+	// Make filter to find document based on search key & value
+	filter := bson.M{searchKey: searchVal}
 
 	// Variable to hold search results
 	var certifDetail bson.M
 
-	// Find a single document that matches the filter
-	err = certificateCollection.FindOne(context.TODO(), filter).Decode(&certifDetail)
-	if err != nil {
-		// If not found, return a 404 status.
+	// find a single document that matches the filter
+	if err := certificateCollection.FindOne(c.Context(), filter).Decode(&certifDetail); err != nil {
+		// if not found, return a 404 status
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "Data not found", "Cannot find certificate")
+			return NotFound(c, "Sertifikat ini tidak dapat ditemukan! Silakan periksa ID yang dimasukkan.", "Find Detail Certificate")
 		}
-		// If in server error, return status 500
-		return InternalServerError(c, "Failed to retrieve data", "Server can't find certificate")
+		return Conflict(c, "Gagal mendapatkan data! Silakan coba lagi.", err.Error())
 	}
 
-	// check if document is already deleted
-	if deletedAt, ok := certifDetail["deleted_at"]; ok && deletedAt != nil {
-		// Return the deletion time if the account is already deleted
-		return AlreadyDeleted(c, "This certificate has already been deleted", "Check deleted certificate", deletedAt)
+	// Check if the certificate has been deleted
+	if deletedAt, exists := certifDetail["deleted_at"]; exists && deletedAt != nil {
+		return AlreadyDeleted(c, "Sertifikat ini telah dihapus! Silakan hubungi admin.", "Check deleted certificate", deletedAt)
 	}
 
 	// return success
-	return OK(c, "Success get certificate data", certifDetail)
+	return OK(c, "Berhasil mendapatkan data sertifikat!", certifDetail)
 }
 
-// Function for soft delete admin account
-func DeleteCertificate(c *fiber.Ctx) error {
-	// Get dataid from params
+// / Function for edit data certificate
+func EditCertificate(c *fiber.Ctx) error {
 	idParam := c.Params("id")
-
-	// Convert idParam to ObjectID if needed
-	certifID, err := primitive.ObjectIDFromHex(idParam)
+	accID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		return BadRequest(c, "Invalid ID format", "Please provide a valid ObjectID")
+		return BadRequest(c, "Data Sertifikat tidak ditemukan! Silakan periksa ID sertifikat.", "Gagal mengonversi parameter pada Edit Sertifikat")
 	}
 
-	// connect to collection in mongoDB
-	certificateCollection := database.GetCollection("certificate")
+	filter := bson.M{"_id": accID}
+	var certificate bson.M
+
+	if err := certificateCollection.FindOne(c.Context(), filter).Decode(&certificate); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return NotFound(c, "Data Sertifikat tidak ditemukan!", "Gagal menemukan Data Sertifikat")
+		}
+		return Conflict(c, "Gagal mendapatkan Data Sertifikat! Silakan coba lagi.", "Gagal menemukan Data Sertifikat")
+	}
+
+	if deletedAt, ok := certificate["deleted_at"]; ok && deletedAt != nil {
+		return AlreadyDeleted(c, "Data Sertifikat ini sudah dihapus! Silakan hubungi Data Sertifikat.", "Periksa Data Sertifikat yang dihapus", deletedAt)
+	}
+
+	var input struct {
+		Data struct {
+			SertifName   string `json:"sertif_name"`
+			Logo         string `json:"logo"`
+			KodeReferral struct {
+				Divisi string `json:"divisi"`
+			} `json:"kode_referral"`
+			NamaPeserta    string `json:"nama_peserta"`
+			Skkni          string `json:"skkni"`
+			KompetenBidang string `json:"kompeten_bidang"`
+			Kompetensi     string `json:"kompetensi"`
+			Validation     string `json:"validation"`
+			ValidDate      struct {
+				ValidTotal string `json:"valid_total"`
+				ValidStart string `json:"valid_start"`
+				ValidEnd   string `json:"valid_end"`
+			} `json:"valid_date"`
+			TotalMeet  int    `json:"total_meet"`
+			MeetTime   string `json:"meet_time"`
+			HardSkills struct {
+				Skills []struct {
+					SkillName   string `json:"skill_name"`
+					Description []struct {
+						UnitCode  string `json:"unit_code"`
+						UnitTitle string `json:"unit_title"`
+					} `json:"description"`
+					SkillJP    int     `json:"skill_jp"`
+					SkillScore float64 `json:"skill_score"`
+				} `json:"skills"`
+			} `json:"hard_skills"`
+			SoftSkills struct {
+				Skills []struct {
+					SkillName   string `json:"skill_name"`
+					Description []struct {
+						UnitCode  string `json:"unit_code"`
+						UnitTitle string `json:"unit_title"`
+					} `json:"description"`
+					SkillJP    int     `json:"skill_jp"`
+					SkillScore float64 `json:"skill_score"`
+				} `json:"skills"`
+			} `json:"soft_skills"`
+			Signature struct {
+				ConfigName string `json:"config_name"`
+				Stamp      string `json:"stamp"`
+				Signature  string `json:"signature"`
+				Name       string `json:"name"`
+				Role       string `json:"role"`
+			} `json:"signature"`
+		} `json:"data"`
+	}
+
+	if err := c.BodyParser(&input); err != nil {
+		return BadRequest(c, "Data yang dimasukkan tidak valid! Silakan periksa kembali.", "Periksa body permintaan")
+	}
+
+	// Retrieve existing KodeReferral values
+	existingKodeReferral := certificate["data"].(bson.M)["kode_referral"].(bson.M)
+
+	// Calculate total JP and total score for hard skills
+	totalHSJP, totalHSSkor := uint64(0), float64(0)
+	for _, hs := range input.Data.HardSkills.Skills {
+		totalHSJP += uint64(hs.SkillJP)
+		totalHSSkor += hs.SkillScore
+	}
+
+	// Calculate total JP and total score for soft skills
+	totalSSJP, totalSSSkor := uint64(0), float64(0)
+	for _, ss := range input.Data.SoftSkills.Skills {
+		totalSSJP += uint64(ss.SkillJP)
+		totalSSSkor += ss.SkillScore
+	}
+
+	// Calculate final score
+	totalJP := totalHSJP + totalSSJP
+	totalScore := totalHSSkor + totalSSSkor
+	finalSkor := float64(0)
+	if totalJP > 0 {
+		finalSkor = float64(math.Round((totalScore/float64(totalJP))*10) / 10)
+	}
+
+	// Debugging: Log calculated values
+	fmt.Printf("Total HS JP: %d, Total HS Score: %.2f\n", totalHSJP, totalHSSkor)
+	fmt.Printf("Total SS JP: %d, Total SS Score: %.2f\n", totalSSJP, totalSSSkor)
+	fmt.Printf("Total JP: %d, Total Score: %.2f, Final Skor: %.2f\n", totalJP, totalScore, finalSkor)
+
+	sertifName := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(strings.ToUpper(input.Data.SertifName)), "SERTIFIKAT"))
+	
+	// Update the certificate with the new data while preserving KodeReferral fields
+	update := bson.M{
+		"$set": bson.M{
+			"data": bson.M{
+				"sertif_name": sertifName,
+				"logo":        input.Data.Logo,
+				"kode_referral": bson.M{
+					"referral_id": existingKodeReferral["referral_id"], // Preserve existing referral ID
+					"divisi":      input.Data.KodeReferral.Divisi,      // Update only Divisi
+					"bulan_rilis": existingKodeReferral["bulan_rilis"], // Preserve existing Bulan Rilis
+					"tahun_rilis": existingKodeReferral["tahun_rilis"], // Preserve existing Tahun Rilis
+				},
+				"nama_peserta":    input.Data.NamaPeserta,
+				"skkni":           input.Data.Skkni,
+				"kompeten_bidang": input.Data.KompetenBidang,
+				"kompetensi":      input.Data.Kompetensi,
+				"validation":      input.Data.Validation,
+				"valid_date":      input.Data.ValidDate,
+				"total_meet":      input.Data.TotalMeet,
+				"meet_time":       input.Data.MeetTime,
+				"hard_skills":     input.Data.HardSkills,
+				"soft_skills":     input.Data.SoftSkills,
+				"final_skor":      float64(math.Round((totalHSSkor+totalSSSkor)/float64(len(input.Data.HardSkills.Skills)+len(input.Data.SoftSkills.Skills))*10) / 10), // Set the calculated final score
+			},
+			"updated_at": time.Now(),
+		},
+	}
+
+	// make pdf creation concurrent to return handler faster
+	// go generator.CreatePDF(c, &update, "ab")
+
+	_, err = certificateCollection.UpdateOne(c.Context(), filter, update)
+	if err != nil {
+		return Conflict(c, "Gagal memperbarui Data Sertifikat! Silakan coba lagi.", "Gagal memperbarui Data Sertifikat")
+	}
+
+	// Return success
+	return OK(c, "Data Sertifikat berhasil diperbarui!", update)
+}
+
+// Function for soft delete data certificate
+func DeleteCertificate(c *fiber.Ctx) error {
+	// Get id param
+	idParam := c.Params("id")
+
+	// Convert idParam to ObjectID
+	certifID, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		return BadRequest(c, "Sertifikat ini tidak ada! Silakan periksa ID yang dimasukkan.", "Please provide a valid ObjectID")
+	}
 
 	// make filter to find document based on acc_id (incremental id)
 	filter := bson.M{"_id": certifID}
@@ -248,53 +415,110 @@ func DeleteCertificate(c *fiber.Ctx) error {
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			fmt.Printf("error: %v\n", err.Error())
-			return NotFound(c, "Certificate not found", "Cannot find certificate")
+			return NotFound(c, "Tidak dapat menemukan sertifikat! Silakan periksa ID yang dimasukkan.", "Cannot find certificate")
 		}
-		return InternalServerError(c, "Failed to fetch certificate", "server error cannot find certificate")
+		return Conflict(c, "Gagal mengambil data! Silakan coba lagi.", "server error cannot find certificate")
 	}
 
-	// Check if DeletedAt field already has a value
+	// Check if the certificate has been deleted
 	if deletedAt, ok := certificate["deleted_at"]; ok && deletedAt != nil {
-		// Return the deletion time if the certificate is already deleted
-		return AlreadyDeleted(c, "This certificate has already been deleted", "Check deleted certificate", deletedAt)
+		return AlreadyDeleted(c, "Sertifikat ini telah dihapus! Silakan hubungi admin.", "Check deleted certificate", deletedAt)
 	}
 
-	// make update for input timestamp DeletedAt
+	// Update the deleted_at timestamp
 	update := bson.M{"$set": bson.M{"deleted_at": time.Now()}}
 
 	// update document in collection MongoDB
 	result, err := certificateCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		return InternalServerError(c, "Failed to delete certificate", "Delete certificate")
+		return Conflict(c, "Gagal menghapus sertifikat! Silakan coba lagi.", "Delete certificate")
 	}
 
-	// Check if the document is found and updated
+	// Check if the document was already deleted
 	if result.MatchedCount == 0 {
-		return NotFound(c, "Certificate not found", "Found certificate")
+		return NotFound(c, "Kompetensi ini tidak dapat ditemukan! Silakan periksa ID yang dimasukkan.", "Found certificate")
 	}
 
 	// Respons success
-	return OK(c, "Successfully deleted certificate", idParam)
+	return OK(c, "Berhasil menghapus sertifikat!", idParam)
 }
 
 func DownloadCertificate(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-
-	if err := c.RedirectToRoute("/certificate", fiber.Map{
-		"queries": map[string]string{
-			"type": "id",
-			"s":    idParam,
-		},
-	}); err != nil {
-		return err
+	certifType := c.Params("type")
+	if !(certifType == "a" || certifType == "b") {
+		return BadRequest(c, "Tipe sertifikat tidak diketahui.", "query type isn't a or b")
 	}
 
-	var certifDetail model.PDF
-	if err := json.Unmarshal(c.Response().Body(), &certifDetail); err != nil {
-		return InternalServerError(c, "can't unmarshal body", err.Error())
+	// search certif data, checking if data exists
+	if c.Next(); c.Response().StatusCode()/100 != 2 {
+		return NotFound(c, "Sertifikat dengan id "+c.Params("id", "yang dicari")+" tidak ditemukan.", "use certif that exists in db")
 	}
 
-	return c.Download("./temp/certificate/"+idParam+".pdf", "Sertifikat BTW Edutech - "+certifDetail.Data.NamaPeserta)
+	var resp fiber.Map
+	var pdf model.PDF
+	bodyres := c.Response().Body()
+	if err := json.Unmarshal(bodyres, &resp); err != nil {
+		return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
+	}
+	if pdfBytes, err := json.Marshal(resp["data"]); err != nil {
+		return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
+	} else {
+		if err := json.Unmarshal(pdfBytes, &pdf); err != nil {
+			return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
+		}
+	}
+	data := pdf.Data
+
+	filepath := "./api/certificate/download/" + data.DataID + "-" + certifType + ".pdf"
+	if _, err := os.Stat(filepath); err != nil {
+		if os.IsNotExist(err) {
+			if _, creating := generator.CreatingPDF[data.DataID+"-"+certifType]; creating {
+				for _, creating := generator.CreatingPDF[data.DataID+"-"+certifType]; creating; {
+					time.Sleep(time.Second)
+				}
+			}
+			if err = generator.CreatePDF(c, &data, certifType); err != nil {
+				return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
+			}
+		} else {
+			return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
+		}
+	}
+	c.Response().Header.Add("Content-Type", "application/pdf")
+	return c.Download("./assets/certificate/"+data.DataID+"-"+certifType+".pdf", "Sertifikat BTW Edutech "+certifType+" - "+data.NamaPeserta)
+}
+
+func processCertificate(certif *model.CertificateData) *model.CertificateData {
+	certif.SertifName = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(strings.ToUpper(certif.SertifName)), "SERTIFIKAT"))
+
+	totalHSJP, totalHSSkor := uint64(0), float64(0)
+	for _, hs := range certif.HardSkills.Skills {
+		totalHSJP += hs.SkillJP
+		totalHSSkor += hs.SkillScore
+	}
+
+	totalSSJP, totalSSSkor := uint64(0), float64(0)
+	for _, ss := range certif.SoftSkills.Skills {
+		totalSSJP += ss.SkillJP
+		totalSSSkor += ss.SkillScore
+	}
+
+	certif.TotalJP = totalHSJP + totalSSJP
+	certif.FinalSkor = float64(math.Round((totalHSSkor+totalSSSkor)/float64(len(certif.HardSkills.Skills)+len(certif.SoftSkills.Skills))*10) / 10)
+
+	certif.HardSkills = model.SkillPDF{
+		Skills:          certif.HardSkills.Skills,
+		TotalSkillJP:    totalHSJP,
+		TotalSkillScore: float64(math.Round(totalHSSkor/float64(len(certif.HardSkills.Skills))*10) / 10),
+	}
+
+	certif.SoftSkills = model.SkillPDF{
+		Skills:          certif.SoftSkills.Skills,
+		TotalSkillJP:    totalSSJP,
+		TotalSkillScore: float64(math.Round(totalSSSkor/float64(len(certif.SoftSkills.Skills))*10) / 10),
+	}
+
+	return certif
 }
 
 // {

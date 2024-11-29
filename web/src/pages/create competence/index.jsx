@@ -1,15 +1,24 @@
 import { useEffect, useState } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
-import axios from "axios";
 import { Form, Input, Button, Space, message, Select } from "antd";
-import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
+import { PlusOutlined, MinusCircleOutlined, RotateLeftOutlined, BackwardFilled } from "@ant-design/icons";
 import MainLayout from "../MainLayout/Layout";
+import { useNavigate } from "react-router-dom";
+import { Kompetensi } from "../api middleware";
 
 const { Option } = Select;
 
 const Tool = () => {
+  const navigate = useNavigate();
+
+  const backHandle = () => {
+    navigate("/competence");
+  }
+
   const { control, handleSubmit, reset, watch } = useForm({
     defaultValues: {
+      skkni:"",
+      divisi:"",
       competenceName: "",
       hardSkills: [
         { skill_name: "", description: [{ unit_code: "", unit_title: "" }] },
@@ -40,8 +49,8 @@ const Tool = () => {
   useEffect(() => {
     const fetchCompetencies = async () => {
       try {
-        const response = await axios.get(
-          "http://127.0.0.1:3000/api/competence"
+        const response = await Kompetensi.get(
+          "/"
         );
         if (response.data && Array.isArray(response.data.data)) {
           setCompetencies(response.data.data);
@@ -76,20 +85,22 @@ const Tool = () => {
   const onSubmit = async (data) => {
     const competenceData = {
       nama_kompetensi: data.competenceName,
+      skkni: data.skkni,
+      divisi: data.devisi,
       hard_skills: data.hardSkills,
       soft_skills: data.softSkills,
     };
 
     try {
       if (data.selectedCompetenceId) {
-        await axios.put(
-          `http://127.0.0.1:3000/api/competence/${data.selectedCompetenceId}`,
+        await Kompetensi.put(
+          `/${data.selectedCompetenceId}`,
           competenceData
         );
         message.success("Kompetensi berhasil diperbarui!");
       } else {
-        await axios.post(
-          "http://127.0.0.1:3000/api/competence",
+        await Kompetensi.post(
+          "/",
           competenceData
         );
         message.success("Kompetensi berhasil ditambahkan!");
@@ -103,11 +114,18 @@ const Tool = () => {
 
   return (
     <MainLayout>
+      <div className="m-2">
+        <Button
+          style={{ width: "50px", height: "50px" }}
+          icon={<BackwardFilled />}
+          onClick={backHandle}
+        />
+      </div>
       <Form
         layout="vertical"
         onFinish={handleSubmit(onSubmit)}
         style={{
-          width:"60vh",
+          width: "95%",
           maxHeight: "100vh",
           overflowY: "scroll",
           backgroundColor: "white",
@@ -115,46 +133,66 @@ const Tool = () => {
           borderRadius: "20px",
         }}
       >
-        <Form.Item label="Pilih Kompetensi" required>
-          <Controller
-            name="selectedCompetenceId"
-            control={control}
-            render={({ field }) => (
-              <Select
-                placeholder="Pilih kompetensi"
-                {...field}
-                style={{ width: "100%", height: "50px"}}
-              >
-                <Option value={null}>Tambah Kompetensi Baru</Option>
-                {competencies.length > 0 ? (
-                  competencies.map((competence) => (
-                    <Option key={competence._id} value={competence._id}>
-                      {competence.nama_kompetensi}
-                    </Option>
-                  ))
-                ) : (
-                  <Option disabled>Tidak ada kompetensi tersedia</Option>
-                )}
-              </Select>
-            )}
-          />
-        </Form.Item>
+        <h3 className="text-center font-Poppins text-2xl font-bold p-6">
+          Buat kompetensi{" "}
+        </h3>
 
         <Form.Item label="Nama Kompetensi" required>
           <Controller
             name="competenceName"
             control={control}
+            rules={{ required: "Nama Kompetensi wajib diisi!" }}
             render={({ field }) => (
               <Input
                 placeholder="Masukkan nama kompetensi"
                 {...field}
-                style={{ width: "100%",  height: "50px" }}
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
+        <Form.Item label="Skkni" required>
+          <Controller
+            name="skkni"
+            control={control}
+            render={({ field }) => (
+              <Input
+                placeholder="SKKNI No. 16 Th. 2016"
+                {...field}
+                style={{ width: "100%", height: "50px" }}
               />
             )}
           />
         </Form.Item>
 
-        <h3 className="text-center text-2xl font-Poppins font-medium">
+        <Form.Item label="Divisi" required>
+          <Controller
+            name="devisi"
+            control={control}
+            rules={{
+              required: "Input divisi berlebihan atau kurang dari satu! maksimal(1-3 huruf)",
+              validate: (value) =>
+                value.length <= 6 ||
+                "Input divisi berlebihan atau kurang dari satu!",
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <>
+                <Input
+                  placeholder="IT"
+                  {...field}
+                  style={{ width: "100%", height: "50px" }}
+                />
+                {error && (
+                  <span style={{ color: "red", fontSize: "12px" }}>
+                    {error.message}
+                  </span>
+                )}
+              </>
+            )}
+          />
+        </Form.Item>
+
+        <h3 className="text-center font-Poppins text-2xl font-medium p-6">
           Hard Skills
         </h3>
         {hardSkillsFields.map((field, index) => (
@@ -167,7 +205,7 @@ const Tool = () => {
                   <Input
                     placeholder="Masukkan nama hard skill"
                     {...field}
-                    style={{ width: "100%", height: "50px"}}
+                    style={{ width: "100%", height: "50px" }}
                   />
                 )}
               />
@@ -229,7 +267,7 @@ const Tool = () => {
           Tambah Hard Skill
         </Button>
 
-        <h3 className="text-center text-2xl font-Poppins font-medium">
+        <h3 className="text-center font-Poppins text-2xl font-medium p-6">
           Soft Skills
         </h3>
         {softSkillsFields.map((field, index) => (
@@ -242,7 +280,7 @@ const Tool = () => {
                   <Input
                     placeholder="Masukkan nama soft skill"
                     {...field}
-                    style={{ width: "100%", height: "50px"}}
+                    style={{ width: "100%", height: "50px" }}
                   />
                 )}
               />

@@ -1,86 +1,61 @@
 import React, { useEffect, useState } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
-import { Form, Input, Button, Select } from "antd";
+import {
+  Form,
+  Input,
+  DatePicker,
+  Button,
+  InputNumber,
+  Select,
+  message,
+} from "antd";
 import MainLayout from "../MainLayout/Layout";
 import axios from "axios";
 
 function MyForm() {
-  const [data, setData] = useState([]); // Competence data
-  const [competenceData, setCompetenceData] = useState(null); // Selected competence data
+  const [competenceData, setCompetenceData] = useState([]);
+  const [signatureData, setSignatureData] = useState([]); // State baru untuk tanda tangan
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       hardSkill: [],
       softSkill: [],
       selectedCompetenceId: "",
+      selectedSignatureId: "", // Field baru untuk tanda tangan
     },
   });
-
-  const { fields: hardSkillFields, append: appendHardSkill } = useFieldArray({
-    control,
-    name: "hardSkill",
-  });
-
-  const { fields: softSkillFields, append: appendSoftSkill } = useFieldArray({
-    control,
-    name: "softSkill",
-  });
-
-  const onSubmit = (data) => {
-    console.log("Data submitted:", data);
-    reset(); // Reset after form submission
-  };
 
   const { Option } = Select;
 
   useEffect(() => {
-    const fetchApi = async () => {
+    // Fetch competence data
+    const fetchCompetence = async () => {
       try {
         const response = await axios.get(
           "http://127.0.0.1:3000/api/competence"
         );
-        setData(response.data.data); // Store competence data
+        setCompetenceData(response.data.data);
       } catch (error) {
-        console.log(error);
+        console.log("Error fetching competence data:", error);
       }
     };
-    fetchApi();
+
+    // Fetch signature data
+    const fetchSignature = async () => {
+      try {
+        const response = await axios.get("http://127.0.0.1:3000/api/signature");
+        setSignatureData(response.data.data);
+      } catch (error) {
+        console.log("Error fetching signature data:", error);
+      }
+    };
+
+    fetchCompetence();
+    fetchSignature();
   }, []);
 
-  const fetchCompetence = async (competenceId) => {
-    const type = "id";
-    const url = `http://127.0.0.1:3000/api/competence?type=${type}&s=${competenceId}`;
-    try {
-      const response = await axios.get(url);
-      setCompetenceData(response.data.data);
-
-      if (response.data.data.hard_skills) {
-        response.data.data.hard_skills.forEach((hardSkill) =>
-          appendHardSkill({
-            skill_name: hardSkill.hardskill_name || "",
-            combined_units: hardSkill.description
-              .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
-              .join("\n"), // Combines unit code and title in a single TextArea format
-          })
-        );
-      }
-
-      if (response.data.data.soft_skills) {
-        response.data.data.soft_skills.forEach((softSkill) =>
-          appendSoftSkill({
-            skill_name: softSkill.softskill_name || "",
-            combined_units: softSkill.description
-              .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
-              .join("\n"), // Combines unit code and title in a single TextArea format
-          })
-        );
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const handleCompetence = (value) => {
-    fetchCompetence(value);
+  const onSubmit = async (formData) => {
+    console.log("Form submitted:", formData);
+    // Add your submission logic here
   };
 
   return (
@@ -98,11 +73,12 @@ function MyForm() {
         }}
         onFinish={handleSubmit(onSubmit)}
       >
-        <div className="text-center font-Poppins font-bold text-xl">
-          Buat Sertifikat
-        </div>
+        <h1 className="text-center font-Poppins text-2xl font-medium p-6">
+          Pilih Kompetensi dan Tanda Tangan
+        </h1>
 
-        <Form.Item label="Pilih Kompetensi" required>
+        {/* Dropdown untuk Kompetensi */}
+        <Form.Item required>
           <Controller
             name="selectedCompetenceId"
             control={control}
@@ -111,83 +87,43 @@ function MyForm() {
                 placeholder="Pilih kompetensi"
                 {...field}
                 style={{ width: "100%", height: "50px" }}
-                onChange={(value) => {
-                  field.onChange(value);
-                  handleCompetence(value);
-                }}
               >
                 <Option value="" disabled>
-                  Tambah Kompetensi Baru
+                  Pilih Kompetensi
                 </Option>
-                {data.length > 0 ? (
-                  data.map((competence) => (
-                    <Option key={competence._id} value={competence._id}>
-                      {competence.nama_kompetensi || ""}
-                    </Option>
-                  ))
-                ) : (
-                  <Option disabled>Tidak ada kompetensi tersedia</Option>
-                )}
+                {competenceData.map((competence) => (
+                  <Option key={competence._id} value={competence._id}>
+                    {competence.nama_kompetensi || ""}
+                  </Option>
+                ))}
               </Select>
             )}
           />
         </Form.Item>
 
-        {/* Hard Skills */}
-        {hardSkillFields.map((skill, index) => (
-          <div key={index}>
-            <Form.Item label={`Hardskill ${index + 1} Name`}>
-              <Controller
-                name={`hardSkill[${index}].skill_name`}
-                control={control}
-                render={({ field }) => (
-                  <Input {...field} placeholder="Skill Name" />
-                )}
-              />
-            </Form.Item>
-            <Form.Item label="Units">
-              <Controller
-                name={`hardSkill[${index}].combined_units`}
-                control={control}
-                render={({ field }) => (
-                  <Input.TextArea
-                    {...field}
-                    placeholder="Unit Code and Title"
-                    rows={4}
-                  />
-                )}
-              />
-            </Form.Item>
-          </div>
-        ))}
-
-        {/* Soft Skills */}
-        {softSkillFields.map((skill, index) => (
-          <div key={index}>
-            <Form.Item label={`Softskill ${index + 1} Name`}>
-              <Controller
-                name={`softSkill[${index}].skill_name`}
-                control={control}
-                render={({ field }) => (
-                  <Input {...field} placeholder="Skill Name" />
-                )}
-              />
-            </Form.Item>
-            <Form.Item label="Units">
-              <Controller
-                name={`softSkill[${index}].combined_units`}
-                control={control}
-                render={({ field }) => (
-                  <Input.TextArea
-                    {...field}
-                    placeholder="Unit Code and Title"
-                    rows={4}
-                  />
-                )}
-              />
-            </Form.Item>
-          </div>
-        ))}
+        {/* Dropdown untuk Tanda Tangan */}
+        <Form.Item required>
+          <Controller
+            name="selectedSignatureId"
+            control={control}
+            render={({ field }) => (
+              <Select
+                placeholder="Pilih tanda tangan"
+                {...field}
+                style={{ width: "100%", height: "50px" }}
+              >
+                <Option value="" disabled>
+                  Pilih Tanda Tangan
+                </Option>
+                {signatureData.map((signature) => (
+                  <Option key={signature._id} value={signature._id}>
+                    {signature.name}
+                  </Option>
+                ))}
+              </Select>
+            )}
+          />
+        </Form.Item>
 
         <Form.Item>
           <Button type="primary" htmlType="submit">

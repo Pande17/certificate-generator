@@ -2,311 +2,327 @@ package rest
 
 import (
 	"context"
+	"time"
 
 	"certificate-generator/database"
 	"certificate-generator/model"
-	"time"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// func for create new kompetensi
+// Connect to the competence collection in the database
+var collectionKompetensi = database.GetCollection("competence")
+
+// Function to create a new competence
 func CreateKompetensi(c *fiber.Ctx) error {
-	// struct for the incoming request body
+	// Struct for the incoming request body
 	var kompetensiReq struct {
-		ID             primitive.ObjectID `bson:"_id,omitempty"`
-		AdminId        primitive.ObjectID `bson:"admin_id"`
-		KompetensiName string             `json:"nama_kompetensi"`
-		HardSkills     []model.Skill      `json:"hard_skills"`
-		SoftSkills     []model.Skill      `json:"soft_skills"`
+		KompetensiName string        `json:"nama_kompetensi" valid:"required~Nama Kompetensi tidak boleh kosong!, stringlength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
+		Divisi         string        `json:"divisi" valid:"required~Divisi tidak boleh kosong!, stringlength(1|6)~Divisi harus antara 1-6 karakter"`
+		SKKNI          string        `json:"skkni" valid:"required~SKKNI tidak boleh kosong!"`
+		HardSkills     []model.Skill `json:"hard_skills"`
+		SoftSkills     []model.Skill `json:"soft_skills"`
 	}
 
-	// parse the request body
+	// Parse the request body
 	if err := c.BodyParser(&kompetensiReq); err != nil {
-		return BadRequest(c, "Failed to read body", "Req body Create Kompetensi")
+		return BadRequest(c, "Data yang dimasukkan tidak valid! Mohon periksa kembali.", "Data yang dimasukkan tidak valid!")
 	}
 
-	// retrieve the admin from the JWT token stored in context
-	// adminID, ok := c.Locals("admin").(string)
-	// if !ok {
-	// 	return Unauthorized(c, "Invalid token format", "Authentication error")
-	// }
-
-	// retrieve claims from the JWT token
-	// claims, ok := admin.Claims.(jwt.MapClaims)
-	// if !ok {
-	// 	return Unauthorized(c, "Invalid token claims", "Authentication error")
-	// }
-
-	// adminID, ok := claims["sub"].(string)
-	// if !ok {
-	// 	return Unauthorized(c, "Invalid AdminID format in token", "Authentication error")
-	// }
+	// Validate the input data using govalidator
+	if _, err := govalidator.ValidateStruct(&kompetensiReq); err != nil {
+		return BadRequest(c, "Data yang dimasukkan tidak valid!", err.Error())
+	}
 
 	// Retrieve the admin ID from the claims stored in context
-	// claims := c.Locals("admin").(jwt.MapClaims)
-	// adminID, ok := claims["sub"].(string)
-	// if !ok {
-	// 	return BadRequest(c, "Invalid UserID in token", "error")
-	// }
-
-	// // convert adminID from string to MongoDB objectID
-	// objectID, err := primitive.ObjectIDFromHex(adminID)
-	// fmt.Println("Admin ID from token:", adminID)
-	// if err != nil {
-	// 	return BadRequest(c, "Invalid AdminID format", err.Error())
-	// }
-
-	// connect collection competence in database
-	collectionKompetensi := database.GetCollection("competence")
-
-	// new variable to check the availability of the competence name
-	var existingKompetensi model.Kompetensi
-
-	// new variable to find competence based on their name "competence_name"
-	filter := bson.M{"nama_kompetensi": kompetensiReq.KompetensiName}
-
-	// find competence with same competence name as input name
-	err := collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
-	if err == nil {
-		return Conflict(c, "Competence already exists", "Conflict")
-	} else if err != mongo.ErrNoDocuments {
-		return InternalServerError(c, "Error chechking for existing Competence", err.Error())
+	claims := c.Locals("admin").(jwt.MapClaims)
+	adminID, ok := claims["sub"].(string)
+	if !ok {
+		return Unauthorized(c, "Token Admin tidak valid!", "Token Admin tidak valid!")
 	}
 
-	// append data from body request to struct Kompetensi
+	// Convert adminID (which is a string) to MongoDB ObjectID
+	objectID, err := primitive.ObjectIDFromHex(adminID)
+	if err != nil {
+		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
+	}
+
+	// Check the availability of the competence name
+	var existingKompetensi model.Kompetensi
+	filter := bson.M{
+		"nama_kompetensi": kompetensiReq.KompetensiName,
+	}
+
+	// Find competence with the same name
+	err = collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
+	if err == nil {
+		// Competence with the same name exists, check if it's deleted
+		if existingKompetensi.DeletedAt == nil {
+			// If DeletedAt is nil, the name is still in use
+			return Conflict(c, "Kompetensi dengan nama ini sudah ada! Silakan gunakan nama lain.", "Kompetensi dengan nama yang sama sudah ada!")
+		}
+		// If DeletedAt is not nil, we can proceed to create a new competence
+	} else if err == mongo.ErrNoDocuments {
+		// No existing competence found, proceed to create a new one
+	} else {
+		return Conflict(c, "Gagal memeriksa kompetensi yang ada. Silakan coba lagi.", err.Error())
+	}
+
+	// Create a new competence
 	kompetensi := model.Kompetensi{
-		ID: primitive.NewObjectID(),
-		// AdminId:        objectID,
+		AdminId:        objectID,
 		NamaKompetensi: kompetensiReq.KompetensiName,
+		Divisi:         kompetensiReq.Divisi,
+		SKKNI:          kompetensiReq.SKKNI,
 		HardSkills:     kompetensiReq.HardSkills,
 		SoftSkills:     kompetensiReq.SoftSkills,
 		Model: model.Model{
+			ID:        primitive.NewObjectID(),
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 			DeletedAt: nil,
 		},
 	}
 
-	// insert data from struct "Kompetensi" to collection "competence" in database MongoDB
+	// Insert the new competence into the database
 	_, err = collectionKompetensi.InsertOne(context.TODO(), kompetensi)
 	if err != nil {
-		return InternalServerError(c, "Failed to create New Competence", "Insert Data Kompetensi")
+		return Conflict(c, "Gagal membuat data kompetensi baru! Silakan coba lagi.", "Gagal menyimpan kompetensi baru")
 	}
 
-	// return success
-	return OK(c, "Sucess created New Competence", kompetensi)
+	// Return success
+	return OK(c, "Berhasil membuat Kompetensi Baru!", kompetensi)
 }
 
+// Function to edit competence
 func EditKompetensi(c *fiber.Ctx) error {
-	// get kompetensi_id from params
+	// Get kompetensi_id from params
 	idParam := c.Params("id")
 
-	// convert kompetensi_id to integer data type
+	// Convert kompetensi_id to ObjectID
 	kompetensiID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		return BadRequest(c, "Invalid ID", "Convert Params")
+		return BadRequest(c, "Kompetensi ini tidak ada! Silakan periksa ID yang dimasukkan.", "Gagal mengonversi ID")
 	}
 
-	// connect to collection in MongoDB
-	collectionKompetensi := database.GetCollection("competence")
-
-	// make filter to find document based on params
+	// Create filter to find the document
 	filter := bson.M{"_id": kompetensiID}
 
-	// variabwle to hold results
+	// Variable to hold results
 	var competenceData bson.M
 
-	// searching for the competence based on their kompetensi_id
+	// Search for the competence based on its ID
 	if err := collectionKompetensi.FindOne(c.Context(), filter).Decode(&competenceData); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "Competence not found", "Find kompetensi_id based on params")
+			return NotFound(c, "Kompetensi ini tidak dapat ditemukan! Silakan periksa ID yang dimasukkan.", "Gagal menemukan kompetensi")
 		}
-		return InternalServerError(c, "Failed to fetch data", "Find kompetensi_id based on params")
+		return Conflict(c, "Gagal mengambil data! Silakan coba lagi.", "Gagal mengambil kompetensi")
 	}
 
-	// Modified code for DeleteKompetensi
-	if modelData, ok := competenceData["model"].(bson.M); ok {
-		if deletedAt, exists := modelData["deleted_at"]; exists && deletedAt != nil {
-			return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi", deletedAt)
-		}
+	// Check if the competence has been deleted
+	if deletedAt, exists := competenceData["deleted_at"]; exists && deletedAt != nil {
+		return AlreadyDeleted(c, "Kompetensi ini telah dihapus! Silakan hubungi admin.", "Periksa kompetensi yang dihapus", deletedAt)
 	}
 
-	// parsing req body to get new data
+	// Parse request body to get new data
 	var input struct {
-		NamaKompetensi string        `json:"nama_kompetensi"`
+		NamaKompetensi string        `json:"nama_kompetensi" valid:"required~Nama Kompetensi tidak boleh kosong!, stringlength(3|50)~Nama Kompetensi harus antara 3-50 karakter"`
+		Divisi         string        `json:"divisi" valid:"required~Divisi tidak boleh kosong!, stringlength(1|6)~Divisi harus antara 1-6 karakter"`
+		SKKNI          string        `json:"skkni" valid:"required~SKKNI tidak boleh kosong!"`
 		HardSkills     []model.Skill `json:"hard_skills"`
 		SoftSkills     []model.Skill `json:"soft_skills"`
 	}
 
-	// handler if request body is invalid
+	// Handle if request body is invalid
 	if err := c.BodyParser(&input); err != nil {
-		return BadRequest(c, "Invalid request body", "Req body edit Kompetensi")
+		return BadRequest(c, "Data yang dimasukkan tidak valid! Silakan periksa kembali.", "Gagal mem-parsing body")
 	}
 
-	// update fields in the database
+	// Validate the input data using govalidator
+	if _, err := govalidator.ValidateStruct(&input); err != nil {
+		return BadRequest(c, "Data yang dimasukkan tidak valid!", err.Error())
+	}
+
+	// Update fields in the database
 	update := bson.M{
 		"$set": bson.M{
 			"nama_kompetensi": input.NamaKompetensi,
+			"divisi":          input.Divisi,
+			"skkni":           input.SKKNI,
 			"hard_skills":     input.HardSkills,
 			"soft_skills":     input.SoftSkills,
 			"updated_at":      time.Now(),
 		},
 	}
 
-	// update data in collection based on their "kompetensi_id" or params
+	// Update data in the collection
 	_, err = collectionKompetensi.UpdateOne(c.Context(), filter, update)
 	if err != nil {
-		return InternalServerError(c, "Failed to update competence data", "Update new data kompetensi")
+		return Conflict(c, "Gagal memperbarui Kompetensi! Silakan coba lagi.", "Gagal memperbarui kompetensi")
 	}
 
-	// return success
-	return OK(c, "Sucess edited Competence data", update)
+	// Return success
+	return OK(c, "Berhasil memperbarui Kompetensi!", update)
 }
 
+// Function to delete competence
 func DeleteKompetensi(c *fiber.Ctx) error {
-	// get kompetensi_id from params
+	// Get id param
 	idParam := c.Params("id")
 
-	// convert params to integer data type
+	// Convert idParam to ObjectID
 	kompetensiID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		return BadRequest(c, "Invalid ID", "Convert Params Delete Kompetensi")
+		return BadRequest(c, "Kompetensi ini tidak ada! Silakan periksa ID yang dimasukkan.", "Gagal mengonversi ID")
 	}
 
-	// connect to collection in MongoDB
-	collectionKompetensi := database.GetCollection("competence")
-
-	// make filter to find document based on kompetensi_id
+	// Create filter to find the document
 	filter := bson.M{"_id": kompetensiID}
 
-	// find competence
+	// Find competence
 	var competenceData bson.M
 	err = collectionKompetensi.FindOne(context.TODO(), filter).Decode(&competenceData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "Competence not found", "Find Kompetensi")
+			return NotFound(c, "Tidak dapat menemukan Kompetensi! Silakan periksa ID yang dimasukkan.", "Gagal menemukan kompetensi")
 		}
-		return InternalServerError(c, "Failed to fetch data", "Find Kompetensi")
+		return Conflict(c, "Gagal mengambil data! Silakan coba lagi.", "Gagal mengambil kompetensi")
 	}
 
-	// Modified code for DeleteKompetensi
-	if modelData, ok := competenceData["model"].(bson.M); ok {
-		if deletedAt, exists := modelData["deleted_at"]; exists && deletedAt != nil {
-			return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi", deletedAt)
-		}
+	// Check if the competence has been deleted
+	if deletedAt, exists := competenceData["deleted_at"]; exists && deletedAt != nil {
+		return AlreadyDeleted(c, "Kompetensi ini telah dihapus! Silakan hubungi admin.", "Periksa kompetensi yang dihapus", deletedAt)
 	}
 
-	// make update for input timestamp DeletedAt
+	// Update the deleted_at timestamp
 	update := bson.M{"$set": bson.M{"deleted_at": time.Now()}}
 
-	// update document in collection MongoDB
+	// Update document in the collection
 	result, err := collectionKompetensi.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		return InternalServerError(c, "Failed to delete competence", "Delete Kompetensi")
+		return Conflict(c, "Gagal menghapus kompetensi! Silakan coba lagi.", "Gagal menghapus kompetensi")
 	}
 
-	// check if the document is found and updated
+	// Check if the document was already deleted
 	if result.MatchedCount == 0 {
-		return NotFound(c, "Competence not found", "Check deleted kompetensi on Delete")
+		return NotFound(c, "Kompetensi ini tidak dapat ditemukan! Silakan periksa ID yang dimasukkan.", "Gagal menemukan kompetensi")
 	}
 
-	// return success
-	return OK(c, "Sucess deleted Competence data", kompetensiID)
+	// Return success
+	return OK(c, "Berhasil menghapus kompetensi!", kompetensiID)
 }
 
-// function to get all kompetensi data
-func GetKompetensi(c *fiber.Ctx) error {
-	if len(c.Queries()) == 0 {
-		return getAllKompetensi(c)
-	}
-	key := c.Query("type")
-	val := c.Query("s")
-	var value any
-	if key == "id" {
-		key = "_id"
-		var err error
-		if value, err = primitive.ObjectIDFromHex(val); err != nil {
-			return BadRequest(c, "can't parse id", err.Error())
-		}
-	} else {
-		value = val
-	}
-	return getOneKompetensi(c, bson.M{key: value})
-}
-
-func getAllKompetensi(c *fiber.Ctx) error {
+// Function to get all competencies
+func GetAllKompetensi(c *fiber.Ctx) error {
 	var results []bson.M
+	ctx := c.Context()
 
-	collectionKompetensi := database.GetCollection("competence")
+	// Retrieve the admin ID from the claims stored in context
+	claims := c.Locals("admin").(jwt.MapClaims)
+	adminID, ok := claims["sub"].(string)
+	if !ok {
+		return Unauthorized(c, "Token Admin tidak valid!", "Token Admin tidak valid!")
+	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	// Convert adminID to ObjectID
+	objectID, err := primitive.ObjectIDFromHex(adminID)
+	if err != nil {
+		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
+	}
 
-	// set the projection to return the required fields
+	// Set the projection to return the required fields
 	projection := bson.M{
-		"_id":             1, // 0 to exclude the field
+		"_id":             1,
 		"admin_id":        1,
-		"nama_kompetensi": 1, // 1 to include the field, _id will be included by default
+		"nama_kompetensi": 1,
+		"divisi":          1,
+		"skkni":           1,
 		"created_at":      1,
 		"updated_at":      1,
 		"deleted_at":      1,
 	}
 
-	// find the projection
-	cursor, err := collectionKompetensi.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	// Create the filter to include admin_id and handle deleted_at
+	filter := bson.M{
+		"admin_id": objectID,
+		"$or": []bson.M{
+			{"deleted_at": bson.M{"$exists": false}}, // DeletedAt field does not exist
+			{"deleted_at": bson.M{"$eq": nil}},       // DeletedAt field is nil
+		},
+	}
+
+	// Find all documents that match
+	cursor, err := collectionKompetensi.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "No Competence found", err.Error())
+			return NotFound(c, "Kompetensi tidak dapat ditemukan!", err.Error())
 		}
-		return InternalServerError(c, "Failed to fetch data", err.Error())
+		return Conflict(c, "Gagal mengambil data kompetensi! Silakan coba lagi.", err.Error())
 	}
 	defer cursor.Close(ctx)
 
-	// decode each document and append it to results
+	// Decode each document and append it to results
 	for cursor.Next(ctx) {
 		var competence bson.M
 		if err := cursor.Decode(&competence); err != nil {
-			return InternalServerError(c, "Failed to decode data", "Decode Kompetensi")
+			return Conflict(c, "Gagal mengambil data! Silakan coba lagi.", "Gagal mendekode kompetensi")
 		}
 		results = append(results, competence)
 	}
 	if err := cursor.Err(); err != nil {
-		return InternalServerError(c, "Cursor error", "Append Kompetensi")
+		return Conflict(c, "Gagal menampilkan data! Silakan coba lagi.", "Gagal menampilkan kompetensi")
 	}
 
-	// return success
-	return OK(c, "Sucess get all Competence data", results)
+	// Return success
+	return OK(c, "Berhasil menampilkan semua data Kompetensi!", results)
 }
 
-func getOneKompetensi(c *fiber.Ctx, filter bson.M) error {
-	// connect to collection in MongoDB
-	collectionKompetensi := database.GetCollection("competence")
+// Function to get one competence by filter
+func GetKompetensiByID(c *fiber.Ctx) error {
+	idParam := c.Params("id")
+	searchKey := c.Params("type")
+	if searchKey == "" { // from handler w/o type param, to not break api
+		searchKey = "oid"
+	}
+	var searchVal any
+	searchVal = idParam
 
-	// variable to hold search results
+	// Convert to ObjectID if needed
+	if searchKey == "oid" {
+		searchKey = "_id"
+		certifID, err := primitive.ObjectIDFromHex(idParam)
+		if err != nil {
+			return BadRequest(c, "Sertifikat ini tidak ada!", "Please provide a valid ObjectID")
+		}
+		searchVal = certifID
+	}
+
+	// Make filter to find document based on search key & value
+	filter := bson.M{searchKey: searchVal}
+
+	// Variable to hold search results
 	var kompetensiDetail bson.M
 
-	// find a single document that matches the filter
+	// Find a single document that matches the filter
 	if err := collectionKompetensi.FindOne(context.TODO(), filter).Decode(&kompetensiDetail); err != nil {
-		// if not found, return a 404 status
+		// If not found, return a 404 status
 		if err == mongo.ErrNoDocuments {
-			return NotFound(c, "Data not found", "Find Detail Kompetensi")
+			return NotFound(c, "Kompetensi ini tidak dapat ditemukan! Silakan periksa ID yang dimasukkan.", "Gagal menemukan detail kompetensi")
 		}
-		// if in server error, return status 500
-		return InternalServerError(c, "Failed to retrieve data", "Server Find Detail Kompetensi")
+		return Conflict(c, "Gagal mendapatkan data! Silakan coba lagi.", "Gagal menemukan detail kompetensi")
 	}
 
-	// Check if the competence has a "deleted_at" field
-	if modelData, modelOk := kompetensiDetail["model"].(bson.M); modelOk {
-		if deletedAt, exists := modelData["deleted_at"]; exists && deletedAt != nil {
-			return AlreadyDeleted(c, "This competence has already been deleted", "Check deleted kompetensi on get Detail", deletedAt)
-		}
+	// Check if the competence has been deleted
+	if deletedAt, exists := kompetensiDetail["deleted_at"]; exists && deletedAt != nil {
+		return AlreadyDeleted(c, "Kompetensi ini telah dihapus! Silakan hubungi admin.", "Periksa kompetensi yang dihapus", deletedAt)
 	}
 
-	// return success
-	return OK(c, "Success get detail Competence data", kompetensiDetail)
+	// Return success
+	return OK(c, "Berhasil menampilkan data kompetensi!", kompetensiDetail)
 }

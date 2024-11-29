@@ -2,17 +2,31 @@ package generator
 
 import (
 	"certificate-generator/model"
+	"context"
+	"errors"
+	"fmt"
 	"html/template"
 	"log"
 	"math"
 	"os"
+	"slices"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/gofiber/fiber/v2"
 )
 
 var pdfg *wkhtmltopdf.PDFGenerator
+var mtx sync.Mutex
+var CreatingPDF = map[string]bool{}
+
+type UnitCompetence struct {
+	UnitCode  string
+	UnitTitle string
+	JP        int
+}
 
 // functions for rendering html certificate
 var funcs = template.FuncMap{
@@ -38,10 +52,39 @@ var funcs = template.FuncMap{
 		if txtWidth > 120 {
 			scale = 120 / float64(txtWidth)
 		}
-		return int(math.Floor(scale * 48))
+		return int(math.Floor(scale * 64))
 	},
 	"parity": func(i int) int {
 		return i % 2
+	},
+	"splitunitcodes": func(d model.CertificateData) []UnitCompetence {
+		ucArr := []UnitCompetence{}
+		ucMap := map[string]UnitCompetence{}
+		for _, skill := range d.HardSkills.Skills {
+			for _, desc := range skill.SkillDescs {
+				ucMap[desc.UnitCode] = UnitCompetence{
+					UnitCode:  desc.UnitCode,
+					UnitTitle: desc.UnitTitle,
+					JP:        int(skill.SkillJP),
+				}
+			}
+		}
+		for _, skill := range d.SoftSkills.Skills {
+			for _, desc := range skill.SkillDescs {
+				ucMap[desc.UnitCode] = UnitCompetence{
+					UnitCode:  desc.UnitCode,
+					UnitTitle: desc.UnitTitle,
+					JP:        int(skill.SkillJP),
+				}
+			}
+		}
+		for _, skill := range ucMap {
+			ucArr = append(ucArr, skill)
+		}
+		slices.SortFunc(ucArr, func(a, b UnitCompetence) int {
+			return strings.Compare(a.UnitCode, b.UnitCode)
+		})
+		return ucArr
 	},
 }
 
@@ -95,38 +138,127 @@ func init() {
 	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
 }
 
-func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, zoom float64, pageName string) error {
-	pdfg.ResetPages()
+func CreatePDF(c *fiber.Ctx, dataReq *model.CertificateData, certifType string) error {
+	ctx, cancel := context.WithTimeout(c.Context(), time.Minute)
+	defer cancel()
+	return createPDF(ctx, c, dataReq, certifType)
+}
 
-	if t, err := template.New(pageName).Funcs(funcs).ParseFiles("assets/" + pageName + ".html"); err != nil {
-		return err
-	} else if err := t.Execute(c.Response().BodyWriter(), *dataReq); err != nil {
-		return err
+func createPDF(ctx context.Context, c *fiber.Ctx, dataReq *model.CertificateData, certifType string) error {
+	makeA := strings.Contains(certifType, "a")
+	makeB := strings.Contains(certifType, "b")
+	if !(makeA || makeB) {
+		return errors.New("CreatePDF: certifType isn't a or b")
 	}
 
-	htmlSertif, err := os.Create("temp/temp" + dataReq.DataID + ".html")
+	// generate qrcode
+	link := fmt.Sprintf("%s/assets/certificate/", os.Getenv("CERTIF_GEN_FRONTEND"))
+	encstr, err := GenerateQRCode(link, dataReq.DataID)
 	if err != nil {
 		return err
+	}
+	dataReq.QRCode = encstr
+
+	mtx.Lock()
+	CreatingPDF[dataReq.DataID+"-a"] = makeA
+	CreatingPDF[dataReq.DataID+"-b"] = makeB
+	defer func() {
+		CreatingPDF = map[string]bool{}
+	}()
+	defer mtx.Unlock()
+
+	select {
+	case <-ctx.Done():
+		return errors.New("CreatePDF: timeout exceeded")
+	default:
+		break
+	}
+
+	page1, err := makePage(c, dataReq, "page1")
+	if err != nil {
+		return err
+	} else {
+		defer removeFile(page1)
+	}
+	page2a, err := func() (*wkhtmltopdf.Page, error) {
+		if !makeA {
+			return nil, nil
+		}
+		return makePage(c, dataReq, "page2a")
+	}()
+	if err != nil {
+		return err
+	} else if page2a != nil {
+		defer removeFile(page2a)
+	}
+	page2b, err := func() (*wkhtmltopdf.Page, error) {
+		if !makeB {
+			return nil, nil
+		}
+		return makePage(c, dataReq, "page2b")
+	}()
+	if err != nil {
+		return err
+	} else if page2b != nil {
+		defer removeFile(page2b)
+	}
+
+	if makeA {
+		pdfg.ResetPages()
+		pdfg.AddPage(page1)
+		pdfg.AddPage(page2a)
+		if err := pdfg.Create(); err != nil {
+			return err
+		}
+		if err := pdfg.WriteFile("assets/certificate/" + dataReq.DataID + "-a.pdf"); err != nil {
+			return err
+		}
+	}
+
+	if makeB {
+		pdfg.ResetPages()
+		pdfg.AddPage(page1)
+		pdfg.AddPage(page2b)
+		if err := pdfg.Create(); err != nil {
+			return err
+		}
+		if err := pdfg.WriteFile("assets/certificate/" + dataReq.DataID + "-b.pdf"); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func makePage(c *fiber.Ctx, dataReq *model.CertificateData, pageName string) (*wkhtmltopdf.Page, error) {
+	t, err := template.New("").Funcs(funcs).ParseFiles("assets/"+pageName+".html", "assets/style.html")
+	if err != nil {
+		return nil, err
+	}
+	if err := t.ExecuteTemplate(c.Response().BodyWriter(), pageName, *dataReq); err != nil {
+		return nil, err
+	}
+
+	fileName := "temp/temp" + dataReq.DataID + pageName + ".html"
+	htmlSertif, err := os.Create(fileName)
+	if err != nil {
+		return nil, err
 	}
 	defer func() {
 		htmlSertif.Close()
-		if err := os.Remove("temp/temp" + dataReq.DataID + ".html"); err != nil {
-			log.Println("WARNING: memory leak (can't remove html file)\nerr:", err)
-		}
 	}()
 
 	if _, err := htmlSertif.Write(c.Response().Body()); err != nil {
-		return err
+		return nil, err
 	}
+	c.Response().Reset()
 
-	page := wkhtmltopdf.NewPage("temp/temp" + dataReq.DataID + ".html")
-	page.Zoom.Set(zoom)
-	pdfg.AddPage(page)
+	page := wkhtmltopdf.NewPage(fileName)
+	return page, nil
+}
 
-	err = pdfg.Create()
-	if err != nil {
-		return err
+func removeFile(page *wkhtmltopdf.Page) {
+	if err := os.Remove(page.InputFile()); err != nil {
+		log.Println("WARNING: memory leak (can't remove html file)\nerr:", err)
 	}
-
-	return pdfg.WriteFile("assets/certificate/" + dataReq.DataID + ".pdf")
 }

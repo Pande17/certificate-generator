@@ -1,258 +1,76 @@
+{{define "page2b"}}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>Sertifikat BTW Edutech{{if ne .Data.NamaPeserta ""}} - {{.Data.NamaPeserta}}{{end}}</title>
+	<title>Sertifikat BTW Edutech{{if ne .NamaPeserta ""}} - {{.NamaPeserta}}{{end}}</title>
 </head>
+
+{{template "style"}}
+
 <style>
-	@font-face {
-		font-family: 'montecarlo';
-		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928092/aset%20pdf/font/benojrx8nj3xr65bdo6l.ttf);
-	}
-
-	@font-face {
-		font-family: 'gilroy-bold';
-		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928058/aset%20pdf/font/cfsykfkdicisorjoy7jj.ttf);
-	}
-
-	@font-face {
+	.title-table {
 		font-family: 'gilroy-medium';
-		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928018/aset%20pdf/font/ci72w1jhyllp3cmwpdo3.ttf);
+		font-weight: bold;
+		margin: 10px 0;
+		text-align: left;
+		font-size: 18px;
 	}
 
-	@font-face {
-		font-family: 'vollkorn';
-		src: url(https://res.cloudinary.com/dektxbmmb/raw/upload/v1727928253/aset%20pdf/font/xlhzm5hxsqvdhsrpduzb.ttf);
+	.kompetensi {
+		border-bottom: solid 1.5px #dedede;
+		border-spacing: 0;
+		font-family: 'gilroy-regular';
 	}
 
-	* {
-		text-align: center;
+	.kompetensi th {
+		background-color: #3939bc;
+		color: white;
+		padding: 10px 20px;
+		font-size: 20px;
+		font-weight: 400;
 	}
 
-	body {
-		margin: 0;
-		padding: 0;
-		position: relative;
-	}
-
-	.pageW {
-		width: 17cm;
-	}
-
-	.pageH {
-		height: 25.7cm;
-	}
-
-	.certificate-wrapper {
-		display: block;
-		margin: 0 auto;
-		min-width: 21cm;
-		max-width: 21cm;
-		min-height: 29.7cm;
-		max-height: 29.7cm;
-		display: inline-block;
-		overflow: hidden;
-		margin: 0;
-		position: relative;
-		width: inherit;
-		height: inherit;
-		background-image: url(https://res.cloudinary.com/dektxbmmb/image/upload/v1727836212/aset%20pdf/w71uldhrqtl6v4rrqjht.png);
-		padding: 1cm;
-		box-sizing: border-box;
-	}
-
-	.certificate-wrapper::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-image: url(https://res.cloudinary.com/dektxbmmb/image/upload/v1727833020/aset%20pdf/soona09ynlokvggurfiu.png);
-		background-position: center;
-		background-repeat: no-repeat;
-		background-size: cover;
-		opacity: 1;
-		z-index: 1;
-	}
-
-	.pattern {
-		position: absolute;
-		left: 0;
-		width: 100%;
-		z-index: -1;
-	}
-
-	.top {
-		top: 0;
-	}
-
-	.bottom {
-		bottom: 0;
-	}
-
-	.certificate-card {
-		position: relative;
-		z-index: 100;
-		margin: 20px;
-		padding: 1cm;
-		min-width: 17cm;
-		max-width: 17cm;
-		min-height: 25.7cm;
-		max-height: 25.7cm;
-		margin: 0 auto;
-		background-color: white;
-		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-		text-align: center;
-		justify-content: center;
-		align-items: center;
-	}
-
-	.certificate-badge img {
-		width: 250px;
-		margin-top: 33px;
-		margin-bottom: -15px;
-	}
-
-	header {
-		width: 100%;
-		margin: 0 auto;
-		padding: 10px 0;
-		gap: 35px;
-	}
-
-	header img {
-		width: 70px;
-	}
-
-	header h1,
-	header h2 {
-		font-family: 'vollkorn';
-		color: rgb(17, 17, 211);
-	}
-
-	header p {
-		font-family: 'gilroy-medium';
-	}
-
-	.desk h2 {
-		max-width: 40vh;
-		text-align: center;
-		font-size: 13.2px;
-	}
-
-	.desk h1 {
-		text-align: center;
-		margin-top: -17px;
-		margin-bottom: -14px;
-		font-size: 21.5px;
-	}
-
-	.desk p {
-		font-family: 'gilroy-medium';
-		font-size: 10px;
-	}
-
-	.certificate-badge img {
-		width: 30px;
-	}
-
-	.certificate-badge h1 {
-		line-height: 37px;
-		font-size: 36px;
-		font-family: 'vollkorn';
-		color: rgb(17, 17, 211);
-	}
-
-	.certificate-badge h3 {
+	.kompetensi td {
+		border-right: 1.5px solid #dfdfdf;
+		border-left: 1.5px solid #dfdfdf;
+		padding: 10px;
 		font-size: 16px;
-		color: rgb(17, 17, 211);
-		margin-top: -20px;
-		margin-bottom: 20px;
-		font-family: 'gilroy-medium';
 	}
 
-	.badge img {
-		width: 320px;
-		align-items: center;
-		justify-content: center;
-		z-index: inherit;
+	.totalJP {
+		border-top: solid 1.5px #dedede;
 	}
 
-	nama {
-		height: fit-content;
-		display: inline-block;
+	.cell0 {
+		background-color: white;
 	}
 
-	nama h1 {
-		font-family: 'montecarlo';
-		margin: 0 auto -0.3em;
-		font-weight: 100;
+	.cell1 {
+		background-color: #f1f3f4;
 	}
 
-	competence p {
-		font-family: 'gilroy-medium';
-		margin-bottom: 5px;
+	.signature {
+		position: absolute;
+		bottom: 120px;
 	}
 
-	cdesk p {
-		margin: 2px;
+	.signature td {
+		margin: 0 5%;
 	}
 
-	competence h1 {
-		font-size: 24px;
-		color: rgb(17, 17, 211);
-		font-family: 'vollkorn';
-	}
-
-	expired {
-		font-size: small;
-		font-family: 'gilroy-medium';
-	}
-
-	.certificate-signature {
-		margin-top: 60px;
-	}
-
-	.certificate-signature img {
-		margin: 20px -40px 20px -60px;
-	}
-
-	.certificate-signature p {
-		font-family: 'gilroy-medium';
-		font-size: small;
-		margin: 5px 0;
-		color: #333;
-	}
-
-	.desk-sg p {
-		font-size: medium;
-		font-family: 'gilroy-bold';
-		color: rgb(255, 157, 0);
-	}
-
-	.role p {
-		font-family: 'gilroy-bold';
-	}
-
-	qr {
-		font-family: 'gilroy-bold';
-		font-size: 10px;
-		margin-top: -80px;
-	}
-
-	qr img {
-		width: 90px;
-	}
-
-	qr p {
-		margin-top: 5px;
-	}
-
-	.badge h1 {
+	.footer {
+		position: absolute;
+		bottom: 20px;
 		font-size: 14px;
+	}
+
+	.footer td {
+		display: inline-block;
+		margin-right: 1%;
+		vertical-align: top;
 	}
 </style>
 
@@ -262,6 +80,106 @@
 			<img src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727850035/aset%20pdf/idwqan8wur0eqcdkthsq.png"
 				alt="" class="pattern top" />
 
+			<div class="header" style="margin: 0; margin-bottom: 60px;">
+				<img src="https://res.cloudinary.com/djgiroe5z/image/upload/v1729231631/project/pixg7xjgieicx7ftkjc3.png"
+					class="logo" style="height: 120px;" />
+
+				<table class="pageW" style="text-align: center">
+					<tr>
+						<td
+							style="padding-top: 10px; font-size: 30px; font-family: 'vollkorn', serif; font-weight: bold; color: #3939bc;">
+							Materi Pelatihan</td>
+					</tr>
+					<tr>
+						<td
+							style="padding: 0; font-size: 36px; font-family: 'vollkorn', serif; font-weight: bold; line-height: 1.1">
+							{{.Kompetensi}}</td>
+					</tr>
+				</table>
+				<p style="font-size: 24px; margin: 10px 0; color: #747474;">
+					<b>{{.SKKNI}}</b>
+				</p>
+			</div>
+
+			{{$uc := splitunitcodes .}}
+			{{$ucLen := len $uc}}
+			{{if ne 0 $ucLen}}
+			{{$totalJP := 0}}
+			<p class="title-table pageW">Daftar Unit Kompetensi</p>
+			<table class="kompetensi pageW" style="font-size: 16px">
+				<tr>
+					<th style="width: 25%;">Kode Unit</th>
+					<th style="width: 65%;">Judul Kode Unit</th>
+					<th style="width: 10%;">JP</th>
+				</tr>
+				{{range $i, $skill := $uc}}
+				<tr class="cell{{parity $i}}">
+					<td style="width: 25%; text-align: left;">{{.UnitCode}}</td>
+					<td style="width: 65%; text-align: left;">{{.UnitTitle}}</td>
+					<td style="width: 10%;">{{.JP}} JP</td>
+					{{$totalJP = add $totalJP .JP}}
+				</tr>
+				{{end}}
+				<tr>
+					<td colspan="2" class="totalJP" style="width: 90%; font-weight: 700;"><b>Total Jam Pelajaran (JP)</b></td>
+					<td class="totalJP" style="width: 10%;">{{$totalJP}} JP</td>
+				</tr>
+			</table>
+			{{end}}
+
+			<table class="signature pageW bottom" style="font-size: 16px; font-family: 'gilroy-medium';">
+				<tr>
+					<td style="width: 40%; text-align: center;"></td>
+					<td style="width: 40%; text-align: center;">
+						<p>{{.Validation}}</p>
+					</td>
+				</tr>
+				<tr>
+					<td style="width: 40%; text-align: center;"></td>
+					<td style="width: 40%; text-align: center;">
+						<img src="{{.Signature.Signature}}"
+							style="height: 3cm; position: relative; z-index: 2; text-align: center;" />
+					</td>
+				</tr>
+				<tr>
+					<td style="width: 40%; text-align: center;"><b>{{.NamaPeserta}}</b></td>
+					<td style="width: 40%; text-align: center; color: rgb(255, 157, 0);">
+						<b>{{.Signature.Name}}</b>
+					</td>
+				</tr>
+				<tr>
+					<td style="width: 40%; text-align: center;"></td>
+					<td style="width: 40%; text-align: center;"><b>{{.Signature.Role}}</b></td>
+				</tr>
+			</table>
+
+			<table class="footer pageW bottom">
+				<tr>
+					<td style="text-align: right; vertical-align: middle;">
+						<img
+							src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833019/aset%20pdf/pnu45hydtyftsfxlqaxm.png"
+							width="48px" />
+					</td>
+					<td style="text-align: left; width: 15%; vertical-align: middle;">
+						<span style="font-family: 'vollkorn', serif; font-weight: 700">LKP BINA TARUNA WIRATAMA</span>
+						<br />
+						<span style="font-family: 'gilroy-regular'"><b>NPSN</b>- K9998824</span>
+					</td>
+					<td style="text-align: right; width: 12%;">
+						<span><b>Alamat Kami:</b></span>
+					</td>
+					<td style="text-align: left; width: 35%;">
+						<span>Jl. Bypass Ngurah Rai No.176, Sanur Kaja, Denpasar Selatan, Kota Denpasar, Bali 80228</span>
+					</td>
+					<td style="text-align: right; width: 10%;">
+						<span><b>Website:</b></span>
+					</td>
+					<td style="text-align: left; width: 13%">
+						<span>www.lkpbtw.com</span>
+					</td>
+				</tr>
+			</table>
+
 			<img src="https://res.cloudinary.com/dektxbmmb/image/upload/v1727850035/aset%20pdf/i28faklkktmzo3t4pcni.png"
 				alt="" class="pattern bottom" />
 		</div>
@@ -269,3 +187,4 @@
 </body>
 
 </html>
+{{end}}
