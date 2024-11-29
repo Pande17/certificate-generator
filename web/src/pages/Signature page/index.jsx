@@ -27,7 +27,7 @@ const SignaturePage = () => {
       setLoading(true);
       try {
         const response = await Signature.get(
-          "http://127.0.0.1:3000/api/signature"
+          "/"
         );
         const datas = response.data.data;
         const filterData = datas.filter((item) => !item.deleted_at);
@@ -124,7 +124,7 @@ const SignaturePage = () => {
   // **Kolom Tabel**
   const columns = [
     {
-      title: "Id",
+      title: "No",
       align: "center",
       width: 100,
       render: (text, record, index) => index + 1,
@@ -134,12 +134,12 @@ const SignaturePage = () => {
       align: "center",
       dataIndex: "config_name",
       key: "config_name",
-      width: 100,
     },
     {
+      width: 300,
       title: "Aksi",
       align: "center",
-      render: (text, record) => (
+      render: (Text, record) => (
         <>
           <Button
             icon={<DeleteOutlined />}
@@ -161,13 +161,13 @@ const SignaturePage = () => {
 
   return (
     <MainLayout>
-      <div className="flex flex-col items-center p-5">
-        <p className="text-xl font-semibold mb-5 bg-white p-3 rounded-xl">
-          List Paraf
+      <div className="flex flex-col items-center justify-center w-full lg:w-3/4 p-5">
+        <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl" >
+          Daftar Paraf
         </p>
 
         <Button onClick={createNav} className="m-3">
-          Buat Sertifikat
+          Buat Paraf
         </Button>
 
         <Input
@@ -178,7 +178,7 @@ const SignaturePage = () => {
         />
 
         <Row
-          style={{ justifyContent: "center", width: "90%", overflowX: "auto" }}
+          style={{ justifyContent: "center", width: "100%", overflowX: "auto" }}
         >
           <Col span={24}>
             <Table

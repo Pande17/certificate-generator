@@ -106,9 +106,11 @@ const competence = () => {
     setIsEditModalVisible(true);
   };
 
+
   const filteredData = data.filter((item) =>
     item.nama_kompetensi.toLowerCase().includes(searchText.toLowerCase())
   );
+  
   const handleSearch = (e) => {
     setSearchText(e.target.value);
   };
@@ -179,7 +181,7 @@ const competence = () => {
 
   const column = [
     {
-      title: "Id",
+      title: "No",
       align: "center",
       width: 100,
       ellipsis: true,
@@ -189,14 +191,13 @@ const competence = () => {
     {
       title: "Kompetensi",
       align: "center",
-      width: 100,
       responsive: ["xs", "sm", "md", "lg"],
       key: "nama_kompetensi",
       dataIndex: "nama_kompetensi",
       ellipsis: true,
     },
     {
-      width: 100,
+      width: 300,
       title: "Aksi",
       key: "actions",
       responsive: ["xs", "sm", "md", "lg"],
@@ -228,12 +229,10 @@ const competence = () => {
   };
   return (
     <MainLayout>
-      <div className="flex flex-col items-center  p-5">
-        <div>
+      <div className="flex flex-col items-center justify-center w-full lg:w-3/4 p-5">
           <p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl">
-            List Kompetensi
+            Daftar Kompetensi
           </p>
-        </div>
         <Button onClick={createNav} className="m-3">
           Buat Kompetensi
         </Button>
@@ -244,10 +243,29 @@ const competence = () => {
           onChange={handleSearch}
           className="mb-4 p-2 border border-gray-300 rounded w-full md:w-1/2"
         />
+       <Row
+          style={{ justifyContent: "center", width: "100%", overflowX: "auto" }}
+        >
+          <Col>
+            <Table
+              dataSource={filteredData}
+              columns={column}
+              rowKey="_id"
+              pagination={false}
+              bordered
+              loading={loading}
+              scroll={{
+                x: "max-content",
+                y: filteredData.length > 6 ? 500 : undefined,
+              }}
+            />
+          </Col>
+        </Row>
+      </div>
 
         {/* Modal Edit Sertif */}
         <Modal
-          title="Edit Sertifikat"
+          title="Edit Kompetensi"
           open={isEditModalVisible}
           onCancel={() => setIsEditModalVisible(false)}
           footer={null}
@@ -470,30 +488,7 @@ const competence = () => {
           </Form>
         </Modal>
         {/*  END */}
-        <Row
-          style={{
-            justifyContent: "center",
-            width: "90%",
-            overflowX: "auto",
-          }}
-        >
-          <Col>
-            <Table
-              dataSource={filteredData}
-              columns={column}
-              rowKey="_id"
-              pagination={false}
-              bordered
-              loading={loading}
-              scroll={{
-                x: "max-content",
-                y: filteredData.length > 6 ? 500 : undefined,
-              }}
-              style={{ width: "100%" }}
-            />
-          </Col>
-        </Row>
-      </div>
+       
     </MainLayout>
   );
 };
