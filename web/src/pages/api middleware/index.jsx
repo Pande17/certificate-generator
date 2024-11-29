@@ -17,6 +17,11 @@ const Sertifikat = axios.create({
 
 const Login = axios.create({
   baseURL: `${api}/api/login`,
+  headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    "X-Requested-With": "XMLHttpRequest",
+  },
 });
 
 // Interceptor for adding token
