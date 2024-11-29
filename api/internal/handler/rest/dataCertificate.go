@@ -436,12 +436,14 @@ func DownloadCertificate(c *fiber.Ctx) error {
 		}
 	}
 	c.Response().Header.Add("Content-Type", "application/pdf")
+
 	for _, url := range strings.Split(os.Getenv("CERTIF_GEN_FRONTEND"), ",") {
 		if url == string(c.Request().Header.Peek("Origin")) {
 			c.Response().Header.Set("Access-Control-Allow-Origin", url)
 			break
 		}
 	}
+
 	return c.Download(filepath, "Sertifikat BTW Edutech "+certifType+" - "+data.NamaPeserta)
 }
 

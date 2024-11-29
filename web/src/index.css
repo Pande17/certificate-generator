@@ -7,3 +7,9 @@ label {
 	font-size: 1px;
 	font-family: 'poppins';
 }
+
+*{
+		background-image: url('../assets/Element.svg');
+		background-position: center;
+		background-repeat: no-repeat;
+}
