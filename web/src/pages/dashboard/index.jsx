@@ -46,17 +46,29 @@ const Dashboard = () => {
 
   // Fetch data dari API
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await Sertifikat.get("/");
+  const fetchData = async () => {
+    setLoading(true); // Set loading to true while fetching data
+    try {
+      const response = await Sertifikat.get("/");
+      console.log("Response from API:", response.data); // Log respons
+      if (response.status === 200) {
         const certificates = response.data.data || [];
         const filteredData = certificates.filter((item) => !item.deleted_at);
+        console.log("Filtered Data:", filteredData); // Log data yang difilter
         setDta(filteredData);
-      } catch (err) {
-        console.error("Error fetching data:", err);
+      } else {
+        console.error("Error fetching data:", response.status);
         message.error("Gagal memuat data.");
       }
-    };
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      message.error("Gagal memuat data.");
+    } finally {
+      setLoading(false); // Set loading to false after fetching
+    }
+  };
+
+
     const fetchSignature = async () => {
       try {
         const response = await Signature.get("/");
@@ -65,6 +77,7 @@ const Dashboard = () => {
         console.log("Error fetching signature data:", error);
       }
     };
+
     const fetchCompetence = async () => {
       try {
         const response = await Kompetensi.get("/");
@@ -89,36 +102,36 @@ const Dashboard = () => {
     name: "softSkill",
   });
 
- const onSubmit = async (formData) => {
-   try {
-     const sanitizedHardSkills = (formData.hardSkill || []).filter(
-       (skill) => skill.skill_name && skill.jp
-     );
-     const sanitizedSoftSkills = (formData.softSkill || []).filter(
-       (skill) => skill.skill_name && skill.skill_score
-     );
+  const onSubmit = async (formData) => {
+    try {
+      const sanitizedHardSkills = (formData.hardSkill || []).filter(
+        (skill) => skill.skill_name && skill.jp
+      );
+      const sanitizedSoftSkills = (formData.softSkill || []).filter(
+        (skill) => skill.skill_name && skill.skill_score
+      );
 
-     const formattedData = {
-       ...formData,
-       hardSkill: sanitizedHardSkills,
-       softSkill: sanitizedSoftSkills,
-     };
+      const formattedData = {
+        ...formData,
+        hardSkill: sanitizedHardSkills,
+        softSkill: sanitizedSoftSkills,
+      };
 
-     const response = await Sertifikat.put(
-       `/${currentRecord._id}`,
-       formattedData
-     );
+      const response = await Sertifikat.put(
+        `/${currentRecord._id}`, // Gunakan ID dari `currentRecord`
+        formattedData
+      );
 
-     if (response.status === 200) {
-       message.success("Sertifikat berhasil diperbarui!");
-       reset();
-       setIsEditModalVisible(false); // Tutup modal
-     }
-   } catch (error) {
-     console.error("Error updating certificate:", error);
-     message.error("Gagal memperbarui sertifikat.");
-   }
- };
+      if (response.status === 200) {
+        message.success("Sertifikat berhasil diperbarui!");
+        reset();
+        setIsEditModalVisible(false); // Tutup modal
+      }
+    } catch (error) {
+      console.error("Error updating certificate:", error);
+      message.error("Gagal memperbarui sertifikat.");
+    }
+  };
 
   const { Option } = Select;
 
@@ -151,20 +164,33 @@ const Dashboard = () => {
       },
     });
   };
+const handleEdit = async (record) => {
+  try {
+    const response = await Sertifikat.get(`/${record._id}`);
 
-  const handleEdit = async (record) => {
-    try {
-      const response = await Sertifikat.get(`/${record._id}`); // Ganti dengan endpoint yang benar
-      const certificateData = response.data.data.data;
-      console.log("Data yang diambil dari API:", certificateData);
+    // Ambil data dari dua level yang berbeda
+    const primaryData = response.data.data; // Data yang mengandung ID
+    const additionalData = primaryData.data; // Data lain yang Anda butuhkan
 
-      setCurrentRecord(certificateData);
-      setIsEditModalVisible(true);
-    } catch (error) {
-      console.error("Error fetching certificate details:", error);
-      message.error("Gagal mengambil data sertifikat.");
-    }
-  };
+    console.log("Data utama (dengan ID):", primaryData);
+    console.log("Data tambahan:", additionalData);
+
+    // Gabungkan data menjadi satu objek
+    const certificateData = {
+      ...primaryData, // Data utama termasuk ID
+      ...additionalData, // Data tambahan
+    };
+
+    console.log("Gabungan data sertifikat:", certificateData);
+
+    setCurrentRecord(certificateData);
+    setIsEditModalVisible(true);
+  } catch (error) {
+    console.error("Error fetching certificate details:", error);
+    message.error("Gagal mengambil data sertifikat.");
+  }
+};
+
 
   const fetchCompetence = async (competenceId) => {
     const url = `/${competenceId}`;
@@ -199,7 +225,7 @@ const Dashboard = () => {
       setSkkni(skkni);
       setDivisi(divisi);
     } catch (err) {
-      console.log(err);
+      console.log("Error fetching competence details:", err);
     }
   };
 
@@ -313,7 +339,7 @@ const Dashboard = () => {
           className="mb-4 p-2 border border-gray-300 rounded w-full md:w-1/2"
         />
 
-        <Row  style={{ justifyContent: "center", width: "100%", overflowX: "auto" }}>
+        <Row style={{ justifyContent: "center", width: "100%", overflowX: "auto" }}>
           <Col span={24}>
             <Table
               dataSource={filteredData}
@@ -326,7 +352,6 @@ const Dashboard = () => {
                 x: "max-content",
                 y: filteredData.length > 6 ? 500 : undefined,
               }}
-
             />
           </Col>
         </Row>
@@ -514,7 +539,7 @@ const Dashboard = () => {
                     }}
                   >
                     <Option value="" disabled>
-                      pilih kommpetensi
+                      pilih kompetensi
                     </Option>
                     {kompetensiData.map((competence) => (
                       <Option key={competence._id} value={competence._id}>
