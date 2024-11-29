@@ -275,11 +275,9 @@ const Dashboard = () => {
 				<div>
 					<p className="text-xl font-Poppins font-semibold mb-5 text-Text p-3 bg-white rounded-xl">List Sertifikat</p>
 				</div>
-
 				<Button onClick={createNav} className="m-3">
 					Buat Sertifikat
 				</Button>
-
 				<input type="text" placeholder="Search" value={searchText} onChange={handleSearch} className="mb-4 p-2 border border-gray-300 rounded w-full md:w-1/2" />
 
 				<Row style={{ justifyContent: 'center', width: '100%', overflowX: 'auto' }}>

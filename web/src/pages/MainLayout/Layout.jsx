@@ -52,21 +52,23 @@ const Sidebar = ({ children }) => {
 						{renderMenu()}
 					</Drawer>
 
-					<div className="mt-4">{children || <p>Main content</p>}</div>
-				</>
-			) : (
-				<div className="flex align-middle">
-					<div className="bg-white flex flex-col w-fit p-8 rounded-xl h-screen font-Poppins text-xl gap-3">
-						<div>
-							<img src={logo} alt="logo" />
-						</div>
-						{renderMenu()}
-					</div>
-					<div className="flex-1 align-middle justify-center flex items-center">{children || <p>Main content</p>}</div>
-				</div>
-			)}
-		</div>
-	);
+          <div className="mt-4">{children || <p>Main content</p>}</div>
+        </>
+      ) : (
+        <div className="flex align-middle">
+          <div className="bg-white flex flex-col w-fit p-8 rounded-xl h-screen font-Poppins text-xl gap-3">
+            <div>
+              <img src={logo} alt="logo" />
+            </div>
+            {renderMenu()}
+          </div>
+          <div className="flex-1 align-middle justify-center flex items-center">
+            {children || <p>Main content</p>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Sidebar;
