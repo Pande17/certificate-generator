@@ -2,7 +2,7 @@ import MainLayout from "../MainLayout/Layout";
 import { Signature } from "../api middleware";
 import { message, Table, Col, Row, Button, Input, Modal, Form } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
@@ -42,17 +42,18 @@ const SignaturePage = () => {
     fetchSignature();
   }, []);
 
-  // **Hapus Data**
-  const delHandle = async (_id) => {
-    try {
-      await Signature.delete(`/${_id}`);
-      setData((prevData) => prevData.filter((item) => item._id !== _id));
-      message.success("Data berhasil dihapus");
-    } catch (error) {
-      console.error("Error deleting data:", error);
-      message.error("Gagal menghapus data.");
-    }
-  };
+ const delHandle = async (_id) => {
+   try {
+     await Kompetensi.delete(`http://127.0.0.1:3000/api/signature/${_id}`);
+     setData((prevData) => prevData.filter((item) => item._id !== _id));
+     message.success("Data berhasil dihapus");
+   } catch (error) {
+     console.error("Error response:", error.response);
+     message.error(
+       `Gagal menghapus data: ${error.response?.data?.message || error.message}`
+     );
+   }
+ };
 
   const delConfirm = (_id, config_name) => {
     confirm({
@@ -196,6 +197,35 @@ const SignaturePage = () => {
             />
           </Col>
         </Row>
+
+        <Modal
+          title="Edit Signature"
+          open={isEditModalVisible}
+          onCancel={() => setIsEditModalVisible(false)}
+          footer={null}>
+          <Form form={form} layout="vertical" onFinish={handleSubmit}>
+            <Form.Item label="Display Nama" name="config_name">
+              <Input placeholder="Masukkan nama display" />
+            </Form.Item>
+            <Form.Item label="Nama Penandatangan" name="name">
+              <Input placeholder="Masukkan nama penandatangan" />
+            </Form.Item>
+            <Form.Item label="Jabatan Penandatangan" name="role">
+              <Input placeholder="Masukkan jabatan penandatangan" />
+            </Form.Item>
+            <Form.Item label="Link Gambar Tanda Tangan" name="signature">
+              <Input placeholder="Masukkan link tanda tangan" />
+            </Form.Item>
+            <Form.Item label="Link Gambar Cap Perusahaan" name="stamp">
+              <Input placeholder="Masukkan link cap perusahaan" />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Simpan
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
 
       {/* Modal Edit */}

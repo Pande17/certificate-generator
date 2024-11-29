@@ -36,6 +36,8 @@ const Dashboard = () => {
   const [kompetensiData, setKompetensiData] = useState([]);
   const [skkni, setSkkni] = useState("");
   const [divisi, setDivisi] = useState("");
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedDownload, setSelectedDownload] = useState(null);
   const { control, handleSubmit, reset, setValue } = useForm({
     defaultValues: {
       hardSkill: [],
@@ -360,6 +362,11 @@ const Dashboard = () => {
     navigate("/create");
   };
 
+  const handleDownloadClick = (record) => {
+    setSelectedDownload(record); // Simpan record yang dipilih ke dalam state
+    setIsModalVisible(true); // Tampilkan modal
+  };
+
   const columns = [
     {
       title: "No",
@@ -401,13 +408,7 @@ const Dashboard = () => {
             icon={<DownloadOutlined />}
             type="primary"
             style={{ margin: 8 }}
-            onClick={() => downloadPDF(record.data_id, "a")}
-          />
-          <Button
-            icon={<DownloadOutlined />}
-            type="primary"
-            style={{ margin: 8 }}
-            onClick={() => downloadPDF(record.data_id, "b")}
+            onClick={() => handleDownloadClick(record)}
           />
         </div>
       ),
@@ -929,6 +930,35 @@ const Dashboard = () => {
               </Button>
             </Form.Item>
           </Form>
+        </Modal>
+
+        {/* Modal untuk memilih template */}
+        <Modal
+          title=""
+          visible={isModalVisible}
+          footer={null}
+          onCancel={() => setIsModalVisible(false)}
+          className="rounded-lg p-6 max-w-lg w-full" // Responsif: batas lebar modal
+          centered>
+          <div className="flex flex-col items-center space-y-4">
+            <p className="text-lg font-semibold text-gray-700">
+              Silakan pilih template untuk diunduh:
+            </p>
+            <div className="flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full">
+              <Button
+                type="primary"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg w-full sm:w-auto"
+                onClick={() => downloadPDF(selectedDownload?.data_id, "a")}>
+                Download Template V1
+              </Button>
+              <Button
+                type="primary"
+                className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg w-full sm:w-auto"
+                onClick={() => downloadPDF(selectedDownload?.data_id, "b")}>
+                Download Template V2
+              </Button>
+            </div>
+          </div>
         </Modal>
       </div>
     </MainLayout>
