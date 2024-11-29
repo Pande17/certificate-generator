@@ -20,7 +20,7 @@ import {
 } from "@ant-design/icons";
 import MainLayout from "../MainLayout/Layout";
 import { Navigate, useNavigate } from "react-router-dom";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useForm, Controller, useFieldArray, } from "react-hook-form";
 
 const competence = () => {
   const [loading, setLoading] = useState(false);
@@ -30,6 +30,7 @@ const competence = () => {
   const [currentRecord, setCurrentRecord] = useState(null);
   const [competencies, setCompetencies] = useState([]);
 
+    const { reset } = useForm();
   const { confirm } = Modal;
 
   useEffect(() => {
