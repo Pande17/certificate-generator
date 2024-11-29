@@ -11,7 +11,7 @@ import {
 } from "antd";
 import MainLayout from "../MainLayout/Layout";
 import { Sertifikat, Kompetensi, Signature } from "../api middleware";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function MyForm() {
   const [data, setData] = useState([]);
@@ -28,6 +28,7 @@ function MyForm() {
     },
   });
 
+  const navigate = useNavigate();
   const { fields: hardSkillFields, replace: replaceHardSkill } = useFieldArray({
     control,
     name: "hardSkill",
@@ -153,7 +154,7 @@ function MyForm() {
       message.error("Failed to add certificate. Please try again.");
     }
 
-    Navigate(`/dashboard`)
+    navigate(`/dashboard`);
   };
 
   const { Option } = Select;
