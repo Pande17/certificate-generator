@@ -38,6 +38,7 @@ const CreateParaf = () => {
         signature: formData.ttd, // The link to the signature image
         stamp: formData.Cap, // The link to the stamp image
         name: formData.atasNama,
+        logo: formData.linkLogo,
         config_name: formData.atasNama,
         role: formData.jabatan,
       };
