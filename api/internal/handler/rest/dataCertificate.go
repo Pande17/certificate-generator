@@ -435,14 +435,9 @@ func DownloadCertificate(c *fiber.Ctx) error {
 			return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
 		}
 	}
-	c.Response().Header.Add("Content-Type", "application/pdf")
 
-	for _, url := range strings.Split(os.Getenv("CERTIF_GEN_FRONTEND"), ",") {
-		if url == string(c.Request().Header.Peek("Origin")) {
-			c.Response().Header.Set("Access-Control-Allow-Origin", url)
-			break
-		}
-	}
+	c.Response().Header.Add("Content-Type", "application/pdf")
+	addAllowOrigin(c)
 
 	return c.Download(filepath, "Sertifikat BTW Edutech "+certifType+" - "+data.NamaPeserta)
 }
