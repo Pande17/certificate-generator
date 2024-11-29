@@ -78,8 +78,9 @@ func CreateCertificate(c *fiber.Ctx) error {
 	pdfReq.Data = *processCertificate(&pdfReq.Data)
 
 	mappedData := model.CertificateData{
-		AdminId:    objectID,
-		SertifName: pdfReq.Data.SertifName,
+		AdminId:     objectID,
+		SertifName:  pdfReq.Data.SertifName,
+		SertifTitle: pdfReq.Data.SertifTitle,
 		KodeReferral: model.KodeReferral{
 			ReferralID: nextReferralID,
 			Divisi:     kompetensi.Divisi,
@@ -110,10 +111,11 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	certificate := model.PDF{
-		AdminId:    objectID,
-		DataID:     newDataID,
-		SertifName: pdfReq.Data.SertifName,
-		Data:       mappedData,
+		AdminId:     objectID,
+		DataID:      newDataID,
+		SertifName:  pdfReq.Data.SertifName,
+		SertifTitle: pdfReq.Data.SertifTitle,
+		Data:        mappedData,
 		Model: model.Model{
 			ID:        primitive.NewObjectID(),
 			CreatedAt: currentTime,
@@ -290,8 +292,9 @@ func EditCertificate(c *fiber.Ctx) error {
 	pdfData = *processCertificate(&pdfData)
 
 	mappedData := model.CertificateData{
-		AdminId:    certificateMongo.AdminId,
-		SertifName: pdfData.SertifName,
+		AdminId:     certificateMongo.AdminId,
+		SertifName:  pdfData.SertifName,
+		SertifTitle: pdfData.SertifTitle,
 		KodeReferral: model.KodeReferral{
 			ReferralID: certificateMongo.Data.KodeReferral.ReferralID,
 			Divisi:     kompetensi.Divisi,
@@ -322,10 +325,11 @@ func EditCertificate(c *fiber.Ctx) error {
 	}
 
 	certificate := model.PDF{
-		AdminId:    certificateMongo.AdminId,
-		DataID:     certificateMongo.DataID,
-		SertifName: pdfData.SertifName,
-		Data:       mappedData,
+		AdminId:     certificateMongo.AdminId,
+		DataID:      certificateMongo.DataID,
+		SertifName:  pdfData.SertifName,
+		SertifTitle: pdfData.SertifTitle,
+		Data:        mappedData,
 		Model: model.Model{
 			ID:        certificateMongo.ID,
 			CreatedAt: certificateMongo.CreatedAt,
@@ -444,6 +448,7 @@ func DownloadCertificate(c *fiber.Ctx) error {
 func processCertificate(certif *model.CertificateData) *model.CertificateData {
 	certif.SertifName = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(strings.ToUpper(certif.SertifName)), "SERTIFIKAT"))
 	certif.KodeReferral.Divisi = strings.ToUpper(certif.KodeReferral.Divisi)
+	certif.SertifTitle = fmt.Sprintf("%s - %s - %s", certif.DataID, certif.NamaPeserta, certif.Kompetensi)
 
 	totalHSJP, totalHSSkor := uint64(0), float64(0)
 	for _, hs := range certif.HardSkills.Skills {
