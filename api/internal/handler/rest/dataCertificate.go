@@ -158,13 +158,14 @@ func GetAllCertificates(c *fiber.Ctx) error {
 
 	// set the projection to return the required fields
 	projection := bson.M{
-		"_id":         1,
-		"admin_id":    1,
-		"data_id":     1,
-		"sertif_name": 1,
-		"created_at":  1,
-		"updated_at":  1,
-		"deleted_at":  1,
+		"_id":          1,
+		"admin_id":     1,
+		"data_id":      1,
+		"sertif_name":  1,
+		"sertif_title": 1,
+		"created_at":   1,
+		"updated_at":   1,
+		"deleted_at":   1,
 	}
 
 	// Create the filter to include admin_id and handle deleted_at
