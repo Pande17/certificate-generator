@@ -35,6 +35,7 @@ const Sidebar = ({ children }) => {
 			style={{
 				backgroundImage: `url(${backgroundImage})`,
 				backgroundRepeat: 'no-repeat',
+				backgroundCover: 'cover',
 				backgroundPosition: 'center',
 			}}
 		>

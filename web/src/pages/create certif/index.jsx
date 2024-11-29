@@ -243,11 +243,11 @@ const fetchCompetence = async (competenceId) => {
         <div className="text-center font-Poppins font-bold text-xl">
           Buat Sertifikat
         </div>
-        <Form.Item label="Nama sertifikat" required>
+        <Form.Item label="Judul Sertifikat" required>
           <Controller
             name="sertifikat"
             control={control}
-            rules={{ required: "Nama is required" }}
+            rules={{ required: "Judul is required" }}
             render={({ field }) => (
               <Input
                 {...field}
@@ -287,7 +287,7 @@ const fetchCompetence = async (competenceId) => {
           />
         </Form.Item>
 
-        <Form.Item label="Total tahun" required>
+        <Form.Item label="Total Tahun" required>
           <Controller
             name="validTime"
             control={control}
@@ -346,7 +346,7 @@ const fetchCompetence = async (competenceId) => {
           />
         </Form.Item>
 
-        <Form.Item label="Total waktu Pertemuan" required>
+        <Form.Item label="Total Waktu Pertemuan" required>
           <Controller
             name="meetingTime"
             control={control}
@@ -384,7 +384,7 @@ const fetchCompetence = async (competenceId) => {
             control={control}
             render={({ field }) => (
               <Select
-                placeholder="Pilih kompetensi"
+                placeholder="Pilih Kompetensi"
                 {...field}
                 style={{ width: "100%", height: "50px" }}
                 onChange={(value) => {
@@ -393,7 +393,7 @@ const fetchCompetence = async (competenceId) => {
                 }}
               >
                 <Option value="" disabled>
-                  pilih kommpetensi
+                  Pilih Kompetensi
                 </Option>
                 {data.map((competence) => (
                   <Option key={competence._id} value={competence._id}>
@@ -428,7 +428,7 @@ const fetchCompetence = async (competenceId) => {
         {hardSkillFields.length > 0 && (
           <div>
             <h2 className="font-Poppins text-2xl font-medium text-center p-6">
-              Hardskills
+              Hard Skills
             </h2>
             {hardSkillFields.map((skill, index) => (
               <div key={index} style={{ marginBottom: "20px" }}>
@@ -507,7 +507,7 @@ const fetchCompetence = async (competenceId) => {
         {softSkillFields.length > 0 && (
           <div>
             <h2 className="font-Poppins text-2xl font-medium text-center p-6">
-              Softskills
+              Soft Skills
             </h2>
             {softSkillFields.map((skill, index) => (
               <div key={index} style={{ marginBottom: "20px" }}>
@@ -570,7 +570,7 @@ const fetchCompetence = async (competenceId) => {
                   render={({ field }) => (
                     <InputNumber
                       {...field}
-                      placeholder="score"
+                      placeholder="Score"
                       style={{
                         width: "100%",
                         height: "50px",
@@ -589,7 +589,7 @@ const fetchCompetence = async (competenceId) => {
             control={control}
             render={({ field }) => (
               <Select
-                placeholder="Pilih tanda tangan"
+                placeholder="Pilih Tanda Tangan"
                 {...field}
                 style={{ width: "100%", height: "50px" }}
               >
