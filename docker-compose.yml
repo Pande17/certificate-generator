@@ -7,7 +7,7 @@ services:
       - mongo
     environment:
       APP_DEBUG: 'false'
-      CERTIF_GEN_FRONTEND: 'https://frontend-production-4c45.up.railway.app/dashboard'
+      CERTIF_GEN_FRONTEND: 'http://localhost'
     env_file:
       - ./api/.env
       - ./api/.env.local

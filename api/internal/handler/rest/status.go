@@ -1,6 +1,8 @@
 package rest
 
 import (
+	"os"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -28,6 +30,8 @@ func jsonResponse(c *fiber.Ctx, statusCode int, message string, errLocate string
 	if deletedAt != nil {
 		response["deleted_at"] = deletedAt
 	}
+
+	addAllowOrigin(c)
 
 	return c.Status(statusCode).JSON(response)
 }
@@ -60,4 +64,13 @@ func AlreadyDeleted(c *fiber.Ctx, message string, errLocate string, deletedAt an
 // code 409
 func Conflict(c *fiber.Ctx, message string, errLocate string) error {
 	return jsonResponse(c, fiber.StatusConflict, message, errLocate, nil, nil)
+}
+
+func addAllowOrigin(c *fiber.Ctx) {
+	for _, url := range strings.Split(os.Getenv("CERTIF_GEN_FRONTEND"), ",") {
+		if url == string(c.Request().Header.Peek("Origin")) {
+			c.Response().Header.Set("Access-Control-Allow-Origin", url)
+			break
+		}
+	}
 }

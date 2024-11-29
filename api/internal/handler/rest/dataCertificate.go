@@ -78,8 +78,9 @@ func CreateCertificate(c *fiber.Ctx) error {
 	pdfReq.Data = *processCertificate(&pdfReq.Data)
 
 	mappedData := model.CertificateData{
-		AdminId:    objectID,
-		SertifName: pdfReq.Data.SertifName,
+		AdminId:     objectID,
+		SertifName:  pdfReq.Data.SertifName,
+		SertifTitle: pdfReq.Data.SertifTitle,
 		KodeReferral: model.KodeReferral{
 			ReferralID: nextReferralID,
 			Divisi:     kompetensi.Divisi,
@@ -110,10 +111,11 @@ func CreateCertificate(c *fiber.Ctx) error {
 	}
 
 	certificate := model.PDF{
-		AdminId:    objectID,
-		DataID:     newDataID,
-		SertifName: pdfReq.Data.SertifName,
-		Data:       mappedData,
+		AdminId:     objectID,
+		DataID:      newDataID,
+		SertifName:  pdfReq.Data.SertifName,
+		SertifTitle: pdfReq.Data.SertifTitle,
+		Data:        mappedData,
 		Model: model.Model{
 			ID:        primitive.NewObjectID(),
 			CreatedAt: currentTime,
@@ -156,13 +158,14 @@ func GetAllCertificates(c *fiber.Ctx) error {
 
 	// set the projection to return the required fields
 	projection := bson.M{
-		"_id":         1,
-		"admin_id":    1,
-		"data_id":     1,
-		"sertif_name": 1,
-		"created_at":  1,
-		"updated_at":  1,
-		"deleted_at":  1,
+		"_id":          1,
+		"admin_id":     1,
+		"data_id":      1,
+		"sertif_name":  1,
+		"sertif_title": 1,
+		"created_at":   1,
+		"updated_at":   1,
+		"deleted_at":   1,
 	}
 
 	// Create the filter to include admin_id and handle deleted_at
@@ -290,8 +293,9 @@ func EditCertificate(c *fiber.Ctx) error {
 	pdfData = *processCertificate(&pdfData)
 
 	mappedData := model.CertificateData{
-		AdminId:    certificateMongo.AdminId,
-		SertifName: pdfData.SertifName,
+		AdminId:     certificateMongo.AdminId,
+		SertifName:  pdfData.SertifName,
+		SertifTitle: pdfData.SertifTitle,
 		KodeReferral: model.KodeReferral{
 			ReferralID: certificateMongo.Data.KodeReferral.ReferralID,
 			Divisi:     kompetensi.Divisi,
@@ -322,10 +326,11 @@ func EditCertificate(c *fiber.Ctx) error {
 	}
 
 	certificate := model.PDF{
-		AdminId:    certificateMongo.AdminId,
-		DataID:     certificateMongo.DataID,
-		SertifName: pdfData.SertifName,
-		Data:       mappedData,
+		AdminId:     certificateMongo.AdminId,
+		DataID:      certificateMongo.DataID,
+		SertifName:  pdfData.SertifName,
+		SertifTitle: pdfData.SertifTitle,
+		Data:        mappedData,
 		Model: model.Model{
 			ID:        certificateMongo.ID,
 			CreatedAt: certificateMongo.CreatedAt,
@@ -431,13 +436,17 @@ func DownloadCertificate(c *fiber.Ctx) error {
 			return Conflict(c, "Tidak dapat mengunduh sertifikat! Silahkan coba lagi.", err.Error())
 		}
 	}
+
 	c.Response().Header.Add("Content-Type", "application/pdf")
-	// c.Response().Header.Add("Access-Control-Allow-Origin", os.Getenv("CERTIF_GEN_FRONTEND"))
+	addAllowOrigin(c)
+
 	return c.Download(filepath, "Sertifikat BTW Edutech "+certifType+" - "+data.NamaPeserta)
 }
 
 func processCertificate(certif *model.CertificateData) *model.CertificateData {
 	certif.SertifName = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(strings.ToUpper(certif.SertifName)), "SERTIFIKAT"))
+	certif.KodeReferral.Divisi = strings.ToUpper(certif.KodeReferral.Divisi)
+	certif.SertifTitle = fmt.Sprintf("%s - %s - %s", certif.DataID, certif.NamaPeserta, certif.Kompetensi)
 
 	totalHSJP, totalHSSkor := uint64(0), float64(0)
 	for _, hs := range certif.HardSkills.Skills {

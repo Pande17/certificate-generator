@@ -10,13 +10,13 @@ import {
   message,
 } from "antd";
 import MainLayout from "../MainLayout/Layout";
-import { Sertifikat,Kompetensi,Signature } from "../api middleware";
+import { Sertifikat, Kompetensi, Signature } from "../api middleware";
 
 function MyForm() {
   const [data, setData] = useState([]);
   const [signatureData, setSignatureData] = useState([]);
-    const [selectedSignature, setSelectedSignature] = useState(null);
-    const [isSignatureSelected, setIsSignatureSelected] = useState(false);
+  const [selectedSignature, setSelectedSignature] = useState(null);
+  const [isSignatureSelected, setIsSignatureSelected] = useState(false);
   const [skkni, setSkkni] = useState("");
   const [divisi, setDivisi] = useState("");
   const { control, handleSubmit, reset, setValue } = useForm({
@@ -123,7 +123,7 @@ function MyForm() {
             role: formData.role,
             signature: formData.linkGambarPenandatangan,
             name: formData.namaPenandatangan,
-            stamp:formData.stamp,
+            stamp: formData.stamp,
           },
           total_jp:
             (formData.hardSkill?.reduce(
@@ -137,17 +137,14 @@ function MyForm() {
         },
       };
 
-      const response = await Sertifikat.post(
-        "/",
-        formattedData
-      );
+      const response = await Sertifikat.post("/", formattedData);
 
       if (response.status === 200) {
         console.log(data);
         message.success("Certificate added successfully!");
         reset(); // Clear the form
-      }else{
-         console.log("Ada masalah dengan respons:", response);
+      } else {
+        console.log("Ada masalah dengan respons:", response);
       }
     } catch (error) {
       console.log(data);
@@ -158,110 +155,103 @@ function MyForm() {
 
   const { Option } = Select;
 
-   useEffect(() => {
-     // Fetch competence data
-     const fetchCompetence = async () => {
-       try {
-         const response = await Kompetensi.get(
-           "/"
-         );
+  useEffect(() => {
+    // Fetch competence data
+    const fetchCompetence = async () => {
+      try {
+        const response = await Kompetensi.get("/");
         setData(response.data.data);
-       } catch (error) {
-         console.log("Error fetching competence data:", error);
-       }
-     };
+      } catch (error) {
+        console.log("Error fetching competence data:", error);
+      }
+    };
 
-     // Fetch signature data
-     const fetchSignature = async () => {
-       try {
-         const response = await Signature.get(
-           "/"
-         );
-         setSignatureData(response.data.data);
-       } catch (error) {
-         console.log("Error fetching signature data:", error);
-       }
-     };
+    // Fetch signature data
+    const fetchSignature = async () => {
+      try {
+        const response = await Signature.get("/");
+        setSignatureData(response.data.data);
+      } catch (error) {
+        console.log("Error fetching signature data:", error);
+      }
+    };
 
-     fetchCompetence();
-     fetchSignature();
-   }, []);
+    fetchCompetence();
+    fetchSignature();
+  }, []);
 
-const fetchCompetence = async (competenceId) => {
-  try {
-    const response = await Kompetensi.get( `/${competenceId}`);
+  const fetchCompetence = async (competenceId) => {
+    try {
+      const response = await Kompetensi.get(`/${competenceId}`);
 
-    const {
-      hard_skills = [],
-      soft_skills = [],
-      skkni = "",
-      divisi = "",
-    } = response.data.data || {};
+      const {
+        hard_skills = [],
+        soft_skills = [],
+        skkni = "",
+        divisi = "",
+      } = response.data.data || {};
 
-    const newHardSkills = hard_skills.map((hardSkill) => ({
-      skill_name: hardSkill.skill_name || "",
-      combined_units: hardSkill.description
-        .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
-        .join("\n"),
+      const newHardSkills = hard_skills.map((hardSkill) => ({
+        skill_name: hardSkill.skill_name || "",
+        combined_units: hardSkill.description
+          .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
+          .join("\n"),
+      }));
+
+      const newSoftSkills = soft_skills.map((softSkill) => ({
+        skill_name: softSkill.skill_name || "",
+        combined_units: softSkill.description
+          .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
+          .join("\n"),
+      }));
+
+      replaceHardSkill(newHardSkills);
+      replaceSoftSkill(newSoftSkills);
+
+      // Simpan skkni dan divisi ke state
+      setSkkni(skkni);
+      setDivisi(divisi);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleCompetenceChange = (value) => {
+    reset((prevValues) => ({
+      ...prevValues, // Pertahankan nilai sebelumnya
+      selectedCompetenceId: value,
+      hardSkill: [],
+      softSkill: [],
     }));
+    fetchCompetence(value);
+  };
 
-    const newSoftSkills = soft_skills.map((softSkill) => ({
-      skill_name: softSkill.skill_name || "",
-      combined_units: softSkill.description
-        .map((unit) => `${unit.unit_code} - ${unit.unit_title}`)
-        .join("\n"),
-    }));
+  const fetchSignatureId = async (SignatureId) => {
+    try {
+      const response = await Signature.get(`/${SignatureId}`);
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching signature:", error);
+      return null;
+    }
+  };
 
-    replaceHardSkill(newHardSkills);
-    replaceSoftSkill(newSoftSkills);
+  const handleSignatureChange = async (value) => {
+    const signature = await fetchSignatureId(value);
+    if (signature) {
+      setSelectedSignature(signature);
+      setIsSignatureSelected(true);
 
-    // Simpan skkni dan divisi ke state
-    setSkkni(skkni);
-    setDivisi(divisi);
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-
-const handleCompetenceChange = (value) => {
-  reset((prevValues) => ({
-    ...prevValues, // Pertahankan nilai sebelumnya
-    selectedCompetenceId: value,
-    hardSkill: [],
-    softSkill: [],
-  }));
-  fetchCompetence(value);
-};
-
-const fetchSignatureId = async (SignatureId) => {
-  try {
-    const response = await Signature.get(`/${SignatureId}`);
-    return response.data.data;
-  } catch (error) {
-    console.error("Error fetching signature:", error);
-    return null;
-  }
-};
-
-const handleSignatureChange = async (value) => {
-  const signature = await fetchSignatureId(value);
-  if (signature) {
-    setSelectedSignature(signature);
-    setIsSignatureSelected(true);
-
-    setValue("namaPenandatangan", signature.name || "");
-    setValue("role", signature.role || "");
-    setValue("logo", signature.logo || "");
-    setValue("linkGambarPenandatangan", signature.stamp || "");
-    setValue("logoPerusahaan", signature.logo || "");
-    setValue("stamp", signature.stamp || "");
-  } else {
-    setIsSignatureSelected(false);
-  }
-};
-
-
+      setValue("namaPenandatangan", signature.name || "");
+      setValue("role", signature.role || "");
+      setValue("logo", signature.logo || "");
+      setValue("linkGambarPenandatangan", signature.stamp || "");
+      setValue("logoPerusahaan", signature.logo || "");
+      setValue("stamp", signature.stamp || "");
+    } else {
+      setIsSignatureSelected(false);
+    }
+  };
 
   return (
     <MainLayout>
@@ -281,11 +271,11 @@ const handleSignatureChange = async (value) => {
         <div className="text-center font-Poppins font-bold text-xl">
           Buat Sertifikat
         </div>
-        <Form.Item label="Nama sertifikat" required>
+        <Form.Item label="Judul Sertifikat" required>
           <Controller
             name="sertifikat"
             control={control}
-            rules={{ required: "Nama is required" }}
+            rules={{ required: "Judul is required" }}
             render={({ field }) => (
               <Input
                 {...field}
@@ -325,7 +315,7 @@ const handleSignatureChange = async (value) => {
           />
         </Form.Item>
 
-        <Form.Item label="Total tahun" required>
+        <Form.Item label="Total Tahun" required>
           <Controller
             name="validTime"
             control={control}
@@ -384,7 +374,7 @@ const handleSignatureChange = async (value) => {
           />
         </Form.Item>
 
-        <Form.Item label="Total waktu Pertemuan" required>
+        <Form.Item label="Total Waktu Pertemuan" required>
           <Controller
             name="meetingTime"
             control={control}
@@ -398,11 +388,11 @@ const handleSignatureChange = async (value) => {
             )}
           />
         </Form.Item>
-        <Form.Item label="waktu dan Tempat Pengesahan" required>
+        <Form.Item label="Waktu dan Tempat Pengesahan" required>
           <Controller
             name="validation"
             control={control}
-            rules={{ required: "Meeting Time is required" }}
+            rules={{ required: "Validation is required" }}
             render={({ field }) => (
               <Input
                 {...field}
@@ -422,7 +412,7 @@ const handleSignatureChange = async (value) => {
             control={control}
             render={({ field }) => (
               <Select
-                placeholder="Pilih kompetensi"
+                placeholder="Pilih Kompetensi"
                 {...field}
                 style={{ width: "100%", height: "50px" }}
                 onChange={(value) => {
@@ -431,7 +421,7 @@ const handleSignatureChange = async (value) => {
                 }}
               >
                 <Option value="" disabled>
-                  pilih kommpetensi
+                  Pilih Kompetensi
                 </Option>
                 {data.map((competence) => (
                   <Option key={competence._id} value={competence._id}>
@@ -466,7 +456,7 @@ const handleSignatureChange = async (value) => {
         {hardSkillFields.length > 0 && (
           <div>
             <h2 className="font-Poppins text-2xl font-medium text-center p-6">
-              Hardskills
+              Hard Skills
             </h2>
             {hardSkillFields.map((skill, index) => (
               <div key={index} style={{ marginBottom: "20px" }}>
@@ -545,7 +535,7 @@ const handleSignatureChange = async (value) => {
         {softSkillFields.length > 0 && (
           <div>
             <h2 className="font-Poppins text-2xl font-medium text-center p-6">
-              Softskills
+              Soft Skills
             </h2>
             {softSkillFields.map((skill, index) => (
               <div key={index} style={{ marginBottom: "20px" }}>
@@ -608,7 +598,7 @@ const handleSignatureChange = async (value) => {
                   render={({ field }) => (
                     <InputNumber
                       {...field}
-                      placeholder="score"
+                      placeholder="Score"
                       style={{
                         width: "100%",
                         height: "50px",
@@ -628,7 +618,7 @@ const handleSignatureChange = async (value) => {
             render={({ field }) => (
               <Select
                 {...field}
-                placeholder="Pilih template paraf"
+                placeholder="Pilih Template Paraf"
                 onChange={handleSignatureChange}
                 style={{ width: "100%", height: "50px" }}
               >
@@ -644,7 +634,6 @@ const handleSignatureChange = async (value) => {
             )}
           />
         </Form.Item>
-
 
         {isSignatureSelected && selectedSignature && (
           <>

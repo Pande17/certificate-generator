@@ -30,26 +30,27 @@ const Sidebar = ({ children }) => {
 	);
 
 	return (
-    <div
-      className="p-9 bg-Background min-h-screen"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
-      }}
-    >
-      {isMobileOrTablet ? (
-        <>
-          <Button type="primary" icon={<MenuOutlined />} onClick={showDrawer} />
-          <Drawer
-            title={<img src={logo} alt="Logo" style={{ width: "100px" }} />}
-            placement="left"
-            onClose={closeDrawer}
-            open={drawerOpen}
-            width="50%" // Adjust drawer width as needed
-          >
-            {renderMenu()}
-          </Drawer>
+		<div
+			className="p-9 bg-Background min-h-screen"
+			style={{
+				backgroundImage: `url(${backgroundImage})`,
+				backgroundRepeat: 'no-repeat',
+				backgroundSize: 'cover',
+				backgroundPosition: 'center',
+			}}
+		>
+			{isMobileOrTablet ? (
+				<>
+					<Button type="primary" icon={<MenuOutlined />} onClick={showDrawer} />
+					<Drawer
+						title={<img src={logo} alt="Logo" style={{ width: '100px' }} />}
+						placement="left"
+						onClose={closeDrawer}
+						open={drawerOpen}
+						width="50%" // Adjust drawer width as needed
+					>
+						{renderMenu()}
+					</Drawer>
 
           <div className="mt-4">{children || <p>Main content</p>}</div>
         </>
