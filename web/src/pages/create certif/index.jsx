@@ -11,6 +11,7 @@ import {
 } from "antd";
 import MainLayout from "../MainLayout/Layout";
 import { Sertifikat, Kompetensi, Signature } from "../api middleware";
+import { Navigate } from "react-router-dom";
 
 function MyForm() {
   const [data, setData] = useState([]);
@@ -151,6 +152,8 @@ function MyForm() {
       console.log("Error adding certificate:", error);
       message.error("Failed to add certificate. Please try again.");
     }
+
+    Navigate(`/dashboard`)
   };
 
   const { Option } = Select;
