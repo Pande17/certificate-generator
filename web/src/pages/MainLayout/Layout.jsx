@@ -33,7 +33,7 @@ const Sidebar = ({ children }) => {
 		<div
 			className="p-9 bg-Background min-h-screen"
 			style={{
-				backgroundImage: `url(${backgroundImage})`,
+				backgroundImage: `url('../assets/Element.svg')`,
 				backgroundRepeat: 'no-repeat',
 				backgroundPosition: 'center',
 			}}
