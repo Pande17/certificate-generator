@@ -1,5 +1,5 @@
 # stage 1 - build stage
-FROM node:18-alpine AS build
+FROM node:18-alpine
 
 # set working directory
 WORKDIR /app
@@ -8,6 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 RUN npm install
+RUN npm install serve -g
 
 # copy all source code to build it
 COPY . ./
@@ -15,19 +16,6 @@ COPY . ./
 # build the react app
 RUN npm run build
 
-# Debugging: Check the output of the build
-RUN ls -la /app/dist
+EXPOSE 5173
 
-FROM caddy:latest
-
-WORKDIR /app
-
-COPY Caddyfile ./
-
-COPY --chmod=755 /bin/sh/entrypoint.sh ./
-
-RUN caddy fmt --overwrite Caddyfile
-
-ENTRYPOINT ["/bin/sh"]
-
-CMD ["entrypoint.sh"]
+CMD [ "serve", "-s", "dist" ]
