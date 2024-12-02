@@ -88,13 +88,62 @@ const CreateParaf = () => {
 					<Controller name="jabatan" control={control} rules={{ required: 'Wajib mengisi jabatan' }} render={({ field }) => <Input {...field} placeholder="Masukkan Jabatan Penandatangan" />} />
 				</Form.Item>
 
-				<Form.Item label="Link Gambar Tanda Tangan" required>
-					<Controller name="ttd" control={control} rules={{ required: 'Wajib mengisi Link' }} render={({ field }) => <Input {...field} placeholder="Masukkan Link Gambar Tanda Tangan" />} />
-				</Form.Item>
+        <Form.Item label="Link Gambar Tanda Tangan" required>
+          <Controller
+            name="ttd"
+            control={control}
+            rules={{ required: "Wajib mengisi Link" }}
+            render={({ field }) => (
+              <>
+                <Input
+                  {...field}
+                  placeholder="Masukkan Link Gambar Tanda Tangan"
+                />
+                {field.value && (
+                  <div style={{ marginTop: "10px" }}>
+                    <img
+                      src={field.value}
+                      alt="Tandatangan orang terkait"
+                      style={{
+                        width: "200px",
+                        height: "200px",
+                        border: "solid",
+                        borderColor: "black",
+                      }}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+          />
+        </Form.Item>
 
-				<Form.Item label="Link Gambar Cap Perusahaan" required>
-					<Controller name="Cap" control={control} rules={{ required: 'Wajib mengisi Link' }} render={({ field }) => <Input {...field} placeholder="Masukkan Link Gambar Cap" />} />
-				</Form.Item>
+        <Form.Item label="Link Gambar Cap Perusahaan" required>
+          <Controller
+            name="Cap"
+            control={control}
+            rules={{ required: "Wajib mengisi Link" }}
+            render={({ field }) => (
+              <>
+                <Input {...field} placeholder="Masukkan Link Gambar Cap" />
+                {field.value && (
+                  <div style={{ marginTop: "10px" }}>
+                    <img
+                      src={field.value}
+                      alt="Cap Perusahaan"
+                      style={{
+                        width: "200px",
+                        height: "200px",
+                        border: "solid",
+                        borderColor: "black",
+                      }}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+          />
+        </Form.Item>
 
 				<Form.Item label="Link logo Perusahaan" required>
 					<Controller

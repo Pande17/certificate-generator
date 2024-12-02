@@ -84,7 +84,7 @@ const SignaturePage = () => {
         displayNama: certificateData.config_name || "",
         atasNama: certificateData.name || "",
         jabatan: certificateData.role || "",
-        logo: formData.linkLogo || "",
+        linkLogo: certificateData.logo || "",
         ttd: certificateData.signature || "",
         Cap: certificateData.stamp || "",
       });
@@ -197,35 +197,6 @@ const SignaturePage = () => {
             />
           </Col>
         </Row>
-
-        <Modal
-          title="Edit Signature"
-          open={isEditModalVisible}
-          onCancel={() => setIsEditModalVisible(false)}
-          footer={null}>
-          <Form form={form} layout="vertical" onFinish={handleSubmit}>
-            <Form.Item label="Display Nama" name="config_name">
-              <Input placeholder="Masukkan nama display" />
-            </Form.Item>
-            <Form.Item label="Nama Penandatangan" name="name">
-              <Input placeholder="Masukkan nama penandatangan" />
-            </Form.Item>
-            <Form.Item label="Jabatan Penandatangan" name="role">
-              <Input placeholder="Masukkan jabatan penandatangan" />
-            </Form.Item>
-            <Form.Item label="Link Gambar Tanda Tangan" name="signature">
-              <Input placeholder="Masukkan link tanda tangan" />
-            </Form.Item>
-            <Form.Item label="Link Gambar Cap Perusahaan" name="stamp">
-              <Input placeholder="Masukkan link cap perusahaan" />
-            </Form.Item>
-            <Form.Item>
-              <Button type="primary" htmlType="submit">
-                Simpan
-              </Button>
-            </Form.Item>
-          </Form>
-        </Modal>
       </div>
 
       {/* Modal Edit */}
@@ -278,7 +249,23 @@ const SignaturePage = () => {
               control={control}
               rules={{ required: "Wajib mengisi link" }}
               render={({ field }) => (
-                <Input {...field} placeholder="Masukkan link tanda tangan" />
+                <>
+                  <Input {...field} placeholder="Masukkan link tanda tangan" />
+                  {field.value && (
+                    <div style={{ marginTop: "10px" }}>
+                      <img
+                        src={field.value}
+                        alt="Tanda tangan orang terkait"
+                        style={{
+                          width: "200px",
+                          height: "200px",
+                          border: "solid",
+                          borderColor: "black",
+                        }}
+                      />
+                    </div>
+                  )}
+                </>
               )}
             />
           </Form.Item>
@@ -289,7 +276,26 @@ const SignaturePage = () => {
               control={control}
               rules={{ required: "Wajib mengisi link" }}
               render={({ field }) => (
-                <Input {...field} placeholder="Masukkan link cap perusahaan" />
+                <>
+                  <Input
+                    {...field}
+                    placeholder="Masukkan link cap perusahaan"
+                  />
+                  {field.value && (
+                    <div style={{ marginTop: "10px" }}>
+                      <img
+                        src={field.value}
+                        alt="Cap Perusahaan"
+                        style={{
+                          width: "200px",
+                          height: "200px",
+                          border: "solid",
+                          borderColor: "black",
+                        }}
+                      />
+                    </div>
+                  )}
+                </>
               )}
             />
           </Form.Item>
@@ -298,7 +304,6 @@ const SignaturePage = () => {
             <Controller
               name="linkLogo"
               control={control}
-              defaultValue="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833019/aset%20pdf/pnu45hydtyftsfxlqaxm.png"
               rules={{ required: "Link logo perusahaan diperlukan" }}
               render={({ field }) => (
                 <>
