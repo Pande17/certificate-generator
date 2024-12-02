@@ -45,69 +45,87 @@ function MyForm() {
 			formData.softSkill // Pastikan ini adalah array
 		);
 
-		try {
-			const formattedData = {
-				savedb: true,
-				page_name: 'page2a',
-				zoom: 1.367,
-				data: {
-					sertif_name: formData.sertifikat,
-					nama_peserta: formData.nama,
-					kompeten_bidang: formData.fieldOfStudy,
-					kompetensi: data.find((item) => item._id === formData.selectedCompetenceId)?.nama_kompetensi,
-					meet_time: formData.meetingTime,
-					skkni: formData.skkni,
-					validation: formData.validation,
-					valid_date: {
-						valid_start: formData.expiredTimeStart,
-						valid_end: formData.expiredTimeEnd,
-						valid_total: formData.validTime,
-					},
-					total_meet: formData.totalMeeting,
-					kode_referral: {
-						divisi: formData.codeReferralFieldOfStudy,
-					},
-					hard_skills: {
-						skills: Array.isArray(formData.hardSkill)
-							? formData.hardSkill.map((skill) => ({
-									skill_name: skill.skill_name,
-									skill_jp: skill.jp,
-									skill_score: skill.skillScore,
-									description: skill.combined_units.split('\n').map((line) => {
-										const [unit_code, unit_title] = line.split(' - ');
-										return { unit_code, unit_title };
-									}),
-							  }))
-							: [],
-						total_skill_jp: formData.hardSkill?.reduce((acc, skill) => acc + (skill.jp || 0), 0) || 0,
-						total_skill_score: totalSkillScore, // Replace with actual computation if necessary
-					},
-					soft_skills: {
-						skills: Array.isArray(formData.softSkill)
-							? formData.softSkill.map((skill) => ({
-									skill_name: skill.skill_name,
-									skill_jp: skill.jp,
-									skill_score: skill.skillScore,
-									description: skill.combined_units.split('\n').map((line) => {
-										const [unit_code, unit_title] = line.split(' - ');
-										return { unit_code, unit_title };
-									}),
-							  }))
-							: [],
-						total_skill_jp: formData.softSkill?.reduce((acc, skill) => acc + (skill.jp || 0), 0) || 0,
-						total_skill_score: totalSkillScore, // Replace with actual computation if necessary
-					},
-					signature: {
-						config_name: formData.config_name,
-						logo: formData.logo,
-						role: formData.role,
-						signature: formData.linkGambarPenandatangan,
-						name: formData.namaPenandatangan,
-						stamp: formData.stamp,
-					},
-					total_jp: (formData.hardSkill?.reduce((acc, skill) => acc + (skill.jp || 0), 0) || 0) + (formData.softSkill?.reduce((acc, skill) => acc + (skill.jp || 0), 0) || 0),
-				},
-			};
+    try {
+      const formattedData = {
+        savedb: true,
+        page_name: "page2a",
+        zoom: 1.367,
+        data: {
+          sertif_name: formData.sertifikat,
+          nama_peserta: formData.nama,
+          kompeten_bidang: formData.fieldOfStudy,
+          kompetensi: data.find(
+            (item) => item._id === formData.selectedCompetenceId
+          )?.nama_kompetensi,
+          meet_time: formData.meetingTime,
+          skkni: formData.skkni,
+          validation: formData.validation,
+          valid_date: {
+            valid_start: formData.expiredTimeStart,
+            valid_end: formData.expiredTimeEnd,
+            valid_total: formData.validTime,
+          },
+          total_meet: formData.totalMeeting,
+          kode_referral: {
+            divisi: formData.codeReferralFieldOfStudy,
+          },
+          hard_skills: {
+            skills: Array.isArray(formData.hardSkill)
+              ? formData.hardSkill.map((skill) => ({
+                  skill_name: skill.skill_name,
+                  skill_jp: skill.jp,
+                  skill_score: skill.skillScore,
+                  description: skill.combined_units.split("\n").map((line) => {
+                    const [unit_code, unit_title] = line.split(" - ");
+                    return { unit_code, unit_title };
+                  }),
+                }))
+              : [],
+            total_skill_jp:
+              formData.hardSkill?.reduce(
+                (acc, skill) => acc + (skill.jp || 0),
+                0
+              ) || 0,
+            total_skill_score: totalSkillScore, // Replace with actual computation if necessary
+          },
+          soft_skills: {
+            skills: Array.isArray(formData.softSkill)
+              ? formData.softSkill.map((skill) => ({
+                  skill_name: skill.skill_name,
+                  skill_jp: skill.jp,
+                  skill_score: skill.skillScore,
+                  description: skill.combined_units.split("\n").map((line) => {
+                    const [unit_code, unit_title] = line.split(" - ");
+                    return { unit_code, unit_title };
+                  }),
+                }))
+              : [],
+            total_skill_jp:
+              formData.softSkill?.reduce(
+                (acc, skill) => acc + (skill.jp || 0),
+                0
+              ) || 0,
+            total_skill_score: totalSkillScore, // Replace with actual computation if necessary
+          },
+          signature: {
+            config_name: formData.config_name,
+            logo: formData.logo,
+            role: formData.role,
+            signature: formData.linkGambarPenandatangan,
+            name: formData.namaPenandatangan,
+            stamp: formData.stamp,
+          },
+          total_jp:
+            (formData.hardSkill?.reduce(
+              (acc, skill) => acc + (skill.jp || 0),
+              0
+            ) || 0) +
+            (formData.softSkill?.reduce(
+              (acc, skill) => acc + (skill.jp || 0),
+              0
+            ) || 0),
+        },
+      };
 
 			const response = await Sertifikat.post('', formattedData);
 
@@ -502,11 +520,8 @@ function MyForm() {
 							<Controller name="logo" control={control} render={({ field }) => <Input {...field} readOnly style={{ width: '100%', height: '50px' }} />} />
 						</Form.Item>
 
-						<Form.Item label="Link gambar penandatangan" required>
-							<Controller name="linkGambarPenandatangan" control={control} render={({ field }) => <Input {...field} readOnly style={{ width: '100%', height: '50px' }} />} />
-						</Form.Item>
-					</>
-				)}
+          </>
+        )}
 
 				<Form.Item>
 					<Button type="primary" htmlType="submit">
