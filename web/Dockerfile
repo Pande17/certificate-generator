@@ -1,5 +1,5 @@
 # stage 1 - build stage
-FROM node:18-alpine AS build
+FROM node:18-alpine
 
 # set working directory
 WORKDIR /app
@@ -18,14 +18,4 @@ RUN npm run build
 # Debugging: Check the output of the build
 RUN ls -la /app/dist
 
-FROM caddy:latest
-
-COPY Caddyfile ./
-
-# COPY --chmod=755 entrypoint.sh ./
-
-RUN caddy fmt --overwrite Caddyfile
-
-ENTRYPOINT ["/bin/sh"]
-
-CMD ["entrypoint.sh"]
+ENTRYPOINT [ "/app/dist" ]
