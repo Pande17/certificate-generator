@@ -51,6 +51,10 @@ services:
     environment:
       FRONTEND_HOST: 'http://localhost:5173'
       BACKEND_HOST: 'http://localhost:3000'
+    ports:
+      - '80:80'
+    networks:
+      - certif-network
 
 volumes:
   mongo-data:

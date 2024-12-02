@@ -16,9 +16,6 @@ COPY . ./
 # build the react app
 RUN npm run build
 
-# Debugging: Check the output of the build
-# RUN ls -la /app/dist
-
 EXPOSE 5173
 
 CMD [ "serve", "-s", "dist" ]
