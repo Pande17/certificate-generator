@@ -8,6 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 RUN npm install
+RUN npm install serve -g
 
 # copy all source code to build it
 COPY . ./
