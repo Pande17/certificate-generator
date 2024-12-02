@@ -50,6 +50,7 @@ const competence = () => {
         setLoading(false);
       }
     };
+    
     const fetchCompetencies = async () => {
       try {
         const response = await Kompetensi.get(
