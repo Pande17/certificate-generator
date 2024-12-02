@@ -20,13 +20,11 @@ RUN ls -la /app/dist
 
 FROM caddy:latest
 
-WORKDIR /app
-
 COPY Caddyfile ./
 
 RUN ls -la .
 
-COPY --chmod=755 ./entrypoint.sh ./
+COPY --chmod=755 entrypoint.sh ./
 
 RUN caddy fmt --overwrite Caddyfile
 
