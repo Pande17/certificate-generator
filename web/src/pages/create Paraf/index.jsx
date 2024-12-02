@@ -121,10 +121,26 @@ const CreateParaf = () => {
             control={control}
             rules={{ required: "Wajib mengisi Link" }}
             render={({ field }) => (
-              <Input
-                {...field}
-                placeholder="Masukkan Link Gambar Tanda Tangan"
-              />
+              <>
+                <Input
+                  {...field}
+                  placeholder="Masukkan Link Gambar Tanda Tangan"
+                />
+                {field.value && (
+                  <div style={{ marginTop: "10px" }}>
+                    <img
+                      src={field.value}
+                      alt="Tandatangan orang terkait"
+                      style={{
+                        width: "200px",
+                        height: "200px",
+                        border: "solid",
+                        borderColor: "black",
+                      }}
+                    />
+                  </div>
+                )}
+              </>
             )}
           />
         </Form.Item>
@@ -135,7 +151,23 @@ const CreateParaf = () => {
             control={control}
             rules={{ required: "Wajib mengisi Link" }}
             render={({ field }) => (
-              <Input {...field} placeholder="Masukkan Link Gambar Cap" />
+              <>
+                <Input {...field} placeholder="Masukkan Link Gambar Cap" />
+                {field.value && (
+                  <div style={{ marginTop: "10px" }}>
+                    <img
+                      src={field.value}
+                      alt="Cap Perusahaan"
+                      style={{
+                        width: "200px",
+                        height: "200px",
+                        border: "solid",
+                        borderColor: "black",
+                      }}
+                    />
+                  </div>
+                )}
+              </>
             )}
           />
         </Form.Item>

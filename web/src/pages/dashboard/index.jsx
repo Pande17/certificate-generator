@@ -118,7 +118,7 @@ const Dashboard = () => {
          sertif_name: formData.sertifikat,
          nama_peserta: formData.nama,
          kompeten_bidang: formData.fieldOfStudy,
-         kompetensi: data.find(
+         kompetensi: formData.find(
            (item) => item._id === formData.selectedCompetenceId
          )?.nama_kompetensi,
          meet_time: formData.meetingTime,
@@ -294,16 +294,28 @@ const Dashboard = () => {
     }
   };
 
-  const handleCompetenceChange = (value) => {
-    // Hanya reset field terkait
-    reset((prevValues) => ({
-      ...prevValues, // Pertahankan nilai sebelumnya
-      selectedCompetenceId: value,
-      hardSkill: [],
-      softSkill: [],
-    }));
-    fetchCompetence(value);
-  };
+const handleCompetenceChange = async (value) => {
+  try {
+    const competence = kompetensiData.find((item) => item._id === value);
+    if (competence) {
+      setValue("selectedCompetenceId", competence._id || "");
+      setValue("nama_kompetensi", competence.nama_kompetensi || "");
+
+      reset((prevValues) => ({
+        ...prevValues, 
+        selectedCompetenceId: value,
+        hardSkill: [],
+        softSkill: [], 
+      }));
+
+      fetchCompetence(value);
+    }
+  } catch (error) {
+    console.error("Error handling competence change:", error);
+  }
+};
+
+
    const fetchSignatureId = async (SignatureId) => {
      try {
        const response = await Signature.get(`/${SignatureId}`);
@@ -463,6 +475,8 @@ const Dashboard = () => {
           onCancel={() => setIsEditModalVisible(false)}
           afterOpenChange={(visible) => {
             if (visible && currentRecord) {
+           console.log("Current Record:", currentRecord);
+
               reset({
                 sertifikat: currentRecord?.sertif_name || "Tidak mengisi",
                 nama: currentRecord?.nama_peserta || "Tidak mengisi",
@@ -475,10 +489,9 @@ const Dashboard = () => {
                   currentRecord?.valid_date?.valid_end || "Tidak mengisi",
                 totalMeeting: currentRecord?.total_meet || "Tidak mengisi",
                 meetingTime: currentRecord?.meet_time || "Tidak mengisi",
-                selectedCompetenceId:
-                  currentRecord?.kompeten_bidang || "Tidak mengisi", // Atur nilai awal di sini
+                selectedCompetenceId: currentRecord?.kompetensi || "",
                 selectedSignatureId:
-                  currentRecord?.kompeten_bidang || "Tidak mengisi",
+                  currentRecord?.signature?.config_name || "Tidak mengisi",
                 hardSkill: currentRecord?.hardSkills || [],
                 softSkill: currentRecord?.softSkills || [],
               });
@@ -935,11 +948,12 @@ const Dashboard = () => {
         {/* Modal untuk memilih template */}
         <Modal
           title=""
-          visible={isModalVisible}
+          open={isModalVisible}
           footer={null}
           onCancel={() => setIsModalVisible(false)}
           className="rounded-lg p-6 max-w-lg w-full" // Responsif: batas lebar modal
-          centered>
+          centered
+        >
           <div className="flex flex-col items-center space-y-4">
             <p className="text-lg font-semibold text-gray-700">
               Silakan pilih template untuk diunduh:
@@ -948,13 +962,15 @@ const Dashboard = () => {
               <Button
                 type="primary"
                 className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg w-full sm:w-auto"
-                onClick={() => downloadPDF(selectedDownload?.data_id, "a")}>
+                onClick={() => downloadPDF(selectedDownload?.data_id, "a")}
+              >
                 Download Template V1
               </Button>
               <Button
                 type="primary"
                 className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg w-full sm:w-auto"
-                onClick={() => downloadPDF(selectedDownload?.data_id, "b")}>
+                onClick={() => downloadPDF(selectedDownload?.data_id, "b")}
+              >
                 Download Template V2
               </Button>
             </div>
