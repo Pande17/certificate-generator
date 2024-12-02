@@ -11,21 +11,18 @@ const CertificateTable = () => {
 
   const downloadPDF = async (_id) => {
     try {
-      const response = await Sertifikat.get(
-        `http://127.0.0.1:3000/assets/certificate/${data_id}/b`,
-        {
-          headers: {
-            "Content-Type": "application/pdf",
-          },
-          responseType: "blob",
-        }
-      );
+      const response = await Sertifikat.get(`/download/${_id}/b`, {
+        headers: {
+          "Content-Type": "application/pdf",
+        },
+        responseType: "blob",
+      });
 
       // Membuat link untuk mengunduh file
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `${data_id}.pdf`); // Nama file saat diunduh
+      link.setAttribute("download", `${_id}.pdf`); // Nama file saat diunduh
       document.body.appendChild(link);
       link.click();
       link.remove(); // Hapus link setelah digunakan
@@ -38,9 +35,7 @@ const CertificateTable = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await Sertifikat.get(
-          `/${data_id}/a`
-        );
+        const response = await Sertifikat.get(`/data_id/${id}`);
         const certData = response.data.data;
         if (!certData.deleted_at) {
           setCertificate(certData);

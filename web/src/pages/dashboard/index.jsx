@@ -293,7 +293,6 @@ const Dashboard = () => {
       console.log("Error fetching competence details:", err);
     }
   };
-
 const handleCompetenceChange = async (value) => {
   try {
     const competence = kompetensiData.find((item) => item._id === value);
@@ -301,19 +300,22 @@ const handleCompetenceChange = async (value) => {
       setValue("selectedCompetenceId", competence._id || "");
       setValue("nama_kompetensi", competence.nama_kompetensi || "");
 
+      // Reset form untuk hard skill dan soft skill
       reset((prevValues) => ({
-        ...prevValues, 
+        ...prevValues,
         selectedCompetenceId: value,
         hardSkill: [],
-        softSkill: [], 
+        softSkill: [],
       }));
 
-      fetchCompetence(value);
+      // Fetch kompetensi detail
+      await fetchCompetence(value);
     }
   } catch (error) {
     console.error("Error handling competence change:", error);
   }
 };
+
 
 
    const fetchSignatureId = async (SignatureId) => {
@@ -475,7 +477,10 @@ const handleCompetenceChange = async (value) => {
           onCancel={() => setIsEditModalVisible(false)}
           afterOpenChange={(visible) => {
             if (visible && currentRecord) {
-           console.log("Current Record:", currentRecord);
+              // Cari ID kompetensi berdasarkan nama
+              const matchedCompetence = kompetensiData.find(
+                (item) => item.nama_kompetensi === currentRecord.kompetensi
+              );
 
               reset({
                 sertifikat: currentRecord?.sertif_name || "Tidak mengisi",
@@ -489,9 +494,9 @@ const handleCompetenceChange = async (value) => {
                   currentRecord?.valid_date?.valid_end || "Tidak mengisi",
                 totalMeeting: currentRecord?.total_meet || "Tidak mengisi",
                 meetingTime: currentRecord?.meet_time || "Tidak mengisi",
-                selectedCompetenceId: currentRecord?.kompetensi || "",
+                selectedCompetenceId: matchedCompetence?._id || "", // Atur ID hasil pencocokan
                 selectedSignatureId:
-                  currentRecord?.signature?.config_name || "Tidak mengisi",
+                  currentRecord?.signature?._id || "Tidak mengisi",
                 hardSkill: currentRecord?.hardSkills || [],
                 softSkill: currentRecord?.softSkills || [],
               });
@@ -635,6 +640,7 @@ const handleCompetenceChange = async (value) => {
             <h1 className="text-center font-Poppins text-2xl font-medium p-6">
               Pilih kompetensi
             </h1>
+
             <Form.Item required>
               <Controller
                 name="selectedCompetenceId"
