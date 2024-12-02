@@ -50,7 +50,7 @@ services:
       context: ./proxy
     environment:
       FRONTEND_HOST: 'http://localhost:5173'
-      BACKEND_HOST: 'http://localhost:8000'
+      BACKEND_HOST: 'http://localhost:3000'
 
 volumes:
   mongo-data:
