@@ -18,14 +18,16 @@ RUN npm run build
 # Debugging: Check the output of the build
 RUN ls -la /app/dist
 
-# stage 2 - serve stage
-FROM nginx:alpine
+FROM caddy:latest
 
-# copy build from the previous stage
-COPY --from=build /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-# expose port
-EXPOSE 80
+COPY Caddyfile ./
 
-# start nginx
-CMD ["nginx", "-g", "daemon off;"]
+COPY --chmod=755 /bin/sh/entrypoint.sh ./
+
+RUN caddy fmt --overwrite Caddyfile
+
+ENTRYPOINT ["/bin/sh"]
+
+CMD ["entrypoint.sh"]

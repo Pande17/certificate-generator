@@ -520,6 +520,21 @@ function MyForm() {
 							<Controller name="logo" control={control} render={({ field }) => <Input {...field} readOnly style={{ width: '100%', height: '50px' }} />} />
 						</Form.Item>
 
+            <Form.Item label="Link gambar penandatangan" required>
+              <Controller
+                name="linkGambarPenandatangan"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
+              />
+            </Form.Item>
+
+          
           </>
         )}
 
