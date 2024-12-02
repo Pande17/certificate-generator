@@ -958,8 +958,9 @@ const Dashboard = () => {
           title=""
           open={isModalVisible}
           footer={null}
+          loading= {loading}
           onCancel={() => setIsModalVisible(false)}
-          className="rounded-lg p-6 max-w-lg w-full" // Responsif: batas lebar modal
+          className="rounded-lg p-6 max-w-lg w-full"
           centered
         >
           <div className="flex flex-col items-center space-y-4">
