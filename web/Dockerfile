@@ -24,7 +24,7 @@ WORKDIR /app
 
 COPY Caddyfile ./
 
-COPY entrypoint.sh ./
+COPY --chmod=755 /bin/sh/entrypoint.sh ./
 
 RUN caddy fmt --overwrite Caddyfile
 
