@@ -15,7 +15,9 @@ func main() {
 	database.ConnectMongoDB()
 	database.CreateCollectionsAndIndexes(database.MongoClient)
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		Network: "tcp",
+	})
 	routes.RouteSetup(app)
 
 	log.Fatal(app.Listen(":3000"))
