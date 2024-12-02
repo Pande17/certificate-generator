@@ -15,6 +15,8 @@ COPY . ./
 # build the react app
 RUN npm run build
 
+RUN cp -a dist/. public/
+
 # Debugging: Check the output of the build
 RUN ls -la /app/dist
 
