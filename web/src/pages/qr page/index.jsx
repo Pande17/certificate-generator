@@ -73,7 +73,7 @@ const CertificateTable = () => {
             No. Sertifikat
           </div>
           <div className="sm:p-4 pb-4 px-8 bg-[#f8fafc] border-b ">
-            {`${certificate?.data?.kode_referral?.bulan_rilis} / ${certificate?.data?.kode_referral?.divisi} / ${certificate?.data?.kode_referral?.referral_id} / ${certificate?.data?.kode_referral?.tahun_rilis}`}
+            {`S.${certificate?.data?.kode_referral?.referral_id}/${certificate?.data?.kode_referral?.divisi}/LKP-BTW/${certificate?.data?.kode_referral?.bulan_rilis}/${certificate?.data?.kode_referral?.tahun_rilis}`}
           </div>
 
           {/* Row 2 */}
