@@ -44,7 +44,7 @@ const SignaturePage = () => {
 
  const delHandle = async (_id) => {
    try {
-     await Kompetensi.delete(`http://127.0.0.1:3000/api/signature/${_id}`);
+     await Signature.delete(`/${_id}`);
      setData((prevData) => prevData.filter((item) => item._id !== _id));
      message.success("Data berhasil dihapus");
    } catch (error) {

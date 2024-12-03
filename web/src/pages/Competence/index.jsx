@@ -20,7 +20,9 @@ import {
 } from "@ant-design/icons";
 import MainLayout from "../MainLayout/Layout";
 import { Navigate, useNavigate } from "react-router-dom";
-import { useForm, Controller, useFieldArray, } from "react-hook-form";
+import { useForm, Controller,useFieldArray, } from "react-hook-form";
+
+
 
 const competence = () => {
   const [loading, setLoading] = useState(false);
@@ -32,6 +34,7 @@ const competence = () => {
 
     const { reset } = useForm();
   const { confirm } = Modal;
+
 
   useEffect(() => {
     const fetchingData = async () => {
@@ -51,21 +54,30 @@ const competence = () => {
       }
     };
     
-    const fetchCompetencies = async () => {
-      try {
-        const response = await Kompetensi.get(
-          "/"
-        );
-        if (response.data && Array.isArray(response.data.data)) {
-          setCompetencies(response.data.data);
-        } else {
-          message.error("Data kompetensi tidak valid!");
-        }
-      } catch (error) {
-        console.error("Error fetching competencies:", error);
-        message.error("Error fetching competencies!");
-      }
-    };
+   const fetchCompetencies = async () => {
+    try {
+      const response = await Kompetensi.get("/");
+      const apiData = response.data.data;
+
+      // Ubah hardSkills dari data API
+      const initialHardSkills = apiData[0]?.hard_skills?.map((skill) => ({
+        skill_name: skill.skill_name || "",
+        description:
+          skill.description?.map((desc) => ({
+            unit_code: desc.unit_code || "",
+            unit_title: desc.unit_title || "",
+          })) || [{ unit_code: "", unit_title: "" }],
+      })) || [];
+
+      // Reset formulir dengan data baru
+      reset({
+        hardSkills: initialHardSkills,
+      });
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      message.error("Failed to fetch competencies!");
+    }
+  };
     fetchCompetencies();
     fetchingData();
   }, []);
@@ -180,6 +192,7 @@ const competence = () => {
       message.error("Error saat menyimpan kompetensi!");
     }
   };
+  
 
   const column = [
     {

@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { Form, Input, Button, Space, message, Select } from "antd";
-import { PlusOutlined, MinusCircleOutlined, RotateLeftOutlined, BackwardFilled } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  MinusCircleOutlined,
+  RotateLeftOutlined,
+  BackwardFilled,
+} from "@ant-design/icons";
 import MainLayout from "../MainLayout/Layout";
 import { useNavigate } from "react-router-dom";
 import { Kompetensi } from "../api middleware";
@@ -13,12 +18,12 @@ const Tool = () => {
 
   const backHandle = () => {
     navigate("/competence");
-  }
+  };
 
   const { control, handleSubmit, reset, watch } = useForm({
     defaultValues: {
-      skkni:"",
-      divisi:"",
+      skkni: "",
+      divisi: "",
       competenceName: "",
       hardSkills: [
         { skill_name: "", description: [{ unit_code: "", unit_title: "" }] },
@@ -42,6 +47,17 @@ const Tool = () => {
     remove: removeSoftSkill,
   } = useFieldArray({ control, name: "softSkills" });
 
+  const {
+    fields: descriptionHardSkill,
+    append: addDescriptionHardSkill,
+    remove: removeDescriptionHardSkill,
+  } = useFieldArray({ control, name: "hardSkills.${index}.description" });
+  const {
+    fields: descriptionSoftSkill,
+    append: addDescriptionSoftSkill,
+    remove: removeDescriptionSoftSkill,
+  } = useFieldArray({ control, name: "softSkills.${index}.description" });
+
   const [competencies, setCompetencies] = useState([]);
   const selectedCompetenceId = watch("selectedCompetenceId");
 
@@ -49,9 +65,7 @@ const Tool = () => {
   useEffect(() => {
     const fetchCompetencies = async () => {
       try {
-        const response = await Kompetensi.get(
-          "/"
-        );
+        const response = await Kompetensi.get("/");
         if (response.data && Array.isArray(response.data.data)) {
           setCompetencies(response.data.data);
         } else {
@@ -93,16 +107,10 @@ const Tool = () => {
 
     try {
       if (data.selectedCompetenceId) {
-        await Kompetensi.put(
-          `/${data.selectedCompetenceId}`,
-          competenceData
-        );
+        await Kompetensi.put(`/${data.selectedCompetenceId}`, competenceData);
         message.success("Kompetensi berhasil diperbarui!");
       } else {
-        await Kompetensi.post(
-          "/",
-          competenceData
-        );
+        await Kompetensi.post("/", competenceData);
         message.success("Kompetensi berhasil ditambahkan!");
       }
       reset();
@@ -110,6 +118,8 @@ const Tool = () => {
       console.error("Error saat menyimpan kompetensi:", error);
       message.error("Error saat menyimpan kompetensi!");
     }
+
+   console.log(watch())
   };
 
   return (
@@ -197,15 +207,6 @@ const Tool = () => {
           Hard Skills
         </h3>
         {hardSkillsFields.map((field, index) => {
-          const {
-            fields: descriptionFields,
-            append: addDescription,
-            remove: removeDescription,
-          } = useFieldArray({
-            control,
-            name: `hardSkills.${index}.description`,
-          });
-
           return (
             <div key={field.id}>
               <Form.Item label={`Nama Hard Skill ${index + 1}`}>
@@ -232,8 +233,8 @@ const Tool = () => {
 
               {/* Tambahkan tombol dan field untuk deskripsi */}
               <Space direction="vertical">
-                {descriptionFields.map((descField, descIndex) => (
-                  <div key={descField.id}>
+                {descriptionHardSkill.map((descField, descIndex) => (
+                  <div key={descriptionHardSkill.id}>
                     <Form.Item label="Unit Code">
                       <Controller
                         name={`hardSkills.${index}.description.${descIndex}.unit_code`}
@@ -264,7 +265,7 @@ const Tool = () => {
                       type="text"
                       danger
                       icon={<MinusCircleOutlined />}
-                      onClick={() => removeDescription(descIndex)}
+                      onClick={() => removeDescriptionHardSkill(descIndex)}
                     >
                       Hapus Deskripsi
                     </Button>
@@ -275,7 +276,7 @@ const Tool = () => {
               <Button
                 type="dashed"
                 onClick={() =>
-                  addDescription({ unit_code: "", unit_title: "" })
+                  addDescriptionHardSkill({ unit_code: "", unit_title: "" })
                 }
                 icon={<PlusOutlined />}
                 style={{ marginBottom: "20px" }}
@@ -304,16 +305,8 @@ const Tool = () => {
         <h3 className="text-center font-Poppins text-2xl font-medium p-6">
           Soft Skills
         </h3>
-        {softSkillsFields.map((field, index) => {
-          const {
-            fields: descriptionFields,
-            append: addDescription,
-            remove: removeDescription,
-          } = useFieldArray({
-            control,
-            name: `softSkills.${index}.description`,
-          });
 
+        {softSkillsFields.map((field, index) => {
           return (
             <div key={field.id}>
               <Form.Item label={`Nama Soft Skill ${index + 1}`}>
@@ -340,8 +333,8 @@ const Tool = () => {
 
               {/* Tambahkan tombol dan field untuk deskripsi */}
               <Space direction="vertical">
-                {descriptionFields.map((descField, descIndex) => (
-                  <div key={descField.id}>
+                {descriptionSoftSkill.map((de, descIndex) => (
+                  <div key={descriptionSoftSkill.id}>
                     <Form.Item label="Unit Code">
                       <Controller
                         name={`softSkills.${index}.description.${descIndex}.unit_code`}
@@ -372,7 +365,7 @@ const Tool = () => {
                       type="text"
                       danger
                       icon={<MinusCircleOutlined />}
-                      onClick={() => removeDescription(descIndex)}
+                      onClick={() => removeDescriptionSoftSkill(descIndex)}
                     >
                       Hapus Deskripsi
                     </Button>
@@ -383,7 +376,7 @@ const Tool = () => {
               <Button
                 type="dashed"
                 onClick={() =>
-                  addDescription({ unit_code: "", unit_title: "" })
+                  addDescriptionSoftSkill({ unit_code: "", unit_title: "" })
                 }
                 icon={<PlusOutlined />}
                 style={{ marginBottom: "20px" }}
