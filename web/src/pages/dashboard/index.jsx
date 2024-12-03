@@ -38,13 +38,15 @@ const Dashboard = () => {
   const [divisi, setDivisi] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedDownload, setSelectedDownload] = useState(null);
-  const { control, handleSubmit, reset, setValue } = useForm({
+  const { control, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
       hardSkill: [],
       softSkill: [],
       selectedCompetenceId: "",
     },
   });
+
+  console.log(watch());
 
   const navigate = useNavigate();
 
@@ -248,6 +250,7 @@ const Dashboard = () => {
         ...primaryData, // Data utama termasuk ID
         ...additionalData,
       };
+      console.log({certificateData})
 
       setCurrentRecord(certificateData);
       setIsEditModalVisible(true);
@@ -285,10 +288,9 @@ const Dashboard = () => {
 
       replaceHardSkill(newHardSkills);
       replaceSoftSkill(newSoftSkills);
-
-      // Simpan skkni dan divisi ke state
       setSkkni(skkni);
       setDivisi(divisi);
+
     } catch (err) {
       console.log("Error fetching competence details:", err);
     }
@@ -297,8 +299,10 @@ const Dashboard = () => {
     try {
       const competence = kompetensiData.find((item) => item._id === value);
       if (competence) {
-        setValue("selectedCompetenceId", competence._id || "");
-        setValue("nama_kompetensi", competence.nama_kompetensi || "");
+        // setValue("selectedCompetenceId", competence._id || "");
+        // setValue("nama_kompetensi", competence.nama_kompetensi || "");
+        setSkkni(competence.skkni || "");
+        setDivisi(competence.divisi || "");
 
         // Reset form untuk hard skill dan soft skill
         reset((prevValues) => ({
@@ -307,7 +311,6 @@ const Dashboard = () => {
           hardSkill: [],
           softSkill: [],
         }));
-
         // Fetch kompetensi detail
         await fetchCompetence(value);
       }
@@ -348,7 +351,7 @@ const Dashboard = () => {
   );
 
   const downloadPDF = async (_id, type) => {
-    setLoading(true)
+    setLoading(true);
     try {
       const response = await Sertifikat.get(`/download/${_id}/${type}`, {
         headers: {
@@ -367,11 +370,9 @@ const Dashboard = () => {
       link.remove(); // Hapus link setelah digunakan
     } catch (error) {
       console.error("Error downloading PDF:", error);
-    }finally{
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
-      
-    
   };
 
   const createNav = () => {
@@ -466,8 +467,8 @@ const Dashboard = () => {
               bordered
               loading={loading}
               scroll={{
-                x: "max-content",
-                y: filteredData.length > 6 ? 500 : undefined,
+                x: "min-content",
+                y: filteredData.length > 6 ? 400 : undefined,
               }}
             />
           </Col>
@@ -479,7 +480,6 @@ const Dashboard = () => {
           onCancel={() => setIsEditModalVisible(false)}
           afterOpenChange={(visible) => {
             if (visible && currentRecord) {
-              // Cari ID kompetensi berdasarkan nama
               const matchedCompetence = kompetensiData.find(
                 (item) => item.nama_kompetensi === currentRecord.kompetensi
               );
@@ -498,9 +498,14 @@ const Dashboard = () => {
                 meetingTime: currentRecord?.meet_time || "Tidak mengisi",
                 selectedCompetenceId: matchedCompetence?._id || "", // Atur ID hasil pencocokan
                 selectedSignatureId:
-                  currentRecord?.signature?._id || "Tidak mengisi",
-                hardSkill: currentRecord?.hardSkills || [],
-                softSkill: currentRecord?.softSkills || [],
+                  currentRecord?.signature?.config_name || "Tidak mengisi",
+                // selectedCompetenceId:
+                //   currentRecord?.kompetensiData?._id|| "Tidak mengisi", // Atur nilai awal di sini
+                // selectedSignatureId:
+                //   currentRecord?.signature?._id || "Tidak mengisi",
+                hardSkill: currentRecord?.hard_skills.skills || [],
+                softSkill: currentRecord?.soft_skills.skills || [],
+                // skkni: currentRecord?.
               });
             }
           }}
@@ -958,7 +963,7 @@ const Dashboard = () => {
           title=""
           open={isModalVisible}
           footer={null}
-          loading= {loading}
+          loading={loading}
           onCancel={() => setIsModalVisible(false)}
           className="rounded-lg p-6 max-w-lg w-full"
           centered
