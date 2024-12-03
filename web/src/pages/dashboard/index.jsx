@@ -31,8 +31,8 @@ const Dashboard = () => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
   const [signatureData, setSignatureData] = useState([]);
-    const [selectedSignature, setSelectedSignature] = useState(null);
-    const [isSignatureSelected, setIsSignatureSelected] = useState(false);
+  const [selectedSignature, setSelectedSignature] = useState(null);
+  const [isSignatureSelected, setIsSignatureSelected] = useState(false);
   const [kompetensiData, setKompetensiData] = useState([]);
   const [skkni, setSkkni] = useState("");
   const [divisi, setDivisi] = useState("");
@@ -103,109 +103,109 @@ const Dashboard = () => {
     name: "softSkill",
   });
 
- const onSubmit = async (formData) => {
-   const totalSkillScore = calculateTotalSkillScore(
-     formData.hardSkill, // Pastikan ini adalah array
-     formData.softSkill // Pastikan ini adalah array
-   );
+  const onSubmit = async (formData) => {
+    const totalSkillScore = calculateTotalSkillScore(
+      formData.hardSkill, // Pastikan ini adalah array
+      formData.softSkill // Pastikan ini adalah array
+    );
 
-   try {
-     const formattedData = {
-       savedb: true,
-       page_name: "page2a",
-       zoom: 1.367,
-       data: {
-         sertif_name: formData.sertifikat,
-         nama_peserta: formData.nama,
-         kompeten_bidang: formData.fieldOfStudy,
-         kompetensi: formData.find(
-           (item) => item._id === formData.selectedCompetenceId
-         )?.nama_kompetensi,
-         meet_time: formData.meetingTime,
-         skkni: formData.skkni,
-         validation: formData.validation,
-         valid_date: {
-           valid_start: formData.expiredTimeStart,
-           valid_end: formData.expiredTimeEnd,
-           valid_total: formData.validTime,
-         },
-         total_meet: formData.totalMeeting,
-         kode_referral: {
-           divisi: formData.codeReferralFieldOfStudy,
-         },
-         hard_skills: {
-           skills: Array.isArray(formData.hardSkill)
-             ? formData.hardSkill.map((skill) => ({
-                 skill_name: skill.skill_name,
-                 skill_jp: skill.jp,
-                 skill_score: skill.skillScore,
-                 description: skill.combined_units.split("\n").map((line) => {
-                   const [unit_code, unit_title] = line.split(" - ");
-                   return { unit_code, unit_title };
-                 }),
-               }))
-             : [],
-           total_skill_jp:
-             formData.hardSkill?.reduce(
-               (acc, skill) => acc + (skill.jp || 0),
-               0
-             ) || 0,
-           total_skill_score: totalSkillScore, // Replace with actual computation if necessary
-         },
-         soft_skills: {
-           skills: Array.isArray(formData.softSkill)
-             ? formData.softSkill.map((skill) => ({
-                 skill_name: skill.skill_name,
-                 skill_jp: skill.jp,
-                 skill_score: skill.skillScore,
-                 description: skill.combined_units.split("\n").map((line) => {
-                   const [unit_code, unit_title] = line.split(" - ");
-                   return { unit_code, unit_title };
-                 }),
-               }))
-             : [],
-           total_skill_jp:
-             formData.softSkill?.reduce(
-               (acc, skill) => acc + (skill.jp || 0),
-               0
-             ) || 0,
-           total_skill_score: totalSkillScore, // Replace with actual computation if necessary
-         },
-         signature: {
-           config_name: formData.config_name,
-           logo: formData.logo,
-           role: formData.role,
-           signature: formData.linkGambarPenandatangan,
-           name: formData.namaPenandatangan,
-           stamp: formData.stamp,
-         },
-         total_jp:
-           (formData.hardSkill?.reduce(
-             (acc, skill) => acc + (skill.jp || 0),
-             0
-           ) || 0) +
-           (formData.softSkill?.reduce(
-             (acc, skill) => acc + (skill.jp || 0),
-             0
-           ) || 0),
-       },
-     };
+    try {
+      const formattedData = {
+        savedb: true,
+        page_name: "page2a",
+        zoom: 1.367,
+        data: {
+          sertif_name: formData.sertifikat,
+          nama_peserta: formData.nama,
+          kompeten_bidang: formData.fieldOfStudy,
+          kompetensi: formData.find(
+            (item) => item._id === formData.selectedCompetenceId
+          )?.nama_kompetensi,
+          meet_time: formData.meetingTime,
+          skkni: formData.skkni,
+          validation: formData.validation,
+          valid_date: {
+            valid_start: formData.expiredTimeStart,
+            valid_end: formData.expiredTimeEnd,
+            valid_total: formData.validTime,
+          },
+          total_meet: formData.totalMeeting,
+          kode_referral: {
+            divisi: formData.codeReferralFieldOfStudy,
+          },
+          hard_skills: {
+            skills: Array.isArray(formData.hardSkill)
+              ? formData.hardSkill.map((skill) => ({
+                  skill_name: skill.skill_name,
+                  skill_jp: skill.jp,
+                  skill_score: skill.skillScore,
+                  description: skill.combined_units.split("\n").map((line) => {
+                    const [unit_code, unit_title] = line.split(" - ");
+                    return { unit_code, unit_title };
+                  }),
+                }))
+              : [],
+            total_skill_jp:
+              formData.hardSkill?.reduce(
+                (acc, skill) => acc + (skill.jp || 0),
+                0
+              ) || 0,
+            total_skill_score: totalSkillScore, // Replace with actual computation if necessary
+          },
+          soft_skills: {
+            skills: Array.isArray(formData.softSkill)
+              ? formData.softSkill.map((skill) => ({
+                  skill_name: skill.skill_name,
+                  skill_jp: skill.jp,
+                  skill_score: skill.skillScore,
+                  description: skill.combined_units.split("\n").map((line) => {
+                    const [unit_code, unit_title] = line.split(" - ");
+                    return { unit_code, unit_title };
+                  }),
+                }))
+              : [],
+            total_skill_jp:
+              formData.softSkill?.reduce(
+                (acc, skill) => acc + (skill.jp || 0),
+                0
+              ) || 0,
+            total_skill_score: totalSkillScore, // Replace with actual computation if necessary
+          },
+          signature: {
+            config_name: formData.config_name,
+            logo: formData.logo,
+            role: formData.role,
+            signature: formData.linkGambarPenandatangan,
+            name: formData.namaPenandatangan,
+            stamp: formData.stamp,
+          },
+          total_jp:
+            (formData.hardSkill?.reduce(
+              (acc, skill) => acc + (skill.jp || 0),
+              0
+            ) || 0) +
+            (formData.softSkill?.reduce(
+              (acc, skill) => acc + (skill.jp || 0),
+              0
+            ) || 0),
+        },
+      };
 
-     const response = await Sertifikat.put("", formattedData);
+      const response = await Sertifikat.put("", formattedData);
 
-     if (response.status === 200) {
-       message.success("Certificate added successfully!");
-       reset(); // Clear the form
-     } else {
-       console.log("Ada masalah dengan respons:", response);
-     }
-   } catch (error) {
-     console.log("Error adding certificate:", error);
-     message.error("Failed to add certificate. Please try again.");
-   }
+      if (response.status === 200) {
+        message.success("Certificate added successfully!");
+        reset(); // Clear the form
+      } else {
+        console.log("Ada masalah dengan respons:", response);
+      }
+    } catch (error) {
+      console.log("Error adding certificate:", error);
+      message.error("Failed to add certificate. Please try again.");
+    }
 
-   navigate(`/dashboard`);
- };
+    navigate(`/dashboard`);
+  };
 
   const { Option } = Select;
 
@@ -242,14 +242,14 @@ const Dashboard = () => {
     try {
       const response = await Sertifikat.get(`/${record._id}`);
 
-      const primaryData = response.data.data; 
+      const primaryData = response.data.data;
       const additionalData = primaryData.data;
       const certificateData = {
         ...primaryData, // Data utama termasuk ID
-        ...additionalData, 
+        ...additionalData,
       };
 
-        setCurrentRecord(certificateData);
+      setCurrentRecord(certificateData);
       setIsEditModalVisible(true);
     } catch (error) {
       console.error("Error fetching certificate details:", error);
@@ -293,62 +293,62 @@ const Dashboard = () => {
       console.log("Error fetching competence details:", err);
     }
   };
+  const handleCompetenceChange = async (value) => {
+    try {
+      const competence = kompetensiData.find((item) => item._id === value);
+      if (competence) {
+        setValue("selectedCompetenceId", competence._id || "");
+        setValue("nama_kompetensi", competence.nama_kompetensi || "");
 
-const handleCompetenceChange = async (value) => {
-  try {
-    const competence = kompetensiData.find((item) => item._id === value);
-    if (competence) {
-      setValue("selectedCompetenceId", competence._id || "");
-      setValue("nama_kompetensi", competence.nama_kompetensi || "");
+        // Reset form untuk hard skill dan soft skill
+        reset((prevValues) => ({
+          ...prevValues,
+          selectedCompetenceId: value,
+          hardSkill: [],
+          softSkill: [],
+        }));
 
-      reset((prevValues) => ({
-        ...prevValues, 
-        selectedCompetenceId: value,
-        hardSkill: [],
-        softSkill: [], 
-      }));
-
-      fetchCompetence(value);
+        // Fetch kompetensi detail
+        await fetchCompetence(value);
+      }
+    } catch (error) {
+      console.error("Error handling competence change:", error);
     }
-  } catch (error) {
-    console.error("Error handling competence change:", error);
-  }
-};
+  };
 
+  const fetchSignatureId = async (SignatureId) => {
+    try {
+      const response = await Signature.get(`/${SignatureId}`);
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching signature:", error);
+      return null;
+    }
+  };
 
-   const fetchSignatureId = async (SignatureId) => {
-     try {
-       const response = await Signature.get(`/${SignatureId}`);
-       return response.data.data;
-     } catch (error) {
-       console.error("Error fetching signature:", error);
-       return null;
-     }
-   };
+  const handleSignatureChange = async (value) => {
+    const signature = await fetchSignatureId(value);
+    if (signature) {
+      setSelectedSignature(signature);
+      setIsSignatureSelected(true);
 
-   const handleSignatureChange = async (value) => {
-     const signature = await fetchSignatureId(value);
-     if (signature) {
-       setSelectedSignature(signature);
-       setIsSignatureSelected(true);
-
-       setValue("namaPenandatangan", signature.name || "");
-       setValue("role", signature.role || "");
-       setValue("logo", signature.logo || "");
-       setValue("linkGambarPenandatangan", signature.stamp || "");
-       setValue("logoPerusahaan", signature.logo || "");
-       setValue("stamp", signature.stamp || "");
-     } else {
-       setIsSignatureSelected(false);
-     }
-   };
-
+      setValue("namaPenandatangan", signature.name || "");
+      setValue("role", signature.role || "");
+      setValue("logo", signature.logo || "");
+      setValue("linkGambarPenandatangan", signature.stamp || "");
+      setValue("logoPerusahaan", signature.logo || "");
+      setValue("stamp", signature.stamp || "");
+    } else {
+      setIsSignatureSelected(false);
+    }
+  };
 
   const filteredData = dta.filter((item) =>
     item.sertif_name.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const downloadPDF = async (_id, type) => {
+    setLoading(true)
     try {
       const response = await Sertifikat.get(`/download/${_id}/${type}`, {
         headers: {
@@ -367,7 +367,11 @@ const handleCompetenceChange = async (value) => {
       link.remove(); // Hapus link setelah digunakan
     } catch (error) {
       console.error("Error downloading PDF:", error);
+    }finally{
+      setLoading(false)
     }
+      
+    
   };
 
   const createNav = () => {
@@ -390,8 +394,8 @@ const handleCompetenceChange = async (value) => {
     },
     {
       title: "Daftar Sertifikat",
-      dataIndex: "sertif_name",
-      key: "sertif_name",
+      dataIndex: "sertif_title",
+      key: "sertif_title",
       responsive: ["xs", "sm", "md", "lg"],
       ellipsis: true,
     },
@@ -475,7 +479,10 @@ const handleCompetenceChange = async (value) => {
           onCancel={() => setIsEditModalVisible(false)}
           afterOpenChange={(visible) => {
             if (visible && currentRecord) {
-           console.log("Current Record:", currentRecord);
+              // Cari ID kompetensi berdasarkan nama
+              const matchedCompetence = kompetensiData.find(
+                (item) => item.nama_kompetensi === currentRecord.kompetensi
+              );
 
               reset({
                 sertifikat: currentRecord?.sertif_name || "Tidak mengisi",
@@ -489,9 +496,9 @@ const handleCompetenceChange = async (value) => {
                   currentRecord?.valid_date?.valid_end || "Tidak mengisi",
                 totalMeeting: currentRecord?.total_meet || "Tidak mengisi",
                 meetingTime: currentRecord?.meet_time || "Tidak mengisi",
-                selectedCompetenceId: currentRecord?.kompetensi || "",
+                selectedCompetenceId: matchedCompetence?._id || "", // Atur ID hasil pencocokan
                 selectedSignatureId:
-                  currentRecord?.signature?.config_name || "Tidak mengisi",
+                  currentRecord?.signature?._id || "Tidak mengisi",
                 hardSkill: currentRecord?.hardSkills || [],
                 softSkill: currentRecord?.softSkills || [],
               });
@@ -635,6 +642,7 @@ const handleCompetenceChange = async (value) => {
             <h1 className="text-center font-Poppins text-2xl font-medium p-6">
               Pilih kompetensi
             </h1>
+
             <Form.Item required>
               <Controller
                 name="selectedCompetenceId"
@@ -950,8 +958,9 @@ const handleCompetenceChange = async (value) => {
           title=""
           open={isModalVisible}
           footer={null}
+          loading= {loading}
           onCancel={() => setIsModalVisible(false)}
-          className="rounded-lg p-6 max-w-lg w-full" // Responsif: batas lebar modal
+          className="rounded-lg p-6 max-w-lg w-full"
           centered
         >
           <div className="flex flex-col items-center space-y-4">
