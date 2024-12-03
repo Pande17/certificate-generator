@@ -9,48 +9,48 @@ const CertificateTable = () => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 
-	const downloadPDF = async (_id, type) => {
-		try {
-			const response = await Sertifikat.get(`/download/${_id}/${type}`, {
-				headers: {
-					'Content-Type': 'application/pdf',
-				},
-				responseType: 'blob',
-			});
+  const downloadPDF = async (_id) => {
+    try {
+      const response = await Sertifikat.get(`/download/${_id}/b`, {
+        headers: {
+          "Content-Type": "application/pdf",
+        },
+        responseType: "blob",
+      });
 
-			// Membuat link untuk mengunduh file
-			const url = window.URL.createObjectURL(new Blob([response.data]));
-			const link = document.createElement('a');
-			link.href = url;
-			link.setAttribute('download', `${data_id}.pdf`); // Nama file saat diunduh
-			document.body.appendChild(link);
-			link.click();
-			link.remove(); // Hapus link setelah digunakan
-		} catch (error) {
-			console.error('Error downloading PDF:', error);
-		}
-	};
+      // Membuat link untuk mengunduh file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${_id}.pdf`); // Nama file saat diunduh
+      document.body.appendChild(link);
+      link.click();
+      link.remove(); // Hapus link setelah digunakan
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+    }
+  };
 
-	useEffect(() => {
-		const fetchData = async (_id) => {
-			setLoading(true);
-			try {
-				const response = await Sertifikat.get(`/data_id/${_id}`);
-				const certData = response.data.data;
-				if (!certData.deleted_at) {
-					setCertificate(certData);
-				} else {
-					message.warning('Data sertifikat tidak tersedia.');
-				}
-			} catch (err) {
-				console.error('Error fetching data:', err);
-				setError('Gagal memuat data sertifikat.');
-			} finally {
-				setLoading(false);
-			}
-		};
-		fetchData();
-	}, [id]);
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await Sertifikat.get(`/data_id/${id}`);
+        const certData = response.data.data;
+        if (!certData.deleted_at) {
+          setCertificate(certData);
+        } else {
+          message.warning("Data sertifikat tidak tersedia.");
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Gagal memuat data sertifikat.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [id]);
 
 	if (loading) {
 		return <div className="text-center py-10 text-xl">Loading...</div>;
