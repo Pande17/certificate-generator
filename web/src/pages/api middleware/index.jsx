@@ -1,22 +1,19 @@
 import axios from "axios";
 
-// Use fallback if VITE_BACKEND is undefined
-const api = import.meta.env.VITE_BACKEND;
-
 const Signature = axios.create({
-  baseURL: `${api}/api/signature`,
+  baseURL: `api/signature`,
 });
 
 const Kompetensi = axios.create({
-  baseURL: `${api}/api/competence`,
+  baseURL: `api/competence`,
 });
 
 const Sertifikat = axios.create({
-  baseURL: `${api}/api/certificate`,
+  baseURL: `api/certificate`,
 });
 
 const Login = axios.create({
-  baseURL: `${api}/api/login`,
+  baseURL: `api/login`,
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
