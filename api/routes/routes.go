@@ -29,6 +29,8 @@ func RouteSetup(r *fiber.App) {
 	// Define a group routes for API
 	api := r.Group("/api")
 
+	api.Use(middleware.CorsValidate)
+
 	api.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"message": "test",
