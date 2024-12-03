@@ -110,6 +110,7 @@ const Tool = () => {
       console.error("Error saat menyimpan kompetensi:", error);
       message.error("Error saat menyimpan kompetensi!");
     }
+    navigate("/competence")
   };
 
   return (

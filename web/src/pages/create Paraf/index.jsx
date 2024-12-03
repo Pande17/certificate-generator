@@ -54,6 +54,7 @@ const CreateParaf = () => {
       message.error("An error occurred while submitting the form.");
       console.error("Error submitting form:", error);
     }
+    navigate("/signature")
   };
 
   return (
