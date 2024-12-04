@@ -4,14 +4,12 @@ import { Form, Input, Button, Space, message, Select } from "antd";
 import {
   PlusOutlined,
   MinusCircleOutlined,
-  RotateLeftOutlined,
   BackwardFilled,
 } from "@ant-design/icons";
 import MainLayout from "../MainLayout/Layout";
 import { useNavigate } from "react-router-dom";
 import { Kompetensi } from "../api middleware";
 
-const { Option } = Select;
 
 const Tool = () => {
   const navigate = useNavigate();
@@ -20,13 +18,13 @@ const Tool = () => {
     navigate("/competence");
   };
 
-  const { control, handleSubmit, reset, watch } = useForm({
+  const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       skkni: "",
       divisi: "",
       competenceName: "",
       hardSkills: [
-        { skill_name: "", description: [{ unit_code: "", unit_title: "" }] },
+        { skill_name: "", description: [{ id:"", unit_code: "", unit_title: "" }] },
       ],
       softSkills: [
         { skill_name: "", description: [{ unit_code: "", unit_title: "" }] },
@@ -38,29 +36,18 @@ const Tool = () => {
   const {
     fields: hardSkillsFields,
     append: addHardSkill,
+    update: upHardSkill,
     remove: removeHardSkill,
   } = useFieldArray({ control, name: "hardSkills" });
 
   const {
     fields: softSkillsFields,
     append: addSoftSkill,
+    update: upSoftSkill,
     remove: removeSoftSkill,
   } = useFieldArray({ control, name: "softSkills" });
 
-  const {
-    fields: descriptionHardSkill,
-    append: addDescriptionHardSkill,
-    remove: removeDescriptionHardSkill,
-  } = useFieldArray({ control, name: "hardSkills.${index}.description" });
-  const {
-    fields: descriptionSoftSkill,
-    append: addDescriptionSoftSkill,
-    remove: removeDescriptionSoftSkill,
-  } = useFieldArray({ control, name: "softSkills.${index}.description" });
-
   const [competencies, setCompetencies] = useState([]);
-  const selectedCompetenceId = watch("selectedCompetenceId");
-
   // Fetch competencies from the API
   useEffect(() => {
     const fetchCompetencies = async () => {
@@ -79,23 +66,7 @@ const Tool = () => {
     fetchCompetencies();
   }, []);
 
-  // Set form values when a competence is selected
-  useEffect(() => {
-    const selectedCompetence = competencies.find(
-      (c) => c._id === selectedCompetenceId
-    );
-    if (selectedCompetence) {
-      reset({
-        competenceName: selectedCompetence.nama_kompetensi,
-        hardSkills: selectedCompetence.hard_skills || [],
-        softSkills: selectedCompetence.soft_skills || [],
-        selectedCompetenceId,
-      });
-    } else {
-      reset();
-    }
-  }, [selectedCompetenceId, competencies, reset]);
-
+  
   const onSubmit = async (data) => {
     const competenceData = {
       nama_kompetensi: data.competenceName,
@@ -119,7 +90,6 @@ const Tool = () => {
       message.error("Error saat menyimpan kompetensi!");
     }
 
-   console.log(watch())
   };
 
   return (
@@ -233,9 +203,9 @@ const Tool = () => {
 
               {/* Tambahkan tombol dan field untuk deskripsi */}
               <Space direction="vertical">
-                {descriptionHardSkill.map((descField, descIndex) => (
-                  <div key={descriptionHardSkill.id}>
-                    <Form.Item label="Unit Code">
+                {field.description.map((descField, descIndex) => (
+                  <div key={descField.id}>
+                    <Form.Item label={`kode unit ${descIndex + 1}`}>
                       <Controller
                         name={`hardSkills.${index}.description.${descIndex}.unit_code`}
                         control={control}
@@ -248,7 +218,7 @@ const Tool = () => {
                         )}
                       />
                     </Form.Item>
-                    <Form.Item label="Unit Title">
+                    <Form.Item label={`judul unit ${descIndex + 1}`}>
                       <Controller
                         name={`hardSkills.${index}.description.${descIndex}.unit_title`}
                         control={control}
@@ -265,24 +235,50 @@ const Tool = () => {
                       type="text"
                       danger
                       icon={<MinusCircleOutlined />}
-                      onClick={() => removeDescriptionHardSkill(descIndex)}
+                      onClick={() => {
+                        // Salin field yang sedang diperbarui tanpa merubah field lainnya
+                        const updatedField = {
+                          ...hardSkillsFields[index], // Salin seluruh field
+                          description: hardSkillsFields[
+                            index
+                          ].description.filter(
+                            (_, i) => i !== descIndex // Hapus deskripsi pada index tertentu
+                          ),
+                        };
+
+                        // Update array hardSkillsFields tanpa merubah elemen lain
+                        const updatedFields = hardSkillsFields.map(
+                          (field, idx) => (idx === index ? updatedField : field)
+                        );
+
+                        // Panggil upHardSkill untuk memperbarui state
+                        upHardSkill(index, updatedField);
+                      }}
                     >
                       Hapus Deskripsi
                     </Button>
                   </div>
                 ))}
-              </Space>
 
-              <Button
-                type="dashed"
-                onClick={() =>
-                  addDescriptionHardSkill({ unit_code: "", unit_title: "" })
-                }
-                icon={<PlusOutlined />}
-                style={{ marginBottom: "20px" }}
-              >
-                Tambah Unit Code dan Title
-              </Button>
+                <Button
+                  id={`hardSkills.${index}.description`}
+                  type="dashed"
+                  htmlType="button"
+                  onClick={() => {
+                    upHardSkill(index, {
+                      ...hardSkillsFields[index],
+                      description: [
+                        ...hardSkillsFields[index].description,
+                        { id: "", unit_code: "", unit_title: "" },
+                      ],
+                    });
+                  }}
+                  icon={<PlusOutlined />}
+                  style={{ marginBottom: "20px" }}
+                >
+                  Tambah Unit Code dan Title
+                </Button>
+              </Space>
             </div>
           );
         })}
@@ -333,9 +329,9 @@ const Tool = () => {
 
               {/* Tambahkan tombol dan field untuk deskripsi */}
               <Space direction="vertical">
-                {descriptionSoftSkill.map((de, descIndex) => (
-                  <div key={descriptionSoftSkill.id}>
-                    <Form.Item label="Unit Code">
+                {field.description.map((descfield, descIndex) => (
+                  <div key={descfield.id}>
+                    <Form.Item label={`kode unit ${descIndex + 1}`}>
                       <Controller
                         name={`softSkills.${index}.description.${descIndex}.unit_code`}
                         control={control}
@@ -348,7 +344,7 @@ const Tool = () => {
                         )}
                       />
                     </Form.Item>
-                    <Form.Item label="Unit Title">
+                    <Form.Item label={`judul unit ${descIndex + 1}`}>
                       <Controller
                         name={`softSkills.${index}.description.${descIndex}.unit_title`}
                         control={control}
@@ -365,24 +361,49 @@ const Tool = () => {
                       type="text"
                       danger
                       icon={<MinusCircleOutlined />}
-                      onClick={() => removeDescriptionSoftSkill(descIndex)}
+                      onClick={() => {
+                        // Salin field yang sedang diperbarui tanpa merubah field lainnya
+                        const updatedField = {
+                          ...softSkillsFields[index], // Salin seluruh field
+                          description: softSkillsFields[
+                            index
+                          ].description.filter(
+                            (_, i) => i !== descIndex // Hapus deskripsi pada index tertentu
+                          ),
+                        };
+
+                        // Update array hardSkillsFields tanpa merubah elemen lain
+                        const updatedFields = softSkillsFields.map(
+                          (field, idx) => (idx === index ? updatedField : field)
+                        );
+
+                        // Panggil upHardSkill untuk memperbarui state
+                        upSoftSkill(index, updatedField);
+                      }}
                     >
                       Hapus Deskripsi
                     </Button>
                   </div>
                 ))}
+                <Button
+                  id={`softSkills.${index}.description`}
+                  type="dashed"
+                  htmlType="button"
+                  onClick={() => {
+                    upSoftSkill(index, {
+                      ...softSkillsFields[index],
+                      description: [
+                        ...softSkillsFields[index].description,
+                        { id: "", unit_code: "", unit_title: "" },
+                      ],
+                    });
+                  }}
+                  icon={<PlusOutlined />}
+                  style={{ marginBottom: "20px" }}
+                >
+                  Tambah Unit Code dan Title
+                </Button>
               </Space>
-
-              <Button
-                type="dashed"
-                onClick={() =>
-                  addDescriptionSoftSkill({ unit_code: "", unit_title: "" })
-                }
-                icon={<PlusOutlined />}
-                style={{ marginBottom: "20px" }}
-              >
-                Tambah Unit Code dan Title
-              </Button>
             </div>
           );
         })}

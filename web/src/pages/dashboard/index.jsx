@@ -10,6 +10,7 @@ import {
   DatePicker,
   InputNumber,
   Select,
+  Spin,
 } from "antd";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { Sertifikat, Kompetensi, Signature } from "../api middleware";
@@ -139,7 +140,7 @@ const Dashboard = () => {
             skills: Array.isArray(formData.hardSkill)
               ? formData.hardSkill.map((skill) => ({
                   skill_name: skill.skill_name,
-                  skill_jp: skill.jp,
+                  skill_jp: skill.jpH,
                   skill_score: skill.skillScore,
                   description: skill.combined_units.split("\n").map((line) => {
                     const [unit_code, unit_title] = line.split(" - ");
@@ -158,7 +159,7 @@ const Dashboard = () => {
             skills: Array.isArray(formData.softSkill)
               ? formData.softSkill.map((skill) => ({
                   skill_name: skill.skill_name,
-                  skill_jp: skill.jp,
+                  skill_jp: skill.jpS,
                   skill_score: skill.skillScore,
                   description: skill.combined_units.split("\n").map((line) => {
                     const [unit_code, unit_title] = line.split(" - ");
@@ -245,12 +246,10 @@ const Dashboard = () => {
       const response = await Sertifikat.get(`/${record._id}`);
 
       const primaryData = response.data.data;
-      const additionalData = primaryData.data;
       const certificateData = {
         ...primaryData, // Data utama termasuk ID
-        ...additionalData,
       };
-      console.log({certificateData})
+      console.log({primaryData})
 
       setCurrentRecord(certificateData);
       setIsEditModalVisible(true);
@@ -503,9 +502,10 @@ const Dashboard = () => {
                 //   currentRecord?.kompetensiData?._id|| "Tidak mengisi", // Atur nilai awal di sini
                 // selectedSignatureId:
                 //   currentRecord?.signature?._id || "Tidak mengisi",
-                hardSkill: currentRecord?.hard_skills.skills || [],
-                softSkill: currentRecord?.soft_skills.skills || [],
-                // skkni: currentRecord?.
+                hardSkill: currentRecord?.data?.hard_skills.skills || [],
+                softSkill: currentRecord?.data?.soft_skills.skills || [],
+                // jpH: currentRecord?.skill_jp.skills || "0",
+                // jpS: currentRecord?.skill_jp.skills || "0",
               });
             }
           }}
@@ -724,7 +724,7 @@ const Dashboard = () => {
 
                     {/* Unit Code and Title Input */}
                     <Controller
-                      name={`hardSkill[${index}].combined_units`}
+                      name={`hardSkill[${index}].description[${index}].unit_title`}
                       control={control}
                       render={({ field }) => (
                         <Input.TextArea
@@ -742,7 +742,7 @@ const Dashboard = () => {
 
                     {/* JP Input for each hard skill */}
                     <Controller
-                      name={`hardSkill[${index}].jp`}
+                      name={`hardSkill[${index}].skill_jp`}
                       control={control}
                       render={({ field }) => (
                         <InputNumber
@@ -756,7 +756,7 @@ const Dashboard = () => {
                       )}
                     />
                     <Controller
-                      name={`hardSkill[${index}].skillScore`}
+                      name={`hardSkill[${index}].skill_score`}
                       control={control}
                       render={({ field }) => (
                         <InputNumber
@@ -803,7 +803,7 @@ const Dashboard = () => {
 
                     {/* Unit Code and Title Input */}
                     <Controller
-                      name={`softSkill[${index}].combined_units`}
+                      name={`softSkill[${index}].description[${index}].unit_title`}
                       control={control}
                       render={({ field }) => (
                         <Input.TextArea
@@ -820,7 +820,7 @@ const Dashboard = () => {
                     />
 
                     <Controller
-                      name={`softSkill[${index}].jp`}
+                      name={`softSkill[${index}].skill_jp`}
                       control={control}
                       render={({ field }) => (
                         <InputNumber
@@ -834,7 +834,7 @@ const Dashboard = () => {
                       )}
                     />
                     <Controller
-                      name={`softSkill[${index}].skillScore`}
+                      name={`softSkill[${index}].skill_score`}
                       control={control}
                       render={({ field }) => (
                         <InputNumber
@@ -969,25 +969,27 @@ const Dashboard = () => {
           centered
         >
           <div className="flex flex-col items-center space-y-4">
-            <p className="text-lg font-semibold text-gray-700">
-              Silakan pilih template untuk diunduh:
-            </p>
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full">
-              <Button
-                type="primary"
-                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg w-full sm:w-auto"
-                onClick={() => downloadPDF(selectedDownload?.data_id, "a")}
-              >
-                Download Template V1
-              </Button>
-              <Button
-                type="primary"
-                className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg w-full sm:w-auto"
-                onClick={() => downloadPDF(selectedDownload?.data_id, "b")}
-              >
-                Download Template V2
-              </Button>
-            </div>
+            <Spin spinning={loading}>
+              <p className="text-lg font-semibold text-gray-700">
+                Silakan pilih template untuk diunduh:
+              </p>
+              <div className="flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full">
+                <Button
+                  type="primary"
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg w-full sm:w-auto"
+                  onClick={() => downloadPDF(selectedDownload?.data_id, "a")}
+                >
+                  Download Template V1
+                </Button>
+                <Button
+                  type="primary"
+                  className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg w-full sm:w-auto"
+                  onClick={() => downloadPDF(selectedDownload?.data_id, "b")}
+                >
+                  Download Template V2
+                </Button>
+              </div>
+            </Spin>
           </div>
         </Modal>
       </div>

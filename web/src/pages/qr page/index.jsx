@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Sertifikat } from "../api middleware";
-import { message } from "antd";
+import { message, Modal,Spin ,Button } from "antd";
 import { useParams } from "react-router-dom";
 
 const CertificateTable = () => {
@@ -8,27 +8,37 @@ const CertificateTable = () => {
   const [certificate, setCertificate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+   const [isModalVisible, setIsModalVisible] = useState(false);
+   const [selectedDownload, setSelectedDownload] = useState(null);
 
-  const downloadPDF = async (_id) => {
-    try {
-      const response = await Sertifikat.get(`/download/${_id}/b`, {
-        headers: {
-          "Content-Type": "application/pdf",
-        },
-        responseType: "blob",
-      });
+ const downloadPDF = async (_id, type) => {
+   setLoading(true);
+   try {
+     const response = await Sertifikat.get(`/download/${_id}/${type}`, {
+       headers: {
+         "Content-Type": "application/pdf",
+       },
+       responseType: "blob",
+     });
+   
+     // Membuat link untuk mengunduh file
+     const url = window.URL.createObjectURL(new Blob([response.data]));
+     const link = document.createElement("a");
+     link.href = url;
+     link.setAttribute("download", `${_id}.pdf`); // Nama file saat diunduh
+     document.body.appendChild(link);
+     link.click();
+     link.remove(); // Hapus link setelah digunakan
+   } catch (error) {
+     console.error("Error downloading PDF:", error);
+   } finally {
+     setLoading(false);
+   }
+ };
 
-      // Membuat link untuk mengunduh file
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `${_id}.pdf`); // Nama file saat diunduh
-      document.body.appendChild(link);
-      link.click();
-      link.remove(); // Hapus link setelah digunakan
-    } catch (error) {
-      console.error("Error downloading PDF:", error);
-    }
+  const handleDownloadClick = (record) => {
+    setSelectedDownload(record); // Simpan record yang dipilih ke dalam state
+    setIsModalVisible(true); // Tampilkan modal
   };
 
   useEffect(() => {
@@ -124,7 +134,7 @@ const CertificateTable = () => {
           </div>
           <div className="sm:p-4 pb-4 px-8 py-2 bg-[#f8fafc]">
             <button
-              onClick={() => downloadPDF(certificate?.data?.data_id)}
+              onClick={() => handleDownloadClick(certificate)}
               className="bg-green-500 text-white px-4 py-2 hover:bg-green-600"
             >
               Lihat Sertifikat
@@ -132,6 +142,38 @@ const CertificateTable = () => {
           </div>
         </div>
       </div>
+      <Modal
+        title=""
+        open={isModalVisible}
+        footer={null}
+        onCancel={() => setIsModalVisible(false)}
+        className="rounded-lg p-6 max-w-lg w-full"
+        centered
+      >
+        <div className="flex flex-col items-center space-y-4">
+          <Spin spinning={loading}>
+            <p className="text-lg font-semibold text-gray-700">
+              Silakan pilih template untuk diunduh:
+            </p>
+            <div className="flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full">
+              <Button
+                type="primary"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg w-full sm:w-auto"
+                onClick={() => downloadPDF(selectedDownload?.data_id, "a")}
+              >
+                Download Template V1
+              </Button>
+              <Button
+                type="primary"
+                className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg w-full sm:w-auto"
+                onClick={() => downloadPDF(selectedDownload?.data_id, "b")}
+              >
+                Download Template V2
+              </Button>
+            </div>
+          </Spin>
+        </div>
+      </Modal>
     </div>
   );
 };

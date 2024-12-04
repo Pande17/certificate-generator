@@ -289,7 +289,7 @@ const competence = () => {
           layout="vertical"
           onFinish={handleSubmit(onSubmit)}
           style={{
-            width: "90%",
+            width: "95%",
             maxHeight: "100vh",
             overflowY: "scroll",
             backgroundColor: "white",
@@ -300,10 +300,12 @@ const competence = () => {
           <h3 className="text-center font-Poppins text-2xl font-bold p-6">
             Buat kompetensi{" "}
           </h3>
+
           <Form.Item label="Nama Kompetensi" required>
             <Controller
               name="competenceName"
               control={control}
+              rules={{ required: "Nama Kompetensi wajib diisi!" }}
               render={({ field }) => (
                 <Input
                   placeholder="Masukkan nama kompetensi"
@@ -359,15 +361,6 @@ const competence = () => {
             Hard Skills
           </h3>
           {hardSkillsFields.map((field, index) => {
-            const {
-              fields: descriptionFields,
-              append: addDescription,
-              remove: removeDescription,
-            } = useFieldArray({
-              control,
-              name: `hardSkills.${index}.description`,
-            });
-
             return (
               <div key={field.id}>
                 <Form.Item label={`Nama Hard Skill ${index + 1}`}>
@@ -394,9 +387,9 @@ const competence = () => {
 
                 {/* Tambahkan tombol dan field untuk deskripsi */}
                 <Space direction="vertical">
-                  {descriptionFields.map((descField, descIndex) => (
+                  {field.description.map((descField, descIndex) => (
                     <div key={descField.id}>
-                      <Form.Item label="Unit Code">
+                      <Form.Item label={`kode unit ${descIndex + 1}`}>
                         <Controller
                           name={`hardSkills.${index}.description.${descIndex}.unit_code`}
                           control={control}
@@ -409,7 +402,7 @@ const competence = () => {
                           )}
                         />
                       </Form.Item>
-                      <Form.Item label="Unit Title">
+                      <Form.Item label={`judul unit ${descIndex + 1}`}>
                         <Controller
                           name={`hardSkills.${index}.description.${descIndex}.unit_title`}
                           control={control}
@@ -426,27 +419,55 @@ const competence = () => {
                         type="text"
                         danger
                         icon={<MinusCircleOutlined />}
-                        onClick={() => removeDescription(descIndex)}
+                        onClick={() => {
+                          // Salin field yang sedang diperbarui tanpa merubah field lainnya
+                          const updatedField = {
+                            ...hardSkillsFields[index], // Salin seluruh field
+                            description: hardSkillsFields[
+                              index
+                            ].description.filter(
+                              (_, i) => i !== descIndex // Hapus deskripsi pada index tertentu
+                            ),
+                          };
+
+                          // Update array hardSkillsFields tanpa merubah elemen lain
+                          const updatedFields = hardSkillsFields.map(
+                            (field, idx) =>
+                              idx === index ? updatedField : field
+                          );
+
+                          // Panggil upHardSkill untuk memperbarui state
+                          upHardSkill(index, updatedField);
+                        }}
                       >
                         Hapus Deskripsi
                       </Button>
                     </div>
                   ))}
-                </Space>
 
-                <Button
-                  type="dashed"
-                  onClick={() =>
-                    addDescription({ unit_code: "", unit_title: "" })
-                  }
-                  icon={<PlusOutlined />}
-                  style={{ marginBottom: "20px" }}
-                >
-                  Tambah Unit Code dan Title
-                </Button>
+                  <Button
+                    id={`hardSkills.${index}.description`}
+                    type="dashed"
+                    htmlType="button"
+                    onClick={() => {
+                      upHardSkill(index, {
+                        ...hardSkillsFields[index],
+                        description: [
+                          ...hardSkillsFields[index].description,
+                          { id: "", unit_code: "", unit_title: "" },
+                        ],
+                      });
+                    }}
+                    icon={<PlusOutlined />}
+                    style={{ marginBottom: "20px" }}
+                  >
+                    Tambah Unit Code dan Title
+                  </Button>
+                </Space>
               </div>
             );
           })}
+
           <Button
             type="dashed"
             onClick={() =>
@@ -465,16 +486,8 @@ const competence = () => {
           <h3 className="text-center font-Poppins text-2xl font-medium p-6">
             Soft Skills
           </h3>
-          {softSkillsFields.map((field, index) => {
-            const {
-              fields: descriptionFields,
-              append: addDescription,
-              remove: removeDescription,
-            } = useFieldArray({
-              control,
-              name: `softSkills.${index}.description`,
-            });
 
+          {softSkillsFields.map((field, index) => {
             return (
               <div key={field.id}>
                 <Form.Item label={`Nama Soft Skill ${index + 1}`}>
@@ -501,9 +514,9 @@ const competence = () => {
 
                 {/* Tambahkan tombol dan field untuk deskripsi */}
                 <Space direction="vertical">
-                  {descriptionFields.map((descField, descIndex) => (
-                    <div key={descField.id}>
-                      <Form.Item label="Unit Code">
+                  {field.description.map((descfield, descIndex) => (
+                    <div key={descfield.id}>
+                      <Form.Item label={`kode unit ${descIndex + 1}`}>
                         <Controller
                           name={`softSkills.${index}.description.${descIndex}.unit_code`}
                           control={control}
@@ -516,7 +529,7 @@ const competence = () => {
                           )}
                         />
                       </Form.Item>
-                      <Form.Item label="Unit Title">
+                      <Form.Item label={`judul unit ${descIndex + 1}`}>
                         <Controller
                           name={`softSkills.${index}.description.${descIndex}.unit_title`}
                           control={control}
@@ -533,27 +546,54 @@ const competence = () => {
                         type="text"
                         danger
                         icon={<MinusCircleOutlined />}
-                        onClick={() => removeDescription(descIndex)}
+                        onClick={() => {
+                          // Salin field yang sedang diperbarui tanpa merubah field lainnya
+                          const updatedField = {
+                            ...softSkillsFields[index], // Salin seluruh field
+                            description: softSkillsFields[
+                              index
+                            ].description.filter(
+                              (_, i) => i !== descIndex // Hapus deskripsi pada index tertentu
+                            ),
+                          };
+
+                          // Update array hardSkillsFields tanpa merubah elemen lain
+                          const updatedFields = softSkillsFields.map(
+                            (field, idx) =>
+                              idx === index ? updatedField : field
+                          );
+
+                          // Panggil upHardSkill untuk memperbarui state
+                          upSoftSkill(index, updatedField);
+                        }}
                       >
                         Hapus Deskripsi
                       </Button>
                     </div>
                   ))}
+                  <Button
+                    id={`softSkills.${index}.description`}
+                    type="dashed"
+                    htmlType="button"
+                    onClick={() => {
+                      upSoftSkill(index, {
+                        ...softSkillsFields[index],
+                        description: [
+                          ...softSkillsFields[index].description,
+                          { id: "", unit_code: "", unit_title: "" },
+                        ],
+                      });
+                    }}
+                    icon={<PlusOutlined />}
+                    style={{ marginBottom: "20px" }}
+                  >
+                    Tambah Unit Code dan Title
+                  </Button>
                 </Space>
-
-                <Button
-                  type="dashed"
-                  onClick={() =>
-                    addDescription({ unit_code: "", unit_title: "" })
-                  }
-                  icon={<PlusOutlined />}
-                  style={{ marginBottom: "20px" }}
-                >
-                  Tambah Unit Code dan Title
-                </Button>
               </div>
             );
           })}
+
           <Button
             type="dashed"
             onClick={() =>
