@@ -57,20 +57,22 @@ func CreateKompetensi(c *fiber.Ctx) error {
 	var existingKompetensi model.Kompetensi
 	filter := bson.M{
 		"nama_kompetensi": kompetensiReq.KompetensiName,
+		"admin_id":        objectID,
+		"$or": []bson.M{
+			{"deleted_at": bson.M{"$exists": false}}, // DeletedAt field does not exist
+			{"deleted_at": bson.M{"$eq": nil}},       // DeletedAt field is nil
+		},
 	}
 
 	// Find competence with the same name
-	err = collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi)
-	if err == nil {
+	if err := collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingKompetensi); err == nil {
 		// Competence with the same name exists, check if it's deleted
 		if existingKompetensi.DeletedAt == nil {
 			// If DeletedAt is nil, the name is still in use
 			return Conflict(c, "Kompetensi dengan nama ini sudah ada! Silakan gunakan nama lain.", "Kompetensi dengan nama yang sama sudah ada!")
 		}
 		// If DeletedAt is not nil, we can proceed to create a new competence
-	} else if err == mongo.ErrNoDocuments {
-		// No existing competence found, proceed to create a new one
-	} else {
+	} else if err != mongo.ErrNoDocuments {
 		return Conflict(c, "Gagal memeriksa kompetensi yang ada. Silakan coba lagi.", err.Error())
 	}
 
