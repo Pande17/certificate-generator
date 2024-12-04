@@ -335,20 +335,22 @@ const Dashboard = () => {
 
   const handleSignatureChange = async (value) => {
     const signature = await fetchSignatureId(value);
+    console.log("Signature fetched:", signature);
     if (signature) {
       setSelectedSignature(signature);
       setIsSignatureSelected(true);
 
       setValue("namaPenandatangan", signature.name || "");
       setValue("role", signature.role || "");
-      setValue("logo", signature.logo || "");
-      setValue("linkGambarPenandatangan", signature.stamp || "");
+      setValue("linkLogo", signature.logo || "");
+      setValue("linkGambarPenandatangan", signature.signature || "");
       setValue("logoPerusahaan", signature.logo || "");
       setValue("stamp", signature.stamp || "");
     } else {
-      setIsSignatureSelected(false);
+      setIsSignatureSelected(false);    
     }
   };
+  
 
   const filteredData = dta.filter((item) =>
     item.sertif_name.toLowerCase().includes(searchText.toLowerCase())
@@ -501,10 +503,17 @@ const Dashboard = () => {
                 totalMeeting: currentRecord?.total_meet || "Tidak mengisi",
                 meetingTime: currentRecord?.meet_time || "Tidak mengisi",
                 selectedCompetenceId: matchedCompetence?._id || "", // Atur ID hasil pencocokan
-                selectedSignatureId:currentRecord?.data?.signature || "Tidak mengisi",
+                selectedSignatureId:
+                  currentRecord?.signature?.config_name || "Tidak mengisi",
+                namaPenandatangan: currentRecord?.signature?.name,
+                role: currentRecord?.signature?.role,
+                stamp: currentRecord?.signature?.stamp,
+                linkLogo:currentRecord?.signature?.logo,
+                linkGambarPenandatangan: currentRecord?.signature?.signature,
                 hardSkill: currentRecord?.data?.hard_skills.skills || [],
                 softSkill: currentRecord?.data?.soft_skills.skills || [],
-                });
+
+              });
             }
           }}
           footer={null}
@@ -513,7 +522,7 @@ const Dashboard = () => {
             layout="vertical"
             style={{
               width: "95%",
-              maxHeight: "100vh", 
+              maxHeight: "100vh",
               overflowY: "scroll",
               backgroundColor: "white",
               padding: "40px",
@@ -858,8 +867,12 @@ const Dashboard = () => {
                   <Select
                     {...field}
                     placeholder="Pilih Template Paraf"
-                    onChange={handleSignatureChange}
+                    onChange={(value) => {
+                      field.onChange(value); // Memperbarui nilai form
+                      handleSignatureChange(value); // Menjalankan logika tambahan
+                    }}
                     style={{ width: "100%", height: "50px" }}
+                    op
                   >
                     <Option value="" disabled>
                       Pilih Tanda Tangan
@@ -874,8 +887,7 @@ const Dashboard = () => {
               />
             </Form.Item>
 
-            {isSignatureSelected && selectedSignature && (
-              <>
+      
                 <Form.Item label="Nama penandatangan" required>
                   <Controller
                     name="namaPenandatangan"
@@ -936,7 +948,7 @@ const Dashboard = () => {
 
                 <Form.Item label="Link logo" required>
                   <Controller
-                    name="logo"
+                    name="linkLogo"
                     control={control}
                     render={({ field }) => (
                       <>
@@ -979,7 +991,7 @@ const Dashboard = () => {
                           <div style={{ marginTop: "10px" }}>
                             <img
                               src={field.value}
-                              alt="Logo perusahaan"
+                              alt="Gambar penandatangan"
                               style={{
                                 width: "200px",
                                 height: "200px",
@@ -993,9 +1005,7 @@ const Dashboard = () => {
                     )}
                   />
                 </Form.Item>
-              </>
-            )}
-
+         
             <Form.Item>
               <Button type="primary" htmlType="submit">
                 Submit

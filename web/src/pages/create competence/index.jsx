@@ -10,7 +10,6 @@ import MainLayout from "../MainLayout/Layout";
 import { useNavigate } from "react-router-dom";
 import { Kompetensi } from "../api middleware";
 
-
 const Tool = () => {
   const navigate = useNavigate();
 
@@ -18,13 +17,16 @@ const Tool = () => {
     navigate("/competence");
   };
 
-  const { control, handleSubmit, reset } = useForm({
+  const { control, handleSubmit, reset, watch, getValues } = useForm({
     defaultValues: {
       skkni: "",
       divisi: "",
       competenceName: "",
       hardSkills: [
-        { skill_name: "", description: [{ id:"", unit_code: "", unit_title: "" }] },
+        {
+          skill_name: "",
+          description: [{ id: "", unit_code: "", unit_title: "" }],
+        },
       ],
       softSkills: [
         { skill_name: "", description: [{ unit_code: "", unit_title: "" }] },
@@ -66,7 +68,7 @@ const Tool = () => {
     fetchCompetencies();
   }, []);
 
-  
+  console.log(hardSkillsFields, watch());
   const onSubmit = async (data) => {
     const competenceData = {
       nama_kompetensi: data.competenceName,
@@ -89,7 +91,7 @@ const Tool = () => {
       console.error("Error saat menyimpan kompetensi:", error);
       message.error("Error saat menyimpan kompetensi!");
     }
-    navigate("/competence")
+    navigate("/competence");
   };
 
   return (
@@ -265,10 +267,11 @@ const Tool = () => {
                   type="dashed"
                   htmlType="button"
                   onClick={() => {
+                    console.log(hardSkillsFields);
                     upHardSkill(index, {
-                      ...hardSkillsFields[index],
+                      ...getValues("hardSkills")[index],
                       description: [
-                        ...hardSkillsFields[index].description,
+                        ...getValues("hardSkills")[index].description,
                         { id: "", unit_code: "", unit_title: "" },
                       ],
                     });
@@ -391,9 +394,9 @@ const Tool = () => {
                   htmlType="button"
                   onClick={() => {
                     upSoftSkill(index, {
-                      ...softSkillsFields[index],
+                      ...getValues("softSkills")[index],
                       description: [
-                        ...softSkillsFields[index].description,
+                        ...getValues("softSkills")[index].description,
                         { id: "", unit_code: "", unit_title: "" },
                       ],
                     });

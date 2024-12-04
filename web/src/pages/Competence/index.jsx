@@ -84,7 +84,7 @@ const competence = () => {
 
   const navigate = useNavigate();
 
-  const { control, handleSubmit } = useForm({
+  const { control, handleSubmit, watch, setValue, getValues } = useForm({
     defaultValues: {
       skkni: "",
       divisi: "",
@@ -113,9 +113,51 @@ const competence = () => {
      remove: removeSoftSkill,
    } = useFieldArray({ control, name: "softSkills" });
 
-  const handleEdit = (record) => {
-    setCurrentRecord(record);
-    setIsEditModalVisible(true);
+  const handleEdit = async(record) => {
+    try{
+      const response = await Kompetensi.get(`/${record._id}`);
+      const data = response.data.data
+
+      const kompetensiData = {
+        ...data
+      }
+       setValue("competenceName", record.nama_kompetensi || "");
+       setValue("skkni", record.skkni || "");
+       setValue("devisi", record.divisi || "");
+
+        setValue(
+          "hardSkills",
+          data.hard_skills.map((hardSkill) => ({
+            skill_name: hardSkill.skill_name,
+            description: hardSkill.description.map((desc) => ({
+              unit_code: desc.unit_code,
+              unit_title: desc.unit_title,
+            })),
+          }))
+        );
+
+        // Set soft skills jika perlu
+        setValue(
+          "softSkills",
+          data.soft_skills.map((softSkill) => ({
+            skill_name: softSkill.skill_name,
+            description: softSkill.description.map((desc) => ({
+              unit_code: desc.unit_code,
+              unit_title: desc.unit_title,
+            })),
+          }))
+        );
+
+      console.log(watch())
+      setCurrentRecord(kompetensiData)
+      setIsEditModalVisible(true)
+
+    }catch(error){
+      console.error("error fetching Kompetensi detail:" , error);
+      message.error("gagal mengambil Kompetensi");
+    }
+
+ 
   };
 
 
@@ -449,9 +491,9 @@ const competence = () => {
                     htmlType="button"
                     onClick={() => {
                       upHardSkill(index, {
-                        ...hardSkillsFields[index],
+                        ...getValues("hardSkills")[index],
                         description: [
-                          ...hardSkillsFields[index].description,
+                          ...getValues("hardSkills")[index].description,
                           { id: "", unit_code: "", unit_title: "" },
                         ],
                       });
@@ -575,9 +617,9 @@ const competence = () => {
                     htmlType="button"
                     onClick={() => {
                       upSoftSkill(index, {
-                        ...softSkillsFields[index],
+                        ...getValues("softSkills")[index],
                         description: [
-                          ...softSkillsFields[index].description,
+                          ...getValues("softSkills")[index].description,
                           { id: "", unit_code: "", unit_title: "" },
                         ],
                       });
