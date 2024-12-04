@@ -236,82 +236,174 @@ function MyForm() {
 		}
 	};
 
-	return (
-		<MainLayout>
-			<Form
-				layout="vertical"
-				style={{
-					width: '95%',
-					maxHeight: '100vh',
-					overflowY: 'scroll',
-					backgroundColor: 'white',
-					padding: '40px',
-					borderRadius: '20px',
-					margin: 'auto',
-				}}
-				onFinish={handleSubmit(onSubmit)}
-			>
-				<div className="text-center font-Poppins font-bold text-xl">Buat Sertifikat</div>
-				<Form.Item label="Judul Sertifikat" required>
-					<Controller name="sertifikat" control={control} rules={{ required: 'Judul is required' }} render={({ field }) => <Input {...field} placeholder="Masukkan nama" style={{ width: '100%', height: '50px' }} />} />
-				</Form.Item>
-				<Form.Item label="Nama" required>
-					<Controller name="nama" control={control} rules={{ required: 'Nama is required' }} render={({ field }) => <Input {...field} placeholder="Made Rendy Putra Mahardika" style={{ width: '100%', height: '50px' }} />} />
-				</Form.Item>
+  return (
+    <MainLayout>
+      <Form
+        layout="vertical"
+        style={{
+          width: "95%",
+          maxHeight: "100vh",
+          overflowY: "scroll",
+          backgroundColor: "white",
+          padding: "40px",
+          borderRadius: "20px",
+          margin: "auto",
+        }}
+        onFinish={handleSubmit(onSubmit)}
+      >
+        <div className="text-center font-Poppins font-bold text-xl">
+          Buat Sertifikat
+        </div>
+        <Form.Item label="Judul Sertifikat" required>
+          <Controller
+            name="sertifikat"
+            control={control}
+            rules={{ required: "Judul diperlukan" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="Masukkan judul"
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
+        <Form.Item label="Nama" required>
+          <Controller
+            name="nama"
+            control={control}
+            rules={{ required: "Nama diperlukan" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="Made Rendy Putra Mahardika"
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
 
-				<Form.Item label="Bidang Studi" required>
-					<Controller name="fieldOfStudy" control={control} rules={{ required: 'Field of Study is required' }} render={({ field }) => <Input {...field} placeholder="Masukkan Bidang Studi" style={{ width: '100%', height: '50px' }} />} />
-				</Form.Item>
+        <Form.Item label="Bidang Studi" required>
+          <Controller
+            name="fieldOfStudy"
+            control={control}
+            rules={{ required: "Field of Study diperlukan" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="Masukkan Bidang Studi"
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
 
-				<Form.Item label="Total Tahun" required>
-					<Controller name="validTime" control={control} rules={{ required: 'Valid Time is required' }} render={({ field }) => <Input {...field} placeholder="2 Tahun" style={{ width: '100%', height: '50px' }} />} />
-				</Form.Item>
+        <Form.Item label="Total Tahun" required>
+          <Controller
+            name="validTime"
+            control={control}
+            rules={{ required: "Valid Time diperlukan" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="2 Tahun"
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
 
 				<Form.Item label="Waktu Expired (Mulai)" required>
 					<Controller name="expiredTimeStart" control={control} rules={{ required: 'Waktu mulai diperlukan' }} render={({ field }) => <Input {...field} placeholder="Pilih waktu mulai" style={{ width: '100%', height: '50px' }} />} />
 				</Form.Item>
 
-				<Form.Item label="Waktu Expired (Selesai)" required>
-					<Controller name="expiredTimeEnd" control={control} rules={{ required: 'Waktu selesai diperlukan' }} render={({ field }) => <Input {...field} placeholder="Pilih waktu selesai" style={{ width: '100%', height: '50px' }} />} />
-				</Form.Item>
-				<Form.Item label="Total Pertemuan" required>
-					<Controller name="totalMeeting" control={control} rules={{ required: 'Total Meeting is required' }} render={({ field }) => <InputNumber {...field} placeholder="contoh: 14" style={{ width: '100%', height: '50px' }} />} />
-				</Form.Item>
+        <Form.Item label="Waktu Expired (Selesai)" required>
+          <Controller
+            name="expiredTimeEnd"
+            control={control}
+            rules={{ required: "Waktu selesai diperlukan" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="Pilih waktu selesai"
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
+        <Form.Item label="Total Pertemuan" required>
+          <Controller
+            name="totalMeeting"
+            control={control}
+            rules={{ required: "Total Pertemuan diperlukan" }}
+            render={({ field }) => (
+              <InputNumber
+                {...field}
+                placeholder="contoh: 14"
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
 
-				<Form.Item label="Total Waktu Pertemuan" required>
-					<Controller name="meetingTime" control={control} rules={{ required: 'Meeting Time is required' }} render={({ field }) => <Input {...field} placeholder="contoh: 13" style={{ width: '100%', height: '50px' }} />} />
-				</Form.Item>
-				<Form.Item label="Waktu dan Tempat Pengesahan" required>
-					<Controller name="validation" control={control} rules={{ required: 'Validation is required' }} render={({ field }) => <Input {...field} placeholder="contoh: 13" style={{ width: '100%', height: '50px' }} />} />
-				</Form.Item>
+        <Form.Item label="Total Waktu Pertemuan" required>
+          <Controller
+            name="meetingTime"
+            control={control}
+            rules={{ required: "Total Waktu Pertemuan diperlukan" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="contoh: 13"
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
+        <Form.Item label="Waktu dan Tempat Pengesahan" required>
+          <Controller
+            name="validation"
+            control={control}
+            rules={{ required: "Validation diperlukan" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="contoh: 13"
+                style={{ width: "100%", height: "50px" }}
+              />
+            )}
+          />
+        </Form.Item>
 
-				<h1 className="text-center font-Poppins text-2xl font-medium p-6">Pilih kompetensi</h1>
-				<Form.Item required>
-					<Controller
-						name="selectedCompetenceId"
-						control={control}
-						render={({ field }) => (
-							<Select
-								placeholder="Pilih Kompetensi"
-								{...field}
-								style={{ width: '100%', height: '50px' }}
-								onChange={(value) => {
-									field.onChange(value);
-									handleCompetenceChange(value);
-								}}
-							>
-								<Option value="" disabled>
-									Pilih Kompetensi
-								</Option>
-								{data.map((competence) => (
-									<Option key={competence._id} value={competence._id}>
-										{competence.nama_kompetensi || ''}
-									</Option>
-								))}
-							</Select>
-						)}
-					/>
-				</Form.Item>
+        <h1 className="text-center font-Poppins text-2xl font-medium p-6">
+          Pilih Kompetensi
+        </h1>
+        <Form.Item required>
+          <Controller
+            name="selectedCompetenceId"
+            control={control}
+            render={({ field }) => (
+              <Select
+                placeholder="Pilih Kompetensi"
+                {...field}
+                style={{ width: "100%", height: "50px" }}
+                onChange={(value) => {
+                  field.onChange(value);
+                  handleCompetenceChange(value);
+                }}
+              >
+                <Option value="" disabled>
+                  Pilih Kompetensi
+                </Option>
+                {data.map((competence) => (
+                  <Option key={competence._id} value={competence._id}>
+                    {competence.nama_kompetensi || ""}
+                  </Option>
+                ))}
+              </Select>
+            )}
+          />
+        </Form.Item>
 
 				{skkni && (
 					<Form.Item label="SKKNI">
@@ -368,39 +460,39 @@ function MyForm() {
 									)}
 								/>
 
-								{/* JP Input for each hard skill */}
-								<Controller
-									name={`hardSkill[${index}].jp`}
-									control={control}
-									render={({ field }) => (
-										<InputNumber
-											{...field}
-											placeholder="JP per skill"
-											style={{
-												width: '100%',
-												height: '50px',
-											}}
-										/>
-									)}
-								/>
-								<Controller
-									name={`hardSkill[${index}].skillScore`}
-									control={control}
-									render={({ field }) => (
-										<InputNumber
-											{...field}
-											placeholder="Score"
-											style={{
-												width: '100%',
-												height: '50px',
-											}}
-										/>
-									)}
-								/>
-							</div>
-						))}
-					</div>
-				)}
+                {/* JP Input for each hard skill */}
+                <Controller
+                  name={`hardSkill[${index}].jp`}
+                  control={control}
+                  render={({ field }) => (
+                    <InputNumber
+                      {...field}
+                      placeholder="JP per Skill"
+                      style={{
+                        width: "100%",
+                        height: "50px",
+                      }}
+                    />
+                  )}
+                />
+                <Controller
+                  name={`hardSkill[${index}].skillScore`}
+                  control={control}
+                  render={({ field }) => (
+                    <InputNumber
+                      {...field}
+                      placeholder="Score"
+                      style={{
+                        width: "100%",
+                        height: "50px",
+                      }}
+                    />
+                  )}
+                />
+              </div>
+            ))}
+          </div>
+        )}
 
 				{softSkillFields.length > 0 && (
 					<div>
@@ -445,20 +537,20 @@ function MyForm() {
 									)}
 								/>
 
-								<Controller
-									name={`softSkill[${index}].jp`}
-									control={control}
-									render={({ field }) => (
-										<InputNumber
-											{...field}
-											placeholder="JP per skill"
-											style={{
-												width: '100%',
-												height: '50px',
-											}}
-										/>
-									)}
-								/>
+                <Controller
+                  name={`softSkill[${index}].jp`}
+                  control={control}
+                  render={({ field }) => (
+                    <InputNumber
+                      {...field}
+                      placeholder="JP per Skill"
+                      style={{
+                        width: "100%",
+                        height: "50px",
+                      }}
+                    />
+                  )}
+                />
 
 								<Controller
 									name={`softSkill[${index}].skillScore`}
@@ -508,23 +600,12 @@ function MyForm() {
 							<Controller name="namaPenandatangan" control={control} render={({ field }) => <Input {...field} readOnly style={{ width: '100%', height: '50px' }} />} />
 						</Form.Item>
 
-						<Form.Item label="Jabatan Penandatangan" required>
-							<Controller name="role" control={control} render={({ field }) => <Input {...field} readOnly style={{ width: '100%', height: '50px' }} />} />
-						</Form.Item>
-
-						<Form.Item label="Stamp Perusahaan" required>
-							<Controller name="stamp" control={control} render={({ field }) => <Input {...field} readOnly style={{ width: '100%', height: '50px' }} />} />
-						</Form.Item>
-
-						<Form.Item label="Link logo" required>
-							<Controller name="logo" control={control} render={({ field }) => <Input {...field} readOnly style={{ width: '100%', height: '50px' }} />} />
-						</Form.Item>
-
-            <Form.Item label="Link gambar penandatangan" required>
+            <Form.Item label="Jabatan Penandatangan" required>
               <Controller
-                name="linkGambarPenandatangan"
+                name="role"
                 control={control}
                 render={({ field }) => (
+                  
                   <Input
                     {...field}
                     readOnly
@@ -534,7 +615,95 @@ function MyForm() {
               />
             </Form.Item>
 
-          
+            <Form.Item label="Stamp Perusahaan" required>
+              <Controller
+                name="stamp"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Input
+                      {...field}
+                      readOnly
+                      style={{ width: "100%", height: "50px" }}
+                    />
+                    {field.value && (
+                      <div style={{ marginTop: "10px" }}>
+                        <img
+                          src={field.value}
+                          alt="Stamp perusahaan"
+                          style={{
+                            width: "200px",
+                            height: "200px",
+                            border: "solid",
+                            borderColor: "black",
+                          }}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              />
+            </Form.Item>
+
+            <Form.Item label="Link logo" required>
+              <Controller
+                name="logo"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Input
+                      {...field}
+                      readOnly
+                      style={{ width: "100%", height: "50px" }}
+                    />
+                    {field.value && (
+                      <div style={{ marginTop: "10px" }}>
+                        <img
+                          src={field.value}
+                          alt="Logo perusahaan"
+                          style={{
+                            width: "200px",
+                            height: "200px",
+                            border: "solid",
+                            borderColor: "black",
+                          }}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              />
+            </Form.Item>
+
+            <Form.Item label="Link gambar penandatangan" required>
+              <Controller
+                name="linkGambarPenandatangan"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Input
+                      {...field}
+                      readOnly
+                      style={{ width: "100%", height: "50px" }}
+                    />
+                    {field.value && (
+                      <div style={{ marginTop: "10px" }}>
+                        <img
+                          src={field.value}
+                          alt="Tandatangan orang terkait"
+                          style={{
+                            width: "200px",
+                            height: "200px",
+                            border: "solid",
+                            borderColor: "black",
+                          }}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              />
+            </Form.Item>
           </>
         )}
 

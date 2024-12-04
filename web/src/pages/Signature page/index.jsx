@@ -16,24 +16,22 @@ const SignaturePage = () => {
   const navigate = useNavigate();
   const { confirm } = Modal;
 
-  // **Filter Data Berdasarkan Pencarian**
+  // Filter Data Berdasarkan Pencarian
   const filteredData = data.filter((item) =>
     item.config_name?.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  // **Ambil Data dari API saat Komponen Mount**
+  // Ambil Data dari API saat halaman dimuat
   useEffect(() => {
     const fetchSignature = async () => {
       setLoading(true);
       try {
-        const response = await Signature.get(
-          "/"
-        );
+        const response = await Signature.get("/");
         const datas = response.data.data;
         const filterData = datas.filter((item) => !item.deleted_at);
         setData(filterData);
       } catch (error) {
-        console.error("Error fetching signatures:", error);
+        console.error("Error fetching signature:", error);
         message.error("Gagal memuat data.");
       } finally {
         setLoading(false);
@@ -42,9 +40,10 @@ const SignaturePage = () => {
     fetchSignature();
   }, []);
 
+ // Hapus data paraf dan beritahu pengguna hasil penghapusan data paraf
  const delHandle = async (_id) => {
    try {
-     await Kompetensi.delete(`http://127.0.0.1:3000/api/signature/${_id}`);
+     await Signature.delete(`/${_id}`);
      setData((prevData) => prevData.filter((item) => item._id !== _id));
      message.success("Data berhasil dihapus");
    } catch (error) {
@@ -55,12 +54,13 @@ const SignaturePage = () => {
    }
  };
 
+  // Konfirmasi penghapusan data paraf
   const delConfirm = (_id, config_name) => {
     confirm({
       title: `Apakah Anda yakin ingin menghapus paraf "${config_name}"?`,
       content: "Data yang dihapus tidak dapat dikembalikan.",
       okType: "danger",
-      okText: "Ya, Hapus",
+      okText: "Ya, hapus",
       cancelText: "Batal",
       onOk() {
         delHandle(_id);
@@ -68,12 +68,12 @@ const SignaturePage = () => {
     });
   };
 
-  // **Navigasi ke Halaman Pembuatan Sertifikat**
+  // Navigasi ke Halaman Pembuatan Sertifikat
   const createNav = () => {
     navigate("/createParaf");
   };
 
-  // **Buka Modal Edit dengan Data yang Dipilih**
+  // Buka Modal Edit dengan Data yang Dipilih
   const handleEdit = async (record) => {
     try {
       const response = await Signature.get(`/${record._id}`);
@@ -92,11 +92,11 @@ const SignaturePage = () => {
       setIsEditModalVisible(true);
     } catch (error) {
       console.error("Error fetching certificate details:", error);
-      message.error("Gagal mengambil data sertifikat.");
+      message.error("Gagal mengambil data paraf.");
     }
   };
 
-  // **Simpan Perubahan Data**
+  // Simpan Perubahan Data
   const onSubmit = async (formData) => {
     try {
       const updatedData = {
@@ -123,7 +123,7 @@ const SignaturePage = () => {
     }
   };
 
-  // **Kolom Tabel**
+  // Kolom Tabel
   const columns = [
     {
       title: "No",
@@ -211,9 +211,9 @@ const SignaturePage = () => {
             <Controller
               name="displayNama"
               control={control}
-              rules={{ required: "Wajib mengisi display nama" }}
+              rules={{ required: "Wajib mengisi Display Nama" }}
               render={({ field }) => (
-                <Input {...field} placeholder="Masukkan nama display" />
+                <Input {...field} placeholder="Masukkan Display Nama" />
               )}
             />
           </Form.Item>
@@ -222,9 +222,9 @@ const SignaturePage = () => {
             <Controller
               name="atasNama"
               control={control}
-              rules={{ required: "Wajib mengisi nama" }}
+              rules={{ required: "Wajib mengisi Nama Penandatangan" }}
               render={({ field }) => (
-                <Input {...field} placeholder="Masukkan nama penandatangan" />
+                <Input {...field} placeholder="Masukkan Nama Penandatangan" />
               )}
             />
           </Form.Item>
@@ -233,11 +233,11 @@ const SignaturePage = () => {
             <Controller
               name="jabatan"
               control={control}
-              rules={{ required: "Wajib mengisi jabatan" }}
+              rules={{ required: "Wajib mengisi Jabatan Penandatangan" }}
               render={({ field }) => (
                 <Input
                   {...field}
-                  placeholder="Masukkan jabatan penandatangan"
+                  placeholder="Masukkan Jabatan Penandatangan"
                 />
               )}
             />
@@ -247,17 +247,16 @@ const SignaturePage = () => {
             <Controller
               name="ttd"
               control={control}
-              rules={{ required: "Wajib mengisi link" }}
+              rules={{ required: "Wajib mengisi Link Gambar Tanda Tangan" }}
               render={({ field }) => (
                 <>
-                  <Input {...field} placeholder="Masukkan link tanda tangan" />
+                  <Input {...field} placeholder="Masukkan Link Gambar Tanda Tangan" />
                   {field.value && (
                     <div style={{ marginTop: "10px" }}>
                       <img
                         src={field.value}
                         alt="Tanda tangan orang terkait"
                         style={{
-                          width: "200px",
                           height: "200px",
                           border: "solid",
                           borderColor: "black",
@@ -274,12 +273,12 @@ const SignaturePage = () => {
             <Controller
               name="Cap"
               control={control}
-              rules={{ required: "Wajib mengisi link" }}
+              rules={{ required: "Wajib mengisi Link Gambar Cap Perusahaan" }}
               render={({ field }) => (
                 <>
                   <Input
                     {...field}
-                    placeholder="Masukkan link cap perusahaan"
+                    placeholder="Masukkan Link Gambar Cap Perusahaan"
                   />
                   {field.value && (
                     <div style={{ marginTop: "10px" }}>
@@ -287,7 +286,6 @@ const SignaturePage = () => {
                         src={field.value}
                         alt="Cap Perusahaan"
                         style={{
-                          width: "200px",
                           height: "200px",
                           border: "solid",
                           borderColor: "black",
@@ -300,16 +298,16 @@ const SignaturePage = () => {
             />
           </Form.Item>
 
-          <Form.Item label="Link logo Perusahaan" required>
+          <Form.Item label="Link Gambar Logo Perusahaan" required>
             <Controller
               name="linkLogo"
               control={control}
-              rules={{ required: "Link logo perusahaan diperlukan" }}
+              rules={{ required: "Wajib mengisi Link Gambar Logo Perusahaan" }}
               render={({ field }) => (
                 <>
                   <Input
                     {...field}
-                    placeholder="Masukkan Link Gambar"
+                    placeholder="Masukkan Link Gambar Logo Perusahaan"
                     style={{ width: "100%", height: "50px" }}
                   />
                   {/* Menampilkan gambar dari link yang dimasukkan */}
@@ -319,7 +317,6 @@ const SignaturePage = () => {
                         src={field.value}
                         alt="Logo Perusahaan"
                         style={{
-                          width: "200px",
                           height: "200px",
                           border: "solid",
                           borderColor: "black",

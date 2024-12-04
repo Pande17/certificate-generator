@@ -10,6 +10,7 @@ import {
   DatePicker,
   InputNumber,
   Select,
+  Spin,
 } from "antd";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { Sertifikat, Kompetensi, Signature } from "../api middleware";
@@ -38,13 +39,15 @@ const Dashboard = () => {
   const [divisi, setDivisi] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedDownload, setSelectedDownload] = useState(null);
-  const { control, handleSubmit, reset, setValue } = useForm({
+  const { control, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
       hardSkill: [],
       softSkill: [],
       selectedCompetenceId: "",
     },
   });
+
+  console.log(watch());
 
   const navigate = useNavigate();
 
@@ -137,7 +140,7 @@ const Dashboard = () => {
             skills: Array.isArray(formData.hardSkill)
               ? formData.hardSkill.map((skill) => ({
                   skill_name: skill.skill_name,
-                  skill_jp: skill.jp,
+                  skill_jp: skill.jpH,
                   skill_score: skill.skillScore,
                   description: skill.combined_units.split("\n").map((line) => {
                     const [unit_code, unit_title] = line.split(" - ");
@@ -156,7 +159,7 @@ const Dashboard = () => {
             skills: Array.isArray(formData.softSkill)
               ? formData.softSkill.map((skill) => ({
                   skill_name: skill.skill_name,
-                  skill_jp: skill.jp,
+                  skill_jp: skill.jpS,
                   skill_score: skill.skillScore,
                   description: skill.combined_units.split("\n").map((line) => {
                     const [unit_code, unit_title] = line.split(" - ");
@@ -242,12 +245,16 @@ const Dashboard = () => {
     try {
       const response = await Sertifikat.get(`/${record._id}`);
 
-      const primaryData = response.data.data;
-      const additionalData = primaryData.data;
+      const primaryData = response.data.data.data;
+      const secondData = response.data.data
+      const thirdData =response
+     
       const certificateData = {
         ...primaryData, // Data utama termasuk ID
-        ...additionalData,
+        ...secondData
+
       };
+      console.log({secondData})
 
       setCurrentRecord(certificateData);
       setIsEditModalVisible(true);
@@ -285,10 +292,9 @@ const Dashboard = () => {
 
       replaceHardSkill(newHardSkills);
       replaceSoftSkill(newSoftSkills);
-
-      // Simpan skkni dan divisi ke state
       setSkkni(skkni);
       setDivisi(divisi);
+
     } catch (err) {
       console.log("Error fetching competence details:", err);
     }
@@ -297,8 +303,10 @@ const Dashboard = () => {
     try {
       const competence = kompetensiData.find((item) => item._id === value);
       if (competence) {
-        setValue("selectedCompetenceId", competence._id || "");
-        setValue("nama_kompetensi", competence.nama_kompetensi || "");
+        // setValue("selectedCompetenceId", competence._id || "");
+        // setValue("nama_kompetensi", competence.nama_kompetensi || "");
+        setSkkni(competence.skkni || "");
+        setDivisi(competence.divisi || "");
 
         // Reset form untuk hard skill dan soft skill
         reset((prevValues) => ({
@@ -307,7 +315,6 @@ const Dashboard = () => {
           hardSkill: [],
           softSkill: [],
         }));
-
         // Fetch kompetensi detail
         await fetchCompetence(value);
       }
@@ -348,7 +355,7 @@ const Dashboard = () => {
   );
 
   const downloadPDF = async (_id, type) => {
-    setLoading(true)
+    setLoading(true);
     try {
       const response = await Sertifikat.get(`/download/${_id}/${type}`, {
         headers: {
@@ -367,11 +374,9 @@ const Dashboard = () => {
       link.remove(); // Hapus link setelah digunakan
     } catch (error) {
       console.error("Error downloading PDF:", error);
-    }finally{
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
-      
-    
   };
 
   const createNav = () => {
@@ -466,8 +471,8 @@ const Dashboard = () => {
               bordered
               loading={loading}
               scroll={{
-                x: "max-content",
-                y: filteredData.length > 6 ? 500 : undefined,
+                x: "min-content",
+                y: filteredData.length > 6 ? 400 : undefined,
               }}
             />
           </Col>
@@ -479,7 +484,6 @@ const Dashboard = () => {
           onCancel={() => setIsEditModalVisible(false)}
           afterOpenChange={(visible) => {
             if (visible && currentRecord) {
-              // Cari ID kompetensi berdasarkan nama
               const matchedCompetence = kompetensiData.find(
                 (item) => item.nama_kompetensi === currentRecord.kompetensi
               );
@@ -497,11 +501,10 @@ const Dashboard = () => {
                 totalMeeting: currentRecord?.total_meet || "Tidak mengisi",
                 meetingTime: currentRecord?.meet_time || "Tidak mengisi",
                 selectedCompetenceId: matchedCompetence?._id || "", // Atur ID hasil pencocokan
-                selectedSignatureId:
-                  currentRecord?.signature?._id || "Tidak mengisi",
-                hardSkill: currentRecord?.hardSkills || [],
-                softSkill: currentRecord?.softSkills || [],
-              });
+                selectedSignatureId:currentRecord?.data?.signature || "Tidak mengisi",
+                hardSkill: currentRecord?.data?.hard_skills.skills || [],
+                softSkill: currentRecord?.data?.soft_skills.skills || [],
+                });
             }
           }}
           footer={null}
@@ -510,7 +513,7 @@ const Dashboard = () => {
             layout="vertical"
             style={{
               width: "95%",
-              maxHeight: "100vh",
+              maxHeight: "100vh", 
               overflowY: "scroll",
               backgroundColor: "white",
               padding: "40px",
@@ -624,11 +627,11 @@ const Dashboard = () => {
               />
             </Form.Item>
 
-            <Form.Item label="Waktu Pertemuan" required>
+            <Form.Item label="Durasi Pertemuan" required>
               <Controller
                 name="meetingTime"
                 control={control}
-                rules={{ required: "Waktu pertemuan diperlukan" }}
+                rules={{ required: "Durasi pertemuan diperlukan" }}
                 render={({ field }) => (
                   <Input
                     {...field}
@@ -640,7 +643,7 @@ const Dashboard = () => {
             </Form.Item>
 
             <h1 className="text-center font-Poppins text-2xl font-medium p-6">
-              Pilih kompetensi
+              Pilih Kompetensi
             </h1>
 
             <Form.Item required>
@@ -649,7 +652,7 @@ const Dashboard = () => {
                 control={control}
                 render={({ field }) => (
                   <Select
-                    placeholder="Pilih kompetensi"
+                    placeholder="Pilih Kompetensi"
                     {...field}
                     style={{ width: "100%", height: "50px" }}
                     onChange={(value) => {
@@ -658,7 +661,7 @@ const Dashboard = () => {
                     }}
                   >
                     <Option value="" disabled>
-                      pilih kompetensi
+                      Pilih Kompetensi
                     </Option>
                     {kompetensiData.map((competence) => (
                       <Option key={competence._id} value={competence._id}>
@@ -693,7 +696,7 @@ const Dashboard = () => {
             {hardSkillFields.length > 0 && (
               <div>
                 <h2 className="font-Poppins text-2xl font-medium text-center p-6">
-                  Hardskills
+                  Hard Skills
                 </h2>
                 {hardSkillFields.map((skill, index) => (
                   <div key={index} style={{ marginBottom: "20px" }}>
@@ -719,7 +722,7 @@ const Dashboard = () => {
 
                     {/* Unit Code and Title Input */}
                     <Controller
-                      name={`hardSkill[${index}].combined_units`}
+                      name={`hardSkill[${index}].description[${index}].unit_title`}
                       control={control}
                       render={({ field }) => (
                         <Input.TextArea
@@ -737,12 +740,12 @@ const Dashboard = () => {
 
                     {/* JP Input for each hard skill */}
                     <Controller
-                      name={`hardSkill[${index}].jp`}
+                      name={`hardSkill[${index}].skill_jp`}
                       control={control}
                       render={({ field }) => (
                         <InputNumber
                           {...field}
-                          placeholder="JP per skill"
+                          placeholder="JP per Skill"
                           style={{
                             width: "100%",
                             height: "50px",
@@ -751,7 +754,7 @@ const Dashboard = () => {
                       )}
                     />
                     <Controller
-                      name={`hardSkill[${index}].skillScore`}
+                      name={`hardSkill[${index}].skill_score`}
                       control={control}
                       render={({ field }) => (
                         <InputNumber
@@ -772,7 +775,7 @@ const Dashboard = () => {
             {softSkillFields.length > 0 && (
               <div>
                 <h2 className="font-Poppins text-2xl font-medium text-center p-6">
-                  Softskills
+                  Soft Skills
                 </h2>
                 {softSkillFields.map((skill, index) => (
                   <div key={index} style={{ marginBottom: "20px" }}>
@@ -798,7 +801,7 @@ const Dashboard = () => {
 
                     {/* Unit Code and Title Input */}
                     <Controller
-                      name={`softSkill[${index}].combined_units`}
+                      name={`softSkill[${index}].description[${index}].unit_title`}
                       control={control}
                       render={({ field }) => (
                         <Input.TextArea
@@ -815,12 +818,12 @@ const Dashboard = () => {
                     />
 
                     <Controller
-                      name={`softSkill[${index}].jp`}
+                      name={`softSkill[${index}].skill_jp`}
                       control={control}
                       render={({ field }) => (
                         <InputNumber
                           {...field}
-                          placeholder="JP per skill"
+                          placeholder="JP per Skill"
                           style={{
                             width: "100%",
                             height: "50px",
@@ -829,12 +832,12 @@ const Dashboard = () => {
                       )}
                     />
                     <Controller
-                      name={`softSkill[${index}].skillScore`}
+                      name={`softSkill[${index}].skill_score`}
                       control={control}
                       render={({ field }) => (
                         <InputNumber
                           {...field}
-                          placeholder="score"
+                          placeholder="Score"
                           style={{
                             width: "100%",
                             height: "50px",
@@ -906,11 +909,27 @@ const Dashboard = () => {
                     name="stamp"
                     control={control}
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        readOnly
-                        style={{ width: "100%", height: "50px" }}
-                      />
+                      <>
+                        <Input
+                          {...field}
+                          readOnly
+                          style={{ width: "100%", height: "50px" }}
+                        />
+                        {field.value && (
+                          <div style={{ marginTop: "10px" }}>
+                            <img
+                              src={field.value}
+                              alt="Logo perusahaan"
+                              style={{
+                                width: "200px",
+                                height: "200px",
+                                border: "solid",
+                                borderColor: "black",
+                              }}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   />
                 </Form.Item>
@@ -920,11 +939,27 @@ const Dashboard = () => {
                     name="logo"
                     control={control}
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        readOnly
-                        style={{ width: "100%", height: "50px" }}
-                      />
+                      <>
+                        <Input
+                          {...field}
+                          readOnly
+                          style={{ width: "100%", height: "50px" }}
+                        />
+                        {field.value && (
+                          <div style={{ marginTop: "10px" }}>
+                            <img
+                              src={field.value}
+                              alt="Logo perusahaan"
+                              style={{
+                                width: "200px",
+                                height: "200px",
+                                border: "solid",
+                                borderColor: "black",
+                              }}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   />
                 </Form.Item>
@@ -934,11 +969,27 @@ const Dashboard = () => {
                     name="linkGambarPenandatangan"
                     control={control}
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        readOnly
-                        style={{ width: "100%", height: "50px" }}
-                      />
+                      <>
+                        <Input
+                          {...field}
+                          readOnly
+                          style={{ width: "100%", height: "50px" }}
+                        />
+                        {field.value && (
+                          <div style={{ marginTop: "10px" }}>
+                            <img
+                              src={field.value}
+                              alt="Logo perusahaan"
+                              style={{
+                                width: "200px",
+                                height: "200px",
+                                border: "solid",
+                                borderColor: "black",
+                              }}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   />
                 </Form.Item>
@@ -958,31 +1009,33 @@ const Dashboard = () => {
           title=""
           open={isModalVisible}
           footer={null}
-          loading= {loading}
+          loading={loading}
           onCancel={() => setIsModalVisible(false)}
           className="rounded-lg p-6 max-w-lg w-full"
           centered
         >
           <div className="flex flex-col items-center space-y-4">
-            <p className="text-lg font-semibold text-gray-700">
-              Silakan pilih template untuk diunduh:
-            </p>
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full">
-              <Button
-                type="primary"
-                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg w-full sm:w-auto"
-                onClick={() => downloadPDF(selectedDownload?.data_id, "a")}
-              >
-                Download Template V1
-              </Button>
-              <Button
-                type="primary"
-                className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg w-full sm:w-auto"
-                onClick={() => downloadPDF(selectedDownload?.data_id, "b")}
-              >
-                Download Template V2
-              </Button>
-            </div>
+            <Spin spinning={loading}>
+              <p className="text-lg font-semibold text-gray-700">
+                Silakan pilih template untuk diunduh:
+              </p>
+              <div className="flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full">
+                <Button
+                  type="primary"
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg w-full sm:w-auto"
+                  onClick={() => downloadPDF(selectedDownload?.data_id, "a")}
+                >
+                  Download Template V1
+                </Button>
+                <Button
+                  type="primary"
+                  className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg w-full sm:w-auto"
+                  onClick={() => downloadPDF(selectedDownload?.data_id, "b")}
+                >
+                  Download Template V2
+                </Button>
+              </div>
+            </Spin>
           </div>
         </Modal>
       </div>
