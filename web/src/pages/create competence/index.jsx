@@ -151,10 +151,10 @@ const Tool = () => {
             control={control}
             rules={{
               required:
-                "Input divisi berlebihan atau kurang dari satu! maksimal(1-3 huruf)",
+                "Input divisi harus diisi!",
               validate: (value) =>
                 value.length <= 6 ||
-                "Input divisi berlebihan atau kurang dari satu!",
+                "Input divisi terlalu panjang! (maks 6 huruf)",
             }}
             render={({ field, fieldState: { error } }) => (
               <>
