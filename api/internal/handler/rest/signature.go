@@ -46,6 +46,29 @@ func CreateSignature(c *fiber.Ctx) error {
 		return Unauthorized(c, "Format token admin tidak valid!", "Format token admin tidak valid!")
 	}
 
+	// Check the availability of the signature config name
+	var existingSignature model.Signature
+	filter := bson.M{
+		"config_name": signatureReq.ConfigName,
+		"admin_id":    objectID,
+		"$or": []bson.M{
+			{"deleted_at": bson.M{"$exists": false}}, // DeletedAt field does not exist
+			{"deleted_at": bson.M{"$eq": nil}},       // DeletedAt field is nil
+		},
+	}
+
+	// Find signature with the same name
+	if err := collectionKompetensi.FindOne(context.TODO(), filter).Decode(&existingSignature); err == nil {
+		// Signature with the same name exists, check if it's deleted
+		if existingSignature.DeletedAt == nil {
+			// If DeletedAt is nil, the name is still in use
+			return Conflict(c, "Paraf dengan nama ini sudah ada! Silakan gunakan nama lain.", "Paraf dengan nama yang sama sudah ada!")
+		}
+		// If DeletedAt is not nil, we can proceed to create a new signature
+	} else if err != mongo.ErrNoDocuments {
+		return Conflict(c, "Gagal memeriksa paraf yang ada. Silakan coba lagi.", err.Error())
+	}
+
 	// Create a new signature object
 	signature := model.Signature{
 		SignatureData: model.SignatureData{
@@ -68,11 +91,11 @@ func CreateSignature(c *fiber.Ctx) error {
 	// Insert the new signature into the database
 	_, err = collectionSignature.InsertOne(context.TODO(), signature)
 	if err != nil {
-		return Conflict(c, "Gagal membuat signature baru! Silakan coba lagi.", "Gagal menambah")
+		return Conflict(c, "Gagal membuat paraf baru! Silakan coba lagi.", err.Error())
 	}
 
 	// Return success response
-	return OK(c, "Berhasil membuat signature baru!", signature)
+	return OK(c, "Berhasil membuat paraf baru!", signature)
 }
 
 // Function to get all signatures
