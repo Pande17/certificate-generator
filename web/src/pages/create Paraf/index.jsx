@@ -87,9 +87,9 @@ const CreateParaf = () => {
           <Controller
             name="displayNama"
             control={control}
-            rules={{ required: "Wajib mengisi display nama" }}
+            rules={{ required: "Wajib mengisi Display Nama" }}
             render={({ field }) => (
-              <Input {...field} placeholder="Masukkan nama display" />
+              <Input {...field} placeholder="Masukkan Display Nama" />
             )}
           />
         </Form.Item>
@@ -98,9 +98,9 @@ const CreateParaf = () => {
           <Controller
             name="atasNama"
             control={control}
-            rules={{ required: "Wajib mengisi Nama" }}
+            rules={{ required: "Wajib mengisi Nama Penandatangan" }}
             render={({ field }) => (
-              <Input {...field} placeholder="Masukkan nama Penandatangan" />
+              <Input {...field} placeholder="Masukkan Nama Penandatangan" />
             )}
           />
         </Form.Item>
@@ -109,7 +109,7 @@ const CreateParaf = () => {
           <Controller
             name="jabatan"
             control={control}
-            rules={{ required: "Wajib mengisi jabatan" }}
+            rules={{ required: "Wajib mengisi Jabatan Penandatangan" }}
             render={({ field }) => (
               <Input {...field} placeholder="Masukkan Jabatan Penandatangan" />
             )}
@@ -120,7 +120,7 @@ const CreateParaf = () => {
           <Controller
             name="ttd"
             control={control}
-            rules={{ required: "Wajib mengisi Link" }}
+            rules={{ required: "Wajib mengisi Link Gambar Tanda Tangan" }}
             render={({ field }) => (
               <>
                 <Input
@@ -131,9 +131,8 @@ const CreateParaf = () => {
                   <div style={{ marginTop: "10px" }}>
                     <img
                       src={field.value}
-                      alt="Tandatangan orang terkait"
+                      alt="Tanda tangan orang terkait"
                       style={{
-                        width: "200px",
                         height: "200px",
                         border: "solid",
                         borderColor: "black",
@@ -150,17 +149,16 @@ const CreateParaf = () => {
           <Controller
             name="Cap"
             control={control}
-            rules={{ required: "Wajib mengisi Link" }}
+            rules={{ required: "Wajib mengisi Link Gambar Cap Perusahaan" }}
             render={({ field }) => (
               <>
-                <Input {...field} placeholder="Masukkan Link Gambar Cap" />
+                <Input {...field} placeholder="Masukkan Link Gambar Cap Perusahaan" />
                 {field.value && (
                   <div style={{ marginTop: "10px" }}>
                     <img
                       src={field.value}
                       alt="Cap Perusahaan"
                       style={{
-                        width: "200px",
                         height: "200px",
                         border: "solid",
                         borderColor: "black",
@@ -173,17 +171,17 @@ const CreateParaf = () => {
           />
         </Form.Item>
 
-        <Form.Item label="Link logo Perusahaan" required>
+        <Form.Item label="Link Gambar Logo Perusahaan" required>
           <Controller
             name="linkLogo"
             control={control}
             defaultValue="https://res.cloudinary.com/dektxbmmb/image/upload/v1727833019/aset%20pdf/pnu45hydtyftsfxlqaxm.png"
-            rules={{ required: "Link logo perusahaan diperlukan" }}
+            rules={{ required: "Wajib mengisi Link Gambar Logo Perusahaan" }}
             render={({ field }) => (
               <>
                 <Input
                   {...field}
-                  placeholder="Masukkan Link Gambar"
+                  placeholder="Masukkan Link Gambar Logo Perusahaan"
                   style={{ width: "100%", height: "50px" }}
                 />
                 {/* Menampilkan gambar dari link yang dimasukkan */}
@@ -193,7 +191,6 @@ const CreateParaf = () => {
                       src={field.value}
                       alt="Logo Perusahaan"
                       style={{
-                        width: "200px",
                         height: "200px",
                         border: "solid",
                         borderColor: "black",

@@ -189,16 +189,16 @@ const competence = () => {
 
   const delConfirm = (_id, nama_kompetensi) => {
     confirm({
-      title: `apakah anda yakon ingin menghapus kompetensi ${nama_kompetensi}`,
-      content: "data yang di hapus tidak dapat dikembalikan",
+      title: `Apakah anda yakin ingin menghapus kompetensi ${nama_kompetensi}`,
+      content: "Data yang dihapus tidak dapat dikembalikan",
       okType: "danger",
-      okText: "ya, Hapus",
+      okText: "Ya, hapus",
       cancelText: "Batal",
       onOk() {
         delHandle(_id);
       },
       onCancel() {
-        console.log("penghapusan dibatalkan");
+        console.log("Penghapusan dibatalkan");
       },
     });
   };   
