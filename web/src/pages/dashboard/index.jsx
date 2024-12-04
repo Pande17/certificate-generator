@@ -245,11 +245,16 @@ const Dashboard = () => {
     try {
       const response = await Sertifikat.get(`/${record._id}`);
 
-      const primaryData = response.data.data;
+      const primaryData = response.data.data.data;
+      const secondData = response.data.data
+      const thirdData =response
+     
       const certificateData = {
         ...primaryData, // Data utama termasuk ID
+        ...secondData
+
       };
-      console.log({primaryData})
+      console.log({secondData})
 
       setCurrentRecord(certificateData);
       setIsEditModalVisible(true);
@@ -496,17 +501,10 @@ const Dashboard = () => {
                 totalMeeting: currentRecord?.total_meet || "Tidak mengisi",
                 meetingTime: currentRecord?.meet_time || "Tidak mengisi",
                 selectedCompetenceId: matchedCompetence?._id || "", // Atur ID hasil pencocokan
-                selectedSignatureId:
-                  currentRecord?.signature?.config_name || "Tidak mengisi",
-                // selectedCompetenceId:
-                //   currentRecord?.kompetensiData?._id|| "Tidak mengisi", // Atur nilai awal di sini
-                // selectedSignatureId:
-                //   currentRecord?.signature?._id || "Tidak mengisi",
+                selectedSignatureId:currentRecord?.data?.signature || "Tidak mengisi",
                 hardSkill: currentRecord?.data?.hard_skills.skills || [],
                 softSkill: currentRecord?.data?.soft_skills.skills || [],
-                // jpH: currentRecord?.skill_jp.skills || "0",
-                // jpS: currentRecord?.skill_jp.skills || "0",
-              });
+                });
             }
           }}
           footer={null}
@@ -515,7 +513,7 @@ const Dashboard = () => {
             layout="vertical"
             style={{
               width: "95%",
-              maxHeight: "100vh",
+              maxHeight: "100vh", 
               overflowY: "scroll",
               backgroundColor: "white",
               padding: "40px",
@@ -911,11 +909,27 @@ const Dashboard = () => {
                     name="stamp"
                     control={control}
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        readOnly
-                        style={{ width: "100%", height: "50px" }}
-                      />
+                      <>
+                        <Input
+                          {...field}
+                          readOnly
+                          style={{ width: "100%", height: "50px" }}
+                        />
+                        {field.value && (
+                          <div style={{ marginTop: "10px" }}>
+                            <img
+                              src={field.value}
+                              alt="Logo perusahaan"
+                              style={{
+                                width: "200px",
+                                height: "200px",
+                                border: "solid",
+                                borderColor: "black",
+                              }}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   />
                 </Form.Item>
@@ -925,11 +939,27 @@ const Dashboard = () => {
                     name="logo"
                     control={control}
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        readOnly
-                        style={{ width: "100%", height: "50px" }}
-                      />
+                      <>
+                        <Input
+                          {...field}
+                          readOnly
+                          style={{ width: "100%", height: "50px" }}
+                        />
+                        {field.value && (
+                          <div style={{ marginTop: "10px" }}>
+                            <img
+                              src={field.value}
+                              alt="Logo perusahaan"
+                              style={{
+                                width: "200px",
+                                height: "200px",
+                                border: "solid",
+                                borderColor: "black",
+                              }}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   />
                 </Form.Item>
@@ -939,11 +969,27 @@ const Dashboard = () => {
                     name="linkGambarPenandatangan"
                     control={control}
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        readOnly
-                        style={{ width: "100%", height: "50px" }}
-                      />
+                      <>
+                        <Input
+                          {...field}
+                          readOnly
+                          style={{ width: "100%", height: "50px" }}
+                        />
+                        {field.value && (
+                          <div style={{ marginTop: "10px" }}>
+                            <img
+                              src={field.value}
+                              alt="Logo perusahaan"
+                              style={{
+                                width: "200px",
+                                height: "200px",
+                                border: "solid",
+                                borderColor: "black",
+                              }}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   />
                 </Form.Item>

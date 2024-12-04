@@ -660,6 +660,7 @@ function MyForm() {
                 name="role"
                 control={control}
                 render={({ field }) => (
+                  
                   <Input
                     {...field}
                     readOnly
@@ -674,11 +675,27 @@ function MyForm() {
                 name="stamp"
                 control={control}
                 render={({ field }) => (
-                  <Input
-                    {...field}
-                    readOnly
-                    style={{ width: "100%", height: "50px" }}
-                  />
+                  <>
+                    <Input
+                      {...field}
+                      readOnly
+                      style={{ width: "100%", height: "50px" }}
+                    />
+                    {field.value && (
+                      <div style={{ marginTop: "10px" }}>
+                        <img
+                          src={field.value}
+                          alt="Stamp perusahaan"
+                          style={{
+                            width: "200px",
+                            height: "200px",
+                            border: "solid",
+                            borderColor: "black",
+                          }}
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
               />
             </Form.Item>
@@ -688,11 +705,27 @@ function MyForm() {
                 name="logo"
                 control={control}
                 render={({ field }) => (
-                  <Input
-                    {...field}
-                    readOnly
-                    style={{ width: "100%", height: "50px" }}
-                  />
+                  <>
+                    <Input
+                      {...field}
+                      readOnly
+                      style={{ width: "100%", height: "50px" }}
+                    />
+                    {field.value && (
+                      <div style={{ marginTop: "10px" }}>
+                        <img
+                          src={field.value}
+                          alt="Logo perusahaan"
+                          style={{
+                            width: "200px",
+                            height: "200px",
+                            border: "solid",
+                            borderColor: "black",
+                          }}
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
               />
             </Form.Item>
@@ -702,16 +735,30 @@ function MyForm() {
                 name="linkGambarPenandatangan"
                 control={control}
                 render={({ field }) => (
-                  <Input
-                    {...field}
-                    readOnly
-                    style={{ width: "100%", height: "50px" }}
-                  />
+                  <>
+                    <Input
+                      {...field}
+                      readOnly
+                      style={{ width: "100%", height: "50px" }}
+                    />
+                    {field.value && (
+                      <div style={{ marginTop: "10px" }}>
+                        <img
+                          src={field.value}
+                          alt="Tandatangan orang terkait"
+                          style={{
+                            width: "200px",
+                            height: "200px",
+                            border: "solid",
+                            borderColor: "black",
+                          }}
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
               />
             </Form.Item>
-
-          
           </>
         )}
 

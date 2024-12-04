@@ -84,10 +84,6 @@ const competence = () => {
 
   const navigate = useNavigate();
 
-  const backHandle = () => {
-    navigate("/competence");
-  };
-
   const { control, handleSubmit } = useForm({
     defaultValues: {
       skkni: "",
@@ -103,17 +99,19 @@ const competence = () => {
     },
   });
 
-  const {
-    fields: hardSkillsFields,
-    append: addHardSkill,
-    remove: removeHardSkill,
-  } = useFieldArray({ control, name: "hardSkills" });
+   const {
+     fields: hardSkillsFields,
+     append: addHardSkill,
+     update: upHardSkill,
+     remove: removeHardSkill,
+   } = useFieldArray({ control, name: "hardSkills" });
 
-  const {
-    fields: softSkillsFields,
-    append: addSoftSkill,
-    remove: removeSoftSkill,
-  } = useFieldArray({ control, name: "softSkills" });
+   const {
+     fields: softSkillsFields,
+     append: addSoftSkill,
+     update: upSoftSkill,
+     remove: removeSoftSkill,
+   } = useFieldArray({ control, name: "softSkills" });
 
   const handleEdit = (record) => {
     setCurrentRecord(record);
