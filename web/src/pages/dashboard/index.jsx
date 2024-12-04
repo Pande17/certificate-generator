@@ -627,11 +627,11 @@ const Dashboard = () => {
               />
             </Form.Item>
 
-            <Form.Item label="Waktu Pertemuan" required>
+            <Form.Item label="Durasi Pertemuan" required>
               <Controller
                 name="meetingTime"
                 control={control}
-                rules={{ required: "Waktu pertemuan diperlukan" }}
+                rules={{ required: "Durasi pertemuan diperlukan" }}
                 render={({ field }) => (
                   <Input
                     {...field}
@@ -643,7 +643,7 @@ const Dashboard = () => {
             </Form.Item>
 
             <h1 className="text-center font-Poppins text-2xl font-medium p-6">
-              Pilih kompetensi
+              Pilih Kompetensi
             </h1>
 
             <Form.Item required>
@@ -652,7 +652,7 @@ const Dashboard = () => {
                 control={control}
                 render={({ field }) => (
                   <Select
-                    placeholder="Pilih kompetensi"
+                    placeholder="Pilih Kompetensi"
                     {...field}
                     style={{ width: "100%", height: "50px" }}
                     onChange={(value) => {
@@ -661,7 +661,7 @@ const Dashboard = () => {
                     }}
                   >
                     <Option value="" disabled>
-                      pilih kompetensi
+                      Pilih Kompetensi
                     </Option>
                     {kompetensiData.map((competence) => (
                       <Option key={competence._id} value={competence._id}>
@@ -696,7 +696,7 @@ const Dashboard = () => {
             {hardSkillFields.length > 0 && (
               <div>
                 <h2 className="font-Poppins text-2xl font-medium text-center p-6">
-                  Hardskills
+                  Hard Skills
                 </h2>
                 {hardSkillFields.map((skill, index) => (
                   <div key={index} style={{ marginBottom: "20px" }}>
@@ -745,7 +745,7 @@ const Dashboard = () => {
                       render={({ field }) => (
                         <InputNumber
                           {...field}
-                          placeholder="JP per skill"
+                          placeholder="JP per Skill"
                           style={{
                             width: "100%",
                             height: "50px",
@@ -775,7 +775,7 @@ const Dashboard = () => {
             {softSkillFields.length > 0 && (
               <div>
                 <h2 className="font-Poppins text-2xl font-medium text-center p-6">
-                  Softskills
+                  Soft Skills
                 </h2>
                 {softSkillFields.map((skill, index) => (
                   <div key={index} style={{ marginBottom: "20px" }}>
@@ -823,7 +823,7 @@ const Dashboard = () => {
                       render={({ field }) => (
                         <InputNumber
                           {...field}
-                          placeholder="JP per skill"
+                          placeholder="JP per Skill"
                           style={{
                             width: "100%",
                             height: "50px",
@@ -837,7 +837,7 @@ const Dashboard = () => {
                       render={({ field }) => (
                         <InputNumber
                           {...field}
-                          placeholder="score"
+                          placeholder="Score"
                           style={{
                             width: "100%",
                             height: "50px",

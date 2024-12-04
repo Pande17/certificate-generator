@@ -279,11 +279,11 @@ function MyForm() {
           <Controller
             name="sertifikat"
             control={control}
-            rules={{ required: "Judul is required" }}
+            rules={{ required: "Judul diperlukan" }}
             render={({ field }) => (
               <Input
                 {...field}
-                placeholder="Masukkan nama"
+                placeholder="Masukkan judul"
                 style={{ width: "100%", height: "50px" }}
               />
             )}
@@ -293,7 +293,7 @@ function MyForm() {
           <Controller
             name="nama"
             control={control}
-            rules={{ required: "Nama is required" }}
+            rules={{ required: "Nama diperlukan" }}
             render={({ field }) => (
               <Input
                 {...field}
@@ -308,7 +308,7 @@ function MyForm() {
           <Controller
             name="fieldOfStudy"
             control={control}
-            rules={{ required: "Field of Study is required" }}
+            rules={{ required: "Field of Study diperlukan" }}
             render={({ field }) => (
               <Input
                 {...field}
@@ -323,7 +323,7 @@ function MyForm() {
           <Controller
             name="validTime"
             control={control}
-            rules={{ required: "Valid Time is required" }}
+            rules={{ required: "Valid Time diperlukan" }}
             render={({ field }) => (
               <Input
                 {...field}
@@ -367,7 +367,7 @@ function MyForm() {
           <Controller
             name="totalMeeting"
             control={control}
-            rules={{ required: "Total Meeting is required" }}
+            rules={{ required: "Total Pertemuan diperlukan" }}
             render={({ field }) => (
               <InputNumber
                 {...field}
@@ -382,7 +382,7 @@ function MyForm() {
           <Controller
             name="meetingTime"
             control={control}
-            rules={{ required: "Meeting Time is required" }}
+            rules={{ required: "Total Waktu Pertemuan diperlukan" }}
             render={({ field }) => (
               <Input
                 {...field}
@@ -396,7 +396,7 @@ function MyForm() {
           <Controller
             name="validation"
             control={control}
-            rules={{ required: "Validation is required" }}
+            rules={{ required: "Validation diperlukan" }}
             render={({ field }) => (
               <Input
                 {...field}
@@ -408,7 +408,7 @@ function MyForm() {
         </Form.Item>
 
         <h1 className="text-center font-Poppins text-2xl font-medium p-6">
-          Pilih kompetensi
+          Pilih Kompetensi
         </h1>
         <Form.Item required>
           <Controller
@@ -509,7 +509,7 @@ function MyForm() {
                   render={({ field }) => (
                     <InputNumber
                       {...field}
-                      placeholder="JP per skill"
+                      placeholder="JP per Skill"
                       style={{
                         width: "100%",
                         height: "50px",
@@ -587,7 +587,7 @@ function MyForm() {
                   render={({ field }) => (
                     <InputNumber
                       {...field}
-                      placeholder="JP per skill"
+                      placeholder="JP per Skill"
                       style={{
                         width: "100%",
                         height: "50px",
