@@ -446,7 +446,7 @@ func DownloadCertificate(c *fiber.Ctx) error {
 func processCertificate(certif *model.CertificateData) *model.CertificateData {
 	certif.SertifName = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(strings.ToUpper(certif.SertifName)), "SERTIFIKAT"))
 	certif.KodeReferral.Divisi = strings.ToUpper(certif.KodeReferral.Divisi)
-	certif.SertifTitle = fmt.Sprintf("%s - %s - %s", certif.DataID, certif.NamaPeserta, certif.Kompetensi)
+	certif.SertifTitle = fmt.Sprintf("%s - %s", certif.NamaPeserta, certif.Kompetensi)
 
 	totalHSJP, totalHSSkor := uint64(0), float64(0)
 	for _, hs := range certif.HardSkills.Skills {

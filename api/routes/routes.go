@@ -16,7 +16,7 @@ func RouteSetup(r *fiber.App) {
 		AllowOrigins:     os.Getenv("CERTIF_GEN_FRONTEND"),
 		AllowMethods:     "GET,POST,PUT,DELETE",                                                                      // Allowed HTTP methods
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, Cookie, authToken, Bearer, X-Requested-With", // Allowed headers
-		ExposeHeaders:    "Content-Type, Authorization, Cookie, authToken, Bearer",
+		ExposeHeaders:    "Content-Type, Authorization, Cookie, authToken, Bearer. Accept",
 		AllowCredentials: true,
 	}))
 
@@ -28,6 +28,8 @@ func RouteSetup(r *fiber.App) {
 
 	// Define a group routes for API
 	api := r.Group("/api")
+
+	api.Use(middleware.CorsValidate)
 
 	api.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{

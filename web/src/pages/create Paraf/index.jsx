@@ -1,47 +1,47 @@
-import { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { Form, Input, Button, message } from "antd";
-import { BackwardFilled } from "@ant-design/icons";
-import MainLayout from "../MainLayout/Layout";
-import { useNavigate } from "react-router-dom";
-import { Signature } from "../api middleware";
+import { useEffect, useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { Form, Input, Button, message } from 'antd';
+import { BackwardFilled } from '@ant-design/icons';
+import MainLayout from '../MainLayout/Layout';
+import { useNavigate } from 'react-router-dom';
+import { Signature } from '../api middleware';
 
 const CreateParaf = () => {
-  const [data, setData] = useState([]);
-  const { control, handleSubmit, reset } = useForm();
-  const navigate = useNavigate();
+	const [data, setData] = useState([]);
+	const { control, handleSubmit, reset } = useForm();
+	const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchSignature = async () => {
-      try {
-        const response = await Signature.get("/");
-        setData(response.data.data);
-      } catch (err) {
-        message.error("Error fetching signature data");
-        console.error(err);
-      }
-    };
-    fetchSignature();
-  }, []);
+	useEffect(() => {
+		const fetchSignature = async () => {
+			try {
+				const response = await Signature.get('/');
+				setData(response.data.data);
+			} catch (err) {
+				message.error('Error fetching signature data');
+				console.error(err);
+			}
+		};
+		fetchSignature();
+	}, []);
 
-  // Function to navigate back to the previous page
-  const backHandle = () => {
-    navigate("/signature");
-  };
+	// Function to navigate back to the previous page
+	const backHandle = () => {
+		navigate('/signature');
+	};
 
-  // Form submission handler
-  const onSubmit = async (formData) => {
-    try {
-      // Format the request data
-      const requestData = {
-        ...formData,
-        signature: formData.ttd, // The link to the signature image
-        stamp: formData.Cap, // The link to the stamp image
-        name: formData.atasNama,
-        logo: formData.linkLogo,
-        config_name: formData.atasNama,
-        role: formData.jabatan,
-      };
+	// Form submission handler
+	const onSubmit = async (formData) => {
+		try {
+			// Format the request data
+			const requestData = {
+				...formData,
+				signature: formData.ttd, // The link to the signature image
+				stamp: formData.Cap, // The link to the stamp image
+				name: formData.atasNama,
+				logo: formData.linkLogo,
+				config_name: formData.displayNama,
+				role: formData.jabatan,
+			};
 
       const response = await Signature.post("/", requestData);
       if (response.status === 200) {
@@ -57,30 +57,24 @@ const CreateParaf = () => {
     navigate("/signature")
   };
 
-  return (
-    <MainLayout>
-      <div className="m-2">
-        <Button
-          style={{ width: "50px", height: "50px" }}
-          icon={<BackwardFilled />}
-          onClick={backHandle}
-        />
-      </div>
-      <Form
-        layout="vertical"
-        onFinish={handleSubmit(onSubmit)}
-        style={{
-          width: "95%",
-          maxHeight: "100vh",
-          overflowY: "scroll",
-          backgroundColor: "white",
-          padding: "40px",
-          borderRadius: "20px",
-        }}
-      >
-        <h3 className="text-center font-Poppins text-2xl font-bold p-6">
-          Buat Paraf
-        </h3>
+	return (
+		<MainLayout>
+			<div className="m-2">
+				<Button style={{ width: '50px', height: '50px' }} icon={<BackwardFilled />} onClick={backHandle} />
+			</div>
+			<Form
+				layout="vertical"
+				onFinish={handleSubmit(onSubmit)}
+				style={{
+					width: '95%',
+					maxHeight: '100vh',
+					overflowY: 'scroll',
+					backgroundColor: 'white',
+					padding: '40px',
+					borderRadius: '20px',
+				}}
+			>
+				<h3 className="text-center font-Poppins text-2xl font-bold p-6">Buat Paraf</h3>
 
         {/* Sertifikat Name */}
         <Form.Item label="Display Nama" required>
@@ -203,18 +197,14 @@ const CreateParaf = () => {
           />
         </Form.Item>
 
-        <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            style={{ width: "100%", height: "50px" }}
-          >
-            Simpan
-          </Button>
-        </Form.Item>
-      </Form>
-    </MainLayout>
-  );
+				<Form.Item>
+					<Button type="primary" htmlType="submit" style={{ width: '100%', height: '50px' }}>
+						Simpan
+					</Button>
+				</Form.Item>
+			</Form>
+		</MainLayout>
+	);
 };
 
 export default CreateParaf;

@@ -7,7 +7,7 @@ services:
       - mongo
     environment:
       APP_DEBUG: 'false'
-      CERTIF_GEN_FRONTEND: 'http://localhost'
+      CERTIF_GEN_FRONTEND: 'http://localhost:5173'
     env_file:
       - ./api/.env
       - ./api/.env.local
@@ -34,7 +34,7 @@ services:
     environment:
       VITE_BACKEND: 'http://localhost:3000'
     ports:
-      - '80:80'
+      - '5173:5173'
 
     # mount for dev testing
     # must only pull public & src dir bcs of a weird bug on npm lockfile or smth
@@ -42,6 +42,17 @@ services:
     volumes:
       - ./web/public:/app/public
       - ./web/src:/app/src
+    networks:
+      - certif-network
+
+  reverse-proxy:
+    build:
+      context: ./proxy
+    environment:
+      FRONTEND_HOST: 'http://localhost:5173'
+      BACKEND_HOST: 'http://localhost:3000'
+    ports:
+      - '80:80'
     networks:
       - certif-network
 

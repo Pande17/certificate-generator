@@ -62,13 +62,13 @@ const CertificateTable = () => {
     fetchData();
   }, [id]);
 
-  if (loading) {
-    return <div className="text-center py-10 text-xl">Loading...</div>;
-  }
+	if (loading) {
+		return <div className="text-center py-10 text-xl">Loading...</div>;
+	}
 
-  if (error) {
-    return <div className="text-center text-red-600 py-10">{error}</div>;
-  }
+	if (error) {
+		return <div className="text-center text-red-600 py-10">{error}</div>;
+	}
 
   return (
     <div className="p-4 sm:p-10">
@@ -86,47 +86,27 @@ const CertificateTable = () => {
             {`S.${certificate?.data?.kode_referral?.referral_id}/${certificate?.data?.kode_referral?.divisi}/LKP-BTW/${certificate?.data?.kode_referral?.bulan_rilis}/${certificate?.data?.kode_referral?.tahun_rilis}`}
           </div>
 
-          {/* Row 2 */}
-          <div className="sm:p-4 pt-4 px-8 bg-[#f1f3f4] font-bold border-t sm:border-r">
-            ID Sertifikat
-          </div>
-          <div className="sm:p-4 pb-4 px-8 border-b bg-[#f1f3f4]">
-            <span className="bg-gray-200 px-2 py-1 rounded">
-              {certificate?.data?.data_id}
-            </span>
-          </div>
+					{/* Row 2 */}
+					<div className="sm:p-4 pt-4 px-8 bg-[#f1f3f4] font-bold border-t sm:border-r">ID Sertifikat</div>
+					<div className="sm:p-4 pb-4 px-8 border-b bg-[#f1f3f4]">
+						<span className="bg-gray-200 px-2 py-1 rounded">{certificate?.data?.data_id}</span>
+					</div>
 
-          {/* Row 3 */}
-          <div className="sm:p-4 pt-4 px-8 bg-[#f8fafc] font-bold border-t sm:border-r">
-            Nama Peserta
-          </div>
-          <div className="sm:p-4 pb-4 px-8 border-b bg-[#f8fafc]">
-            {certificate?.data?.nama_peserta}
-          </div>
+					{/* Row 3 */}
+					<div className="sm:p-4 pt-4 px-8 bg-[#f8fafc] font-bold border-t sm:border-r">Nama Peserta</div>
+					<div className="sm:p-4 pb-4 px-8 border-b bg-[#f8fafc]">{certificate?.data?.nama_peserta}</div>
 
-          {/* Row 4 */}
-          <div className="sm:p-4 pt-4 px-8 bg-[#f1f3f4] font-bold border-t sm:border-r">
-            Bidang Kompetensi
-          </div>
-          <div className="sm:p-4 pb-4 px-8 border-b bg-[#f1f3f4]">
-            {certificate?.data?.kompeten_bidang}
-          </div>
+					{/* Row 4 */}
+					<div className="sm:p-4 pt-4 px-8 bg-[#f1f3f4] font-bold border-t sm:border-r">Bidang Kompetensi</div>
+					<div className="sm:p-4 pb-4 px-8 border-b bg-[#f1f3f4]">{certificate?.data?.kompeten_bidang}</div>
 
-          {/* Row 5 */}
-          <div className="sm:p-4 pt-4 px-8 bg-[#f8fafc] font-bold border-t sm:border-r">
-            Kompetensi
-          </div>
-          <div className="sm:p-4 pb-4 px-8 border-b bg-[#f8fafc]">
-            {certificate?.data?.kompetensi}
-          </div>
+					{/* Row 5 */}
+					<div className="sm:p-4 pt-4 px-8 bg-[#f8fafc] font-bold border-t sm:border-r">Kompetensi</div>
+					<div className="sm:p-4 pb-4 px-8 border-b bg-[#f8fafc]">{certificate?.data?.kompetensi}</div>
 
-          {/* Row 6 */}
-          <div className="sm:p-4 pt-4 px-8 bg-[#f1f3f4] font-bold border-t sm:border-r">
-            Masa Berlaku
-          </div>
-          <div className="sm:p-4 pb-4 px-8 border-b bg-[#f1f3f4]">
-            {`${certificate?.data?.valid_date?.valid_start} s/d ${certificate?.data?.valid_date?.valid_end}`}
-          </div>
+					{/* Row 6 */}
+					<div className="sm:p-4 pt-4 px-8 bg-[#f1f3f4] font-bold border-t sm:border-r">Masa Berlaku</div>
+					<div className="sm:p-4 pb-4 px-8 border-b bg-[#f1f3f4]">{`${certificate?.data?.valid_date?.valid_start} s/d ${certificate?.data?.valid_date?.valid_end}`}</div>
 
           {/* Row 7 */}
           <div className="sm:p-4 pt-4 px-8 bg-[#f8fafc] font-bold sm:border-r">

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Use fallback if VITE_BACKEND is undefined
-const api = import.meta.env.VITE_BACKEND || "http://localhost:3000";
+const api = import.meta.env.VITE_BACKEND || "";
 
 const Signature = axios.create({
   baseURL: `${api}/api/signature`,
