@@ -127,6 +127,7 @@ function MyForm() {
             name: formData.namaPenandatangan,
             stamp: formData.stamp,
           },
+
           total_jp:
             (formData.hardSkill?.reduce(
               (acc, skill) => acc + (skill.jp || 0),
@@ -623,7 +624,14 @@ function MyForm() {
               <Select
                 {...field}
                 placeholder="Pilih Template Paraf"
-                onChange={handleSignatureChange}
+                onChange={(value) => {
+                  const selectedSignature = signatureData.find(
+                    (signature) => signature._id === value
+                  );
+                  field.onChange(value); // Simpan _id
+                  setValue("config_name", selectedSignature?.config_name || ""); // Simpan config_name
+                  handleSignatureChange(value); // Logika tambahan
+                }}
                 style={{ width: "100%", height: "50px" }}
               >
                 <Option value="" disabled>
@@ -660,7 +668,6 @@ function MyForm() {
                 name="role"
                 control={control}
                 render={({ field }) => (
-                  
                   <Input
                     {...field}
                     readOnly

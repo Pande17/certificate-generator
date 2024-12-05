@@ -7,7 +7,7 @@ import {
   MenuOutlined,
   UserOutlined
 } from "@ant-design/icons";
-import { Button, Drawer } from "antd";
+import { Button, Drawer,message, Modal } from "antd";
 import logo from "../assets/Logo1.svg";
 import backgroundImage from "../assets/Element.svg";
 import { useMediaQuery } from "react-responsive";
@@ -19,13 +19,31 @@ const Sidebar = ({ children }) => {
   const location = useLocation(); // Untuk mendapatkan URL saat ini
 
   const navigate = useNavigate()
-  // Functions to control drawer
+
   const showDrawer = () => setDrawerOpen(true);
   const closeDrawer = () => setDrawerOpen(false);
 
   const handlelogout = () => {
     localStorage.removeItem("authToken")
    navigate("/")
+  }
+
+  const {confirm} =Modal
+
+  const logoutConfirm = () => {
+     confirm({
+       title: "Apakah Anda yakin ingin keluar dari pengalaman?",
+       content: "Anda tetap akan bisa login lagi di lain waktu ",
+       okText: "Ya",
+       okType: "danger",
+       cancelText: "Batal",
+       onOk() {
+         handlelogout();
+       },
+       onCancel() {
+         console.log("Penghapusan dibatalkan");
+       },
+     });
   }
 
   // Render menu items
@@ -96,7 +114,7 @@ const Sidebar = ({ children }) => {
            </div>
             <div className="text-red-600 font-Poppins font-medium ">
               <Button
-              onClick={() => handlelogout()}
+              onClick={() => logoutConfirm()}
               >
               <UserOutlined /> Logout
               </Button>
