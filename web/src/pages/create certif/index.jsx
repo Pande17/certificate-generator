@@ -590,36 +590,7 @@ function MyForm() {
 						)}
 					/>
 				</Form.Item>
-        <Form.Item required>
-          <Controller
-            name="selectedSignatureId"
-            control={control}
-            render={({ field }) => (
-              <Select
-                {...field}
-                placeholder="Pilih Template Paraf"
-                onChange={(value) => {
-                  const selectedSignature = signatureData.find(
-                    (signature) => signature._id === value
-                  );
-                  field.onChange(value); // Simpan _id
-                  setValue("config_name", selectedSignature?.config_name || ""); // Simpan config_name
-                  handleSignatureChange(value); // Logika tambahan
-                }}
-                style={{ width: "100%", height: "50px" }}
-              >
-                <Option value="" disabled>
-                  Pilih Tanda Tangan
-                </Option>
-                {signatureData.map((signature) => (
-                  <Option key={signature._id} value={signature._id}>
-                    {signature.config_name}
-                  </Option>
-                ))}
-              </Select>
-            )}
-          />
-        </Form.Item>
+
 
 				{isSignatureSelected && selectedSignature && (
 					<>

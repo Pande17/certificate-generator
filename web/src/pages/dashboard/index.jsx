@@ -164,7 +164,7 @@ const Dashboard = () => {
         sertif_name: formData.sertifikat,
         nama_peserta: formData.nama,
         kompeten_bidang: formData.fieldOfStudy,
-        kompetensi: selectedCompetence?.nama_kompetensi || "",
+        kompetensi: formData.kompetensiDisplay,
         meet_time: formData.meetingTime,
         skkni: formData.skkni,
         validation: formData.validation,
@@ -196,7 +196,7 @@ const Dashboard = () => {
           total_skill_score: totalSkillScore,
         },
         signature: {
-          config_name: selectedSignature?.config_name || "",
+          config_name: formData.configName || "",
           logo: formData.logo,
           role: formData.role,
           signature: formData.linkGambarPenandatangan,
@@ -461,6 +461,7 @@ const Dashboard = () => {
     },
   ];
 
+  console.log(kompetensiData);
   return (
     <MainLayout>
       <div className="flex flex-col items-center justify-center w-full lg:w-3/4 p-5">
@@ -537,6 +538,9 @@ const Dashboard = () => {
                 softSkill: currentRecord?.data?.soft_skills.skills || [],
                 divisi: currentRecord?.data?.kode_referral.divisi || "",
                 skkni: currentRecord?.data?.skkni || "",
+                configName:
+                  currentRecord?.signature?.config_name || "tidak megisi",
+                kompetensiDisplay:currentRecord?.data?.kompetensi || "gak ada",
               });
             }
           }}
@@ -687,8 +691,8 @@ const Dashboard = () => {
                   {...field}
                   style={{ width: "100%", height: "50px" }}
                   onChange={(value) => {
-                    field.onChange(value); 
-                    handleCompetenceChange(value); 
+                    field.onChange(value);
+                    handleCompetenceChange(value);
                     setValue("selectedCompetence", value);
                   }}
                 >
@@ -703,6 +707,21 @@ const Dashboard = () => {
                 </Select>
               )}
             />
+
+            <Form.Item label="Kompetensi">
+              <Controller
+                name="kompetensiDisplay"
+                control={control}
+                rules={{ required: "kompetensi diperlukan" }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
+              />
+            </Form.Item>
 
             <Form.Item label="SKKNI">
               <Controller
@@ -972,6 +991,20 @@ const Dashboard = () => {
                 </Select>
               )}
             />
+
+            <Form.Item label="Nama Display" required>
+              <Controller
+                name="configName"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    readOnly
+                    style={{ width: "100%", height: "50px" }}
+                  />
+                )}
+              />
+            </Form.Item>
 
             <Form.Item label="Nama penandatangan" required>
               <Controller
