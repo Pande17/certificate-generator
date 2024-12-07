@@ -99,24 +99,27 @@ const Sidebar = ({ children }) => {
             open={drawerOpen}
             width="50%" // Adjust drawer width as needed
           >
+            <div className="flex flex-col justify-between ">
             {renderMenu()}
+            <Button onClick={() => logoutConfirm()}>
+              <UserOutlined /> Logout
+            </Button>
+            </div>
           </Drawer>
           <div className="mt-4">{children || <p>Main content</p>}</div>
         </>
       ) : (
         <div className="flex align-middle">
           <div className="bg-white flex flex-col w-fit p-8 rounded-xl h-screen font-Poppins text-xl gap-3 justify-between">
-           <div className="">
-            <div className="my-2">
-              <img src={logo} alt="logo" />
+            <div className="">
+              <div className="my-2">
+                <img src={logo} alt="logo" />
+              </div>
+              {renderMenu()}
             </div>
-            {renderMenu()}
-           </div>
             <div className="text-red-600 font-Poppins font-medium ">
-              <Button
-              onClick={() => logoutConfirm()}
-              >
-              <UserOutlined /> Logout
+              <Button onClick={() => logoutConfirm()}>
+                <UserOutlined /> Logout
               </Button>
             </div>
           </div>
@@ -125,7 +128,6 @@ const Sidebar = ({ children }) => {
           </div>
         </div>
       )}
-
     </div>
   );
 };
