@@ -38,29 +38,25 @@ func RouteSetup(r *fiber.App) {
 	})
 
 	// Define routes for authentication
-	api.Post("/signup", middleware.AuditMiddleware("SignUp"), rest.SignUp) // Route for signing up admin
-	api.Post("/login", middleware.AuditMiddleware("Login"), rest.Login)    // Route for admin login
-	api.Get("/validate", middleware.ValidateToken, rest.Validate)          // Route to check cookie from admin
+	api.Post("/signup", middleware.AuditMiddleware("SignUp"), rest.SignUp)
+	api.Post("/login", middleware.AuditMiddleware("Login"), rest.Login)
+	api.Get("/validate", middleware.ValidateToken, rest.Validate)
 	api.Post("/logout", middleware.AuditMiddleware("LogOut"), rest.Logout)
 
-	// Define api routes
-	// Every request to a path with the group "api" always checks the cookie
-	// protected := api.Use(middleware.ValidateCookie)
+	// Define routes for managing admin accounts
+	api.Get("/accounts", middleware.ValidateToken, middleware.AuditMiddleware("Account"), rest.GetAdminAccount)
+	api.Put("/accounts/:id", middleware.ValidateToken, middleware.AuditMiddleware("Account"), rest.EditAdminAccount)
+	api.Delete("/accounts/:id", middleware.ValidateToken, middleware.AuditMiddleware("Account"), rest.DeleteAdminAccount)
 
-	// Define routes for management admin accounts
-	api.Get("/accounts", middleware.ValidateToken, middleware.AuditMiddleware("Account"), rest.GetAdminAccount)           // Route to see all admin accounts
-	api.Put("/accounts/:id", middleware.ValidateToken, middleware.AuditMiddleware("Account"), rest.EditAdminAccount)      // Route to update password admin account
-	api.Delete("/accounts/:id", middleware.ValidateToken, middleware.AuditMiddleware("Account"), rest.DeleteAdminAccount) // Route to delete admin account
-
-	// define routes for management competence
-	api.Post("/competence", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.CreateKompetensi)     // route to create competence data
-	api.Get("/competence", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.GetAllKompetensi)      // route to get all competence data
-	api.Get("/competence/:id", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.GetKompetensiByID) // route to get detailed competence data
+	// Define routes for managing competence data
+	api.Post("/competence", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.CreateKompetensi)
+	api.Get("/competence", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.GetAllKompetensi)
+	api.Get("/competence/:id", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.GetKompetensiByID)
 	api.Get("/competence/:type/:id", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.GetKompetensiByID)
-	api.Put("/competence/:id", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.EditKompetensi)      // route to update competence data
-	api.Delete("/competence/:id", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.DeleteKompetensi) // route to delete competence data
+	api.Put("/competence/:id", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.EditKompetensi)
+	api.Delete("/competence/:id", middleware.ValidateToken, middleware.AuditMiddleware("Competence"), rest.DeleteKompetensi)
 
-	// define routes for management certificate data
+	// Define routes for managing certificate data
 	api.Post("/certificate", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.CreateCertificate)
 	api.Get("/certificate", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.GetAllCertificates)
 	api.Get("/certificate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.GetCertificateByID)
@@ -69,10 +65,7 @@ func RouteSetup(r *fiber.App) {
 	api.Delete("/certificate/:id", middleware.ValidateToken, middleware.AuditMiddleware("Certificate"), rest.DeleteCertificate)
 	api.Get("/certificate/download/:id/:type", rest.DownloadCertificate, rest.GetCertificateByID)
 
-	// temporary, remove later
-	api.Post("/checkpdf", rest.CheckPDF)
-
-	// define routes for management signature configuration
+	// Define routes for managing signature configuration data
 	api.Post("/signature", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.CreateSignature)
 	api.Get("/signature", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.GetAllSignature)
 	api.Get("/signature/:id", middleware.ValidateToken, middleware.AuditMiddleware("Signature"), rest.GetSignatureByID)

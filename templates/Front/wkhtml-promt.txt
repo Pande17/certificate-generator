@@ -1,1 +1,0 @@
-wkhtmltopdf --zoom 1.064 --dpi 300 --print-media-type -T 0 -B 0 -R 0 -L 0 "file location input\index.html" "file location input\name.pdf"
