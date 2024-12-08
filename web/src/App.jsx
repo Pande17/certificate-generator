@@ -28,7 +28,6 @@ const App = () => {
       {/* <Route path="*" component={errorHandle} /> */}
       <Route path="/layout" element={<Layout />} />
       <Route path="/side" element={<Side />} />
-      <Route path="/Tes" element={<Tes />} />
       <Route path="/qrPage/:id" element={<CertificateTable />} />
       <Route path="/signature" element={<SignaturePage />} />
       <Route path="/createParaf" element={<CreateParaf />} />
