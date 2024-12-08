@@ -6,7 +6,6 @@ import CreatePage from "./pages/create certif/index.jsx";
 import AddPage from "./pages/Competence/index.jsx";
 import Layout from "./pages/MainLayout/Layout.jsx"
 import Side from "./pages/Side/index.jsx"
-import Tes from "./pages/tes/Index.jsx"
 import CreateKompetensi from "./pages/create competence/index.jsx"
 import SignaturePage from "./pages/Signature page/index.jsx";
 import CreateParaf from "./pages/create Paraf/index.jsx";
